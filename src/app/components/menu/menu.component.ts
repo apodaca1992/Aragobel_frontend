@@ -3,6 +3,7 @@ import { ComponenteInterface } from '@interfaces/componente-interface';
 import { MenuController } from '@ionic/angular';
 import { MenuService } from '@services/menu.service';
 import { Observable } from 'rxjs';
+import { PreferencesService } from '@services/preference.service';
 
 @Component({
   selector: 'app-menu',
@@ -18,13 +19,15 @@ export class MenuComponent  implements OnInit {
   //<ion-icon name="image-outline"></ion-icon>
     
   constructor(private menuService: MenuService,
-              private menu: MenuController) { }
+              private menu: MenuController,
+              private _preferencesService: PreferencesService,) { }
 
   ngOnInit() {
     this.appPages = this.menuService.getMenu();
   }
 
-  cerrarSesion(){
+  async cerrarSesion(){
+    await this._preferencesService.clearSession();
     this.menu.close();
 		this.menu.enable(false);
   }  

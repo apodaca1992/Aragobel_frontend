@@ -64,9 +64,9 @@ export class LoginComponent extends FormClass implements OnInit {
 				this._preferencesService.setItem('token',res.token);
 				
 				//let _user = await this.getUserForId(res.id);
-				this._preferencesService.setItem('user',JSON.stringify(res.user));
-				this._preferencesService.setItem('permisos',JSON.stringify(res.permisos));	
-				this._preferencesService.setItem('roles',JSON.stringify(res.user.roles));	
+				await this._preferencesService.setItem('user',JSON.stringify(res.user));
+				await this._preferencesService.setItem('permisos',JSON.stringify(res.permisos));	
+				await this._preferencesService.setItem('roles',JSON.stringify(res.user.roles));	
 
 				this.menu.enable(true);
 				this._router.navigate(['home']);
