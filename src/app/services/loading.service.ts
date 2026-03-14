@@ -27,8 +27,9 @@ export class LoadingService {
     if (this.activeRequests <= 0) {
       this.activeRequests = 0;
       if (this.loadingElement) {
-        await this.loadingElement.dismiss();
-        this.loadingElement = undefined;
+        const element = this.loadingElement; // Referencia local
+        this.loadingElement = undefined; // Limpiamos la referencia global inmediatamente
+        await element.dismiss();
       }
     }
   }
