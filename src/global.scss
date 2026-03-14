@@ -38,3 +38,32 @@
 
 /* You can add global styles to this file, and also import other style files */
 @import '../node_modules/ngx-toastr/toastr';
+
+
+/* Pulido final para el Header nativo */
+ion-toolbar {
+  --min-height: 56px !important; /* Altura oficial de Android */
+   height: 56px !important;
+}
+
+ion-title {
+  font-size: 1.1rem !important; /* Un poco más pequeño y elegante */
+  font-weight: 500;
+  letter-spacing: 0.0125em;
+  text-transform: none; /* Asegura que no se ponga todo en mayúsculas */
+}
+
+ion-item {
+  /* Esto ayuda a que el label flotante use todo el ancho disponible */
+  --padding-start: 8px; 
+}
+
+ion-input {
+  /* Ajusta el margen interno para que el texto no choque con el icono */
+  --padding-start: 10px !important;
+}
+
+/* Si quieres que el texto de error sea un poquito más pequeño para que no ocupe tanto */
+.error-text {
+  font-size: 0.8rem !important;
+}

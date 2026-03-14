@@ -7,13 +7,13 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+//import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 //LIBRARIES
 import { ToastrModule } from 'ngx-toastr';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { RECAPTCHA_V3_SITE_KEY, RecaptchaV3Module, ReCaptchaV3Service } from 'ng-recaptcha';
+//import { RECAPTCHA_V3_SITE_KEY, RecaptchaV3Module, ReCaptchaV3Service } from 'ng-recaptcha';
 import { environment } from '@env/environment';
 import { AndroidPermissions } from '@awesome-cordova-plugins/android-permissions/ngx';
 
@@ -42,12 +42,14 @@ jeepSqlite(window)
   imports: [
     ComponentsModule,
     BrowserModule,
-    NgbModule, 
-    IonicModule.forRoot(), 
+    //NgbModule, 
+    IonicModule.forRoot({
+      mode: 'md' // Fuerza el modo Android para que sea consistente
+    }),
     AppRoutingModule,
     HttpClientModule,
     RouterModule,
-    RecaptchaV3Module,
+    //RecaptchaV3Module,
     BrowserAnimationsModule,
     ToastrModule.forRoot(),
     FormsModule,
@@ -59,12 +61,12 @@ jeepSqlite(window)
     { 
       provide: RouteReuseStrategy,
       useClass: IonicRouteStrategy 
-    }, 
+    }/*, 
     ReCaptchaV3Service,
     {
       provide: RECAPTCHA_V3_SITE_KEY,
       useValue: environment.API_KEY,
-    },
+    }*/,
     AndroidPermissions
   
   ],

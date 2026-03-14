@@ -1,12 +1,16 @@
 export interface AuthInterface{
-    id                   : number;
-    nombreUsuario        : string;
-    correoElectronico    : string;
     token                : string;
-    permissions         ?: any[];
+    user                 : AuthUserInterface;
+    permisos            ?: any[];
 }
 
 export interface AuthLoginInterface{
     nombreUsuario : string;
     password      : string;
+}
+
+export interface AuthUserInterface{
+    id                   : string;
+    usuario              : string;
+    roles               : any[];
 }

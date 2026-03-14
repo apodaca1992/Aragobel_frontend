@@ -6,7 +6,7 @@ import { AuthLoginInterface } from '@interfaces/auth-interface';
 import { AuthService } from '@services/auth.service';
 import { ToastrService } from 'ngx-toastr';
 import { Location } from '@angular/common';
-import { ReCaptchaV3Service } from 'ng-recaptcha';
+//import { ReCaptchaV3Service } from 'ng-recaptcha';
 import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
 import { ToastService } from '@services/toast.service';
@@ -28,7 +28,7 @@ export class LoginComponent extends FormClass implements OnInit {
 		  // Validators.minLength(6),
 		  // Validators.maxLength(45),
 		]),
-		password: new FormControl('', [
+		contrasena: new FormControl('', [
 		  Validators.required,
 		  // Validators.minLength(6),
 		  // Validators.maxLength(50),
@@ -43,7 +43,7 @@ export class LoginComponent extends FormClass implements OnInit {
 		private _preferencesService: PreferencesService,
 		private _location : Location,
 		public _router: Router,
-		private _recaptchaV3Service: ReCaptchaV3Service,
+		//private _recaptchaV3Service: ReCaptchaV3Service,
 		private menu: MenuController) {
 		super();
 	  }
@@ -58,22 +58,16 @@ export class LoginComponent extends FormClass implements OnInit {
 			return;
 		}
 
-		/*this._recaptchaV3Service.execute('importantAction')
-		.subscribe((token: string) => {
-		  console.debug(`Token [${token}] generated`);
-		},
-		(error) => {
-		  console.error('Error generating token:', error);
-		});*/
-
-		/*this._authService.login({...this.frmLogin.getRawValue()} as AuthLoginInterface).subscribe({
+		this._authService.login({...this.frmLogin.getRawValue()} as AuthLoginInterface).subscribe({
 			next : async res => {
 			  try {
 				this._preferencesService.setItem('token',res.token);
 				
 				//let _user = await this.getUserForId(res.id);
-				//this._preferencesService.setItem('user',JSON.stringify(_user));
-				//this._preferencesService.setItem('permissions',JSON.stringify(res.permissions));				
+				this._preferencesService.setItem('user',JSON.stringify(res.user));
+				this._preferencesService.setItem('permisos',JSON.stringify(res.permisos));	
+				this._preferencesService.setItem('roles',JSON.stringify(res.user.roles));	
+
 				this.menu.enable(true);
 				this._router.navigate(['home']);
 			  } catch(err: any) {									
@@ -87,9 +81,7 @@ export class LoginComponent extends FormClass implements OnInit {
 				console.log(this.messageError(err));
 			  this.toastService.show(this.messageError(err));
 			}
-		});	 */
-		this.menu.enable(true);
-		this._router.navigate(['home']); 
+		});	 
 	}
 
 	/*async getUserForId(id: number){  

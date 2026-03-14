@@ -8,7 +8,7 @@ import { AuthInterface, AuthLoginInterface } from '@interfaces/auth-interface';
   providedIn: 'root',
 })
 export class AuthService {
-  private urlApi : string = `${environment.API}/autenticacion`;
+  private urlApi : string = `${environment.API}/auth`;
 
   constructor(    
     private _httpClient : HttpClient
