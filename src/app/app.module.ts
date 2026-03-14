@@ -13,6 +13,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { ToastrModule } from 'ngx-toastr';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { ErrorInterceptor } from './interceptors/error.interceptor'; // Ajusta la ruta
 //import { RECAPTCHA_V3_SITE_KEY, RecaptchaV3Module, ReCaptchaV3Service } from 'ng-recaptcha';
 import { environment } from '@env/environment';
 import { AndroidPermissions } from '@awesome-cordova-plugins/android-permissions/ngx';
@@ -67,6 +68,11 @@ jeepSqlite(window)
       provide: RECAPTCHA_V3_SITE_KEY,
       useValue: environment.API_KEY,
     }*/,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ErrorInterceptor,
+      multi: true // IMPORTANTE: permite tener varios interceptores
+    },
     AndroidPermissions
   
   ],

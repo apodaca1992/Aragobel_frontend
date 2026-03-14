@@ -74,4 +74,15 @@ export abstract class FormClass {
 
         frm.updateValueAndValidity();
     }
+
+    // En tu FormClass
+    public getErrorMessage(controlName: string, form: FormGroup): string {
+        const control = form.get(controlName);
+        if (control?.touched && control?.errors) {
+            if (control.errors['required']) return 'Este campo es obligatorio';
+            if (control.errors['email']) return 'El formato de correo no es válido';
+            if (control.errors['minlength']) return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
+        }
+        return '';
+    }
 }

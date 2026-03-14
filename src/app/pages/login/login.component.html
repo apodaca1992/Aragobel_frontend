@@ -18,7 +18,7 @@
                     label="Correo electrónico / usuario" 
                     labelPlacement="floating" 
                     type="text"
-                    errorText="Email o usuario inválido"
+                    [errorText]="getErrorMessage('usuario', frmLogin)"
                     formControlName="usuario">
                   </ion-input>
                 </ion-item> 
@@ -29,7 +29,7 @@
                     label="Contraseña" 
                     labelPlacement="floating" 
                     type="password"
-                    errorText="Contraseña inválida"
+                    [errorText]="getErrorMessage('contrasena', frmLogin)"
                     formControlName="contrasena">
                   </ion-input>
                 </ion-item>  

@@ -60,28 +60,25 @@ export class LoginComponent extends FormClass implements OnInit {
 
 		this._authService.login({...this.frmLogin.getRawValue()} as AuthLoginInterface).subscribe({
 			next : async res => {
-			  try {
-				this._preferencesService.setItem('token',res.token);
-				
-				//let _user = await this.getUserForId(res.id);
-				await this._preferencesService.setItem('user',JSON.stringify(res.user));
-				await this._preferencesService.setItem('permisos',JSON.stringify(res.permisos));	
-				await this._preferencesService.setItem('roles',JSON.stringify(res.user.roles));	
-
-				this.menu.enable(true);
-				this._router.navigate(['home']);
-			  } catch(err: any) {									
-				console.log("se produjo un error en el login1");
-				console.log(this.messageError(err));
-				this.toastService.show(this.messageError(err));
-			  }
+			  	await this.saveSession(res);
+      			this._router.navigate(['/home']);
 			},
-			error: (err:HttpErrorResponse) => {	
-				console.log("se produjo un error en el login2");
-				console.log(this.messageError(err));
-			  this.toastService.show(this.messageError(err));
+			error: () => {	
+				
 			}
 		});	 
+	}
+
+	private async saveSession(res: any) {
+		// Centraliza el guardado para evitar errores de escritura
+		await Promise.all([
+			this._preferencesService.setItem('token',res.token),			
+			//let _user = await this.getUserForId(res.id);
+			this._preferencesService.setItem('user',JSON.stringify(res.user)),
+			this._preferencesService.setItem('permisos',JSON.stringify(res.permisos)),
+			this._preferencesService.setItem('roles',JSON.stringify(res.user.roles)),	
+		]);
+		this.menu.enable(true);
 	}
 
 	/*async getUserForId(id: number){  
