@@ -62,9 +62,6 @@ export class LoginComponent extends FormClass implements OnInit {
 			next : async res => {
 			  	await this.saveSession(res);
       			this._router.navigate(['/home']);
-			},
-			error: () => {	
-				
 			}
 		});	 
 	}
