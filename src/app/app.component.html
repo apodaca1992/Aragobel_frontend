@@ -1,0 +1,6 @@
+<ion-app>
+  <app-menu></app-menu>
+  <ion-router-outlet id="principal" style="overflow: auto;" ></ion-router-outlet>
+  <!-- Solo en web -->
+  <jeep-sqlite *ngIf="isWeb"></jeep-sqlite>
+</ion-app>

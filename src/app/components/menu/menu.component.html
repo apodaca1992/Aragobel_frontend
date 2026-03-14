@@ -1,0 +1,40 @@
+<ion-menu side="start" menuId="MenuPrincipal"  contentId="principal">
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-title>Disi-movil</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content class="ion-padding">
+    <ion-menu-toggle
+      auto-hide="false"
+      *ngFor="let p of appPages | async; let i = index">
+      <ion-nav-link routerDirection="root" [routerLink]="[p.redirectTo]">
+        <ion-item
+          (click)="selectedIndex = i"                   
+          lines="none"
+          detail="false"
+          [class.selected]="selectedIndex == i">
+            <ion-icon
+              slot="start"
+              [ios]="p.icon + '-outline'"
+              [md]="p.icon + '-sharp'">
+            </ion-icon>        
+            <ion-label>{{ p.name }}</ion-label>
+
+        </ion-item>    
+      </ion-nav-link> 
+    </ion-menu-toggle>
+
+    <ion-item-group>
+      <ion-item-divider>
+      </ion-item-divider>
+      
+      <ion-item> 
+        <ion-icon slot="start" ios="log-out-outline" md="log-out-sharp"></ion-icon>   
+        <ion-nav-link (click)="cerrarSesion()" routerDirection="root" routerLink="/login">
+          <ion-text>Cerrar Sesión</ion-text>
+        </ion-nav-link>
+      </ion-item>
+    </ion-item-group>
+  </ion-content>
+</ion-menu>

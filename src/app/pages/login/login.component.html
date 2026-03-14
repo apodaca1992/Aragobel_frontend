@@ -1,0 +1,59 @@
+<app-header titulo="Iniciar Sesión" [showOnlyTitle]=true></app-header>  
+
+<ion-content class="ion-padding" fullscreen>
+  
+  <form (ngSubmit)="login()" [formGroup]="frmLogin">  
+    <ion-grid class="p-0">
+      <ion-row class="ion-justify-content-center p-0">
+        <ion-col class="p-0" size="12" size-sm="10" size-md="8">
+
+          <ion-card>    
+            <ion-card-content>
+              <ion-list>
+                      
+                <ion-list-header>
+                  <ion-img style="width: 100%;" src="/assets/shapes.svg"></ion-img>
+                </ion-list-header>
+                <br>
+                <ion-item>
+                  <ion-input 
+                          label="Correo electrónico / usuario" 
+                          labelPlacement="floating" 
+                          type="text"
+                          errorText="Proporcione un email / usuario válido"
+                          id="usuario"
+                          name="usuario"
+                          formControlName="usuario">
+                          <ion-icon slot="start" name="person-outline" aria-hidden="true"></ion-icon>
+                  </ion-input>
+                </ion-item> 
+          
+                <ion-item>
+                  <ion-input 
+                        label="Contraseña" 
+                        labelPlacement="floating" 
+                        type="password"
+                        errorText="Proporcione una contraseña válida"
+                        name="password"
+                        formControlName="password">
+                        <ion-icon slot="start" name="lock-closed" aria-hidden="true"></ion-icon>
+                  </ion-input>
+                </ion-item>  
+              </ion-list>
+      
+              <ion-item>
+                <ion-text routerLink="/forget-password"><b>¿Olvidaste la contraseña?</b></ion-text>
+              </ion-item><br>
+          
+              <ion-button [disabled]="!frmLogin.valid" expand="full" type="submit">
+                Iniciar sesión
+              </ion-button>
+      
+            </ion-card-content>
+          </ion-card>   
+
+        </ion-col>
+      </ion-row>
+    </ion-grid>   
+  </form>
+</ion-content>

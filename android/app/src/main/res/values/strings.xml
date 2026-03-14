@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DisiMovil</string>
+    <string name="title_activity_main">DisiMovil</string>
+    <string name="package_name">com.disimovil</string>
+    <string name="custom_url_scheme">com.disimovil</string>
+</resources>

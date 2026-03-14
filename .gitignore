@@ -1,0 +1,21 @@
+# Dependencias
+node_modules/
+
+# Caché y compilación
+.angular/
+dist/
+www/
+.sourcemaps/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs
+.vscode/
+.idea/
+
+# Carpetas de plataforma (Opcional, pero recomendado si no hay cambios manuales)
+# android/
+# ios/

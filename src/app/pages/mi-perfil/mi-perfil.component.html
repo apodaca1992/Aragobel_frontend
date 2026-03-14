@@ -1,0 +1,40 @@
+
+<app-header titulo="Mi Perfil" idMenu="MenuPrincipal" [showOnlyBtnMenu]=true></app-header>  
+
+<ion-content> 
+  <ion-list>
+
+    <ion-item-sliding *ngFor="let user of componentes">
+
+        <ion-item-options side="start">
+            <ion-item-option (click)="favorite(user)">
+                <ion-icon slot="icon-only" name="heart-outline"></ion-icon>
+            </ion-item-option>
+            <ion-item-option color="danger" (click)="share(user)">
+                <ion-icon slot="icon-only" name="share-outline"></ion-icon>
+            </ion-item-option>
+        </ion-item-options>
+
+        <ion-item>
+            <ion-label>
+              <h3>{{ user.name }}</h3>  
+              <p> {{ user.name }} </p>
+            </ion-label>
+  
+            <ion-label slot="end" class="ion-text-end text-small"> {{ user.name }} </ion-label>
+  
+        </ion-item>
+
+        <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="delete(user)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-item-option>
+        </ion-item-options>
+
+    </ion-item-sliding>
+      
+  </ion-list>
+  <ion-item>
+    <ion-text>{{position}}</ion-text>
+  </ion-item>
+</ion-content>

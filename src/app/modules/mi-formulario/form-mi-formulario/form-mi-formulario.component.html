@@ -1,0 +1,29 @@
+<app-header titulo="Mi Formulario" [showOnlyBtnBack]=true></app-header>    
+
+<ion-content class="ion-padding" fullscreen>    
+
+  <ion-grid class="p-0">
+    <ion-row class="ion-justify-content-center p-0">
+      <ion-col class="p-0" size="12" size-sm="10" size-md="8">
+
+        <ion-card>
+          <ion-card-content>
+            <ion-img style="width: 100%" 
+              [src]="urlImage">
+            </ion-img>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-button type="submit" (click)="takePicture()" expand="full">Tomar Foto</ion-button>
+        <ion-button type="submit" (click)="takeLocation()" expand="full">Tomar mi Ubicación</ion-button>
+        <ion-button type="submit" (click)="isConnected()" expand="full">¿Esta conectado?</ion-button>
+
+        <ion-item>
+          <ion-text>{{position}}</ion-text>
+        </ion-item>
+
+    
+      </ion-col>
+    </ion-row>
+  </ion-grid>  
+</ion-content>

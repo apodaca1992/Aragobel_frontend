@@ -1,0 +1,7 @@
+{
+  "name": "aragobel_frontend",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

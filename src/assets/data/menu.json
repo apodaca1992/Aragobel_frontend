@@ -1,0 +1,22 @@
+[
+    {
+      "name": "Inicio",
+      "redirectTo": "/home",
+      "icon": "home"
+    },
+    {
+      "name": "Category",
+      "redirectTo": "/category",
+      "icon": "paper-plane"
+    },
+    {
+      "name": "Mi Perfil",
+      "redirectTo": "/miPerfil",
+      "icon": "person-circle"
+    },
+    {
+      "name": "Mi Formulario",
+      "redirectTo": "/formulario",
+      "icon": "person-circle"
+    }
+]
