@@ -1,4 +1,47 @@
-ion-input {
-  /* Esto hará que el label sea un poco más pequeño y quepa completo */
-  --label-font-size: 13px !important;
+// Centrar el contenido verticalmente en la pantalla
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.login-card {
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  margin: 0;
+}
+
+.custom-item {
+  // En lugar de #f9f9f9 fijo, usamos una variable que se adapte
+  --background: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.05);
+  --color: var(--ion-text-color, #000);
+  --border-radius: 12px;
+  --padding-start: 12px;
+  margin-bottom: 15px;
+  
+  ion-input {
+    --padding-start: 10px !important; // Separa el texto del icono
+    color: #000 !important; // Color de la letra al escribir
+    font-weight: 500;
+  }
+}
+
+// Estilo para la etiqueta cuando flota (para que se lea bien)
+ion-input .label-text-wrapper {
+  color: var(--ion-color-step-600, #666) !important;
+}
+
+.main-button {
+  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
+  height: 48px;
+  font-weight: 600;
+}
+
+// Para dispositivos móviles pequeños
+@media (max-width: 576px) {
+  .login-card {
+    box-shadow: none; // En móvil se ve mejor más plano
+    background: transparent;
+  }
 }

@@ -11,3 +11,27 @@
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
+
+/* 1. Mata el fondo azul/amarillo del autocompletado */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    /* Crea una sombra interna blanca/gris que tapa el color de Chrome */
+    -webkit-box-shadow: 0 0 0px 1000px #f2f2f2 inset !important;
+    
+    /* Define el color de la letra que Chrome intenta poner azul */
+    -webkit-text-fill-color: #000000 !important;
+    
+    /* Evita que cambie la fuente */
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* 2. Específico para componentes de Ionic (Shadow DOM) */
+ion-input.ios, ion-input.md {
+    --background: transparent;
+    
+    input {
+        background: transparent !important;
+    }
+}

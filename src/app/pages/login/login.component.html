@@ -1,51 +1,52 @@
 <app-header titulo="Iniciar Sesión" [showOnlyTitle]="true"></app-header>  
 
 <ion-content class="ion-padding" fullscreen="true">
-  
-  <form (ngSubmit)="login()" [formGroup]="frmLogin">  
-    <ion-grid class="ion-no-padding">
-      <ion-row class="ion-justify-content-center">
-        <ion-col size="12" size-sm="10" size-md="8">
+  <div class="flex-center"> <form (ngSubmit)="login()" [formGroup]="frmLogin" style="width: 100%;">  
+      <ion-grid>
+        <ion-row class="ion-justify-content-center">
+          <ion-col size="12" size-md="6" size-lg="4">
 
-          <ion-card mode="ios"> <ion-card-content>
-              <div class="ion-text-center ion-padding-bottom">
-                <ion-img style="width: 60%; margin: 0 auto;" src="/assets/shapes.svg"></ion-img>
-              </div>
+            <ion-card mode="ios" class="login-card"> 
+              <ion-card-content>
+                <div class="ion-text-center ion-padding">
+                  <ion-img style="width: 180px; margin: 0 auto;" src="/assets/shapes.svg"></ion-img>
+                </div>
 
-              <ion-list lines="none"> <ion-item class="ion-margin-bottom">
-                  <ion-icon slot="start" name="person-outline" class="ion-margin-top"></ion-icon>
-                  <ion-input 
-                    label="Correo electrónico / usuario" 
-                    labelPlacement="floating" 
-                    type="text"
-                    [errorText]="getErrorMessage('usuario', frmLogin)"
-                    formControlName="usuario">
-                  </ion-input>
-                </ion-item> 
-          
-                <ion-item class="ion-margin-bottom">
-                  <ion-icon slot="start" name="lock-closed-outline" class="ion-margin-top"></ion-icon>
-                  <ion-input 
-                    label="Contraseña" 
-                    labelPlacement="floating" 
-                    type="password"
-                    [errorText]="getErrorMessage('contrasena', frmLogin)"
-                    formControlName="contrasena">
-                  </ion-input>
-                </ion-item>  
-              </ion-list>
-          
-              <div class="ion-padding-top">
-                <ion-button [disabled]="!frmLogin.valid" expand="block" type="submit" shape="round">
-                  Iniciar
-                </ion-button>
-              </div>
-      
-            </ion-card-content>
-          </ion-card>   
+                <div class="input-group">
+                  <ion-item lines="none" class="custom-item">
+                    <ion-icon slot="start" name="person-outline"></ion-icon>
+                    <ion-input 
+                      label="Usuario" 
+                      labelPlacement="floating" 
+                      type="text"
+                      [errorText]="getErrorMessage('usuario', frmLogin)"
+                      formControlName="usuario">
+                    </ion-input>
+                  </ion-item> 
+            
+                  <ion-item lines="none" class="custom-item">
+                    <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+                    <ion-input 
+                      label="Contraseña" 
+                      labelPlacement="floating" 
+                      type="password"
+                      [errorText]="getErrorMessage('contrasena', frmLogin)"
+                      formControlName="contrasena">
+                    </ion-input>
+                  </ion-item>  
+                </div>
+            
+                <div class="ion-padding-top">
+                  <ion-button [disabled]="!frmLogin.valid" expand="block" type="submit" shape="round" class="main-button">
+                    Iniciar
+                  </ion-button>
+                </div>
+              </ion-card-content>
+            </ion-card>   
 
-        </ion-col>
-      </ion-row>
-    </ion-grid>   
-  </form>
+          </ion-col>
+        </ion-row>
+      </ion-grid>   
+    </form>
+  </div>
 </ion-content>
