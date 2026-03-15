@@ -1,40 +1,34 @@
-<ion-menu side="start" menuId="MenuPrincipal"  contentId="principal">
-  <ion-header>
-    <ion-toolbar color="primary">
-      <ion-title>Aragobel</ion-title>
-    </ion-toolbar>
-  </ion-header>
-  <ion-content class="ion-padding">
-    <ion-menu-toggle
-      auto-hide="false"
-      *ngFor="let p of appPages | async; let i = index">
-      <ion-nav-link routerDirection="root" [routerLink]="[p.redirectTo]">
+<ion-menu side="start" menuId="MenuPrincipal" contentId="principal">
+  <div class="menu-header-bg">
+    <h2>Aragobel</h2>
+    <p style="color: rgba(255,255,255,0.8); margin: 4px 0 0 0; font-size: 13px;">
+      v1.0.2 - Sistema de Gestión
+    </p>
+  </div>
+
+  <ion-content>
+    <div style="margin-top: 10px;"> <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages | async">
         <ion-item
-          (click)="selectedIndex = i"                   
+          routerDirection="root"
+          [routerLink]="[p.redirectTo]"
+          routerLinkActive="selected"
+          [routerLinkActiveOptions]="{ exact: false }"
           lines="none"
           detail="false"
-          [class.selected]="selectedIndex == i">
-            <ion-icon
-              slot="start"
-              [ios]="p.icon + '-outline'"
-              [md]="p.icon + '-sharp'">
-            </ion-icon>        
+          button>
+            <ion-icon slot="start" [name]="p.icon"></ion-icon>        
             <ion-label>{{ p.name }}</ion-label>
-
         </ion-item>    
-      </ion-nav-link> 
-    </ion-menu-toggle>
+      </ion-menu-toggle>
+    </div>
 
-    <ion-item-group>
-      <ion-item-divider>
-      </ion-item-divider>
-      
-      <ion-item> 
-        <ion-icon slot="start" ios="log-out-outline" md="log-out-sharp"></ion-icon>   
-        <ion-nav-link (click)="cerrarSesion()" routerDirection="root" routerLink="/login">
-          <ion-text>Cerrar Sesión</ion-text>
-        </ion-nav-link>
-      </ion-item>
-    </ion-item-group>
+    <ion-list-header style="margin-top: 20px;">
+      <ion-label color="medium" style="font-size: 12px;">CUENTA</ion-label>
+    </ion-list-header>
+
+    <ion-item (click)="cerrarSesion()" button detail="false" class="logout-item" lines="none"> 
+      <ion-icon slot="start" name="log-out-outline"></ion-icon>   
+      <ion-label>Cerrar Sesión</ion-label>
+    </ion-item>
   </ion-content>
 </ion-menu>

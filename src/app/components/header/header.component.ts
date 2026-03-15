@@ -1,5 +1,4 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { IonRouterOutlet } from "@ionic/angular";
 import { HardwareBackButtonService } from '@services/hardware-back-button.service';
 
 @Component({
@@ -8,7 +7,6 @@ import { HardwareBackButtonService } from '@services/hardware-back-button.servic
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent  implements OnInit {
-  //@ViewChild(IonRouterOutlet, { static: true}) routerOutlet?: IonRouterOutlet;
 
   @Input() titulo: string = '';
   @Input() backRoute: string = '';

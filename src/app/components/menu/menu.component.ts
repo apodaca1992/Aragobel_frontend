@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ComponenteInterface } from '@interfaces/componente-interface';
-import { MenuController } from '@ionic/angular';
+import { MenuController, NavController } from '@ionic/angular';
 import { MenuService } from '@services/menu.service';
 import { Observable } from 'rxjs';
 import { PreferencesService } from '@services/preference.service';
@@ -10,26 +10,30 @@ import { PreferencesService } from '@services/preference.service';
   templateUrl: './menu.component.html',
   styleUrls: ['./menu.component.scss'],
 })
-export class MenuComponent  implements OnInit {
+export class MenuComponent implements OnInit {
 
-  selectedIndex = 0;
+  // Ya no necesitamos selectedIndex
   appPages!: Observable<ComponenteInterface[]>;
-  //<ion-icon name="camera-outline"></ion-icon>
-  //<ion-icon name="image-outline"></ion-icon>
-  //<ion-icon name="image-outline"></ion-icon>
     
-  constructor(private menuService: MenuService,
-              private menu: MenuController,
-              private _preferencesService: PreferencesService,) { }
+  constructor(
+    private menuService: MenuService,
+    private menu: MenuController,
+    private _preferencesService: PreferencesService,
+    private navCtrl: NavController
+  ) { }
 
   ngOnInit() {
     this.appPages = this.menuService.getMenu();
   }
 
-  async cerrarSesion(){
+  async cerrarSesion() {
     await this._preferencesService.clearSession();
-    this.menu.close();
-		this.menu.enable(false);
-  }  
-
+    await this.menu.close('MenuPrincipal');
+    await this.menu.enable(false);
+    
+    this.navCtrl.navigateRoot('/login', {
+      animated: true,
+      animationDirection: 'back'
+    });
+  }
 }
