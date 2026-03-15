@@ -8,9 +8,10 @@ import { AppRoutingModule } from './app-routing.module';
 
 //LIBRARIES
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ErrorInterceptor } from './interceptors/error.interceptor'; // Ajusta la ruta
 import { LoadingInterceptor } from './interceptors/loading.interceptor';
+import { tokenInterceptor } from './interceptors/token.interceptor'; // Tu nuevo interceptor
 import { environment } from '@env/environment';
 import { AndroidPermissions } from '@awesome-cordova-plugins/android-permissions/ngx';
 
@@ -56,7 +57,10 @@ jeepSqlite(window)
       useClass: ErrorInterceptor,
       multi: true // IMPORTANTE: permite tener varios interceptores
     },
-    AndroidPermissions
+    AndroidPermissions,
+    provideHttpClient(
+      withInterceptors([tokenInterceptor]) // <--- Aquí registras el interceptor funcional
+    ),
   
   ],
   bootstrap: [AppComponent],
