@@ -9,8 +9,8 @@ import { AppRoutingModule } from './app-routing.module';
 //LIBRARIES
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { HttpClientModule, HTTP_INTERCEPTORS, provideHttpClient, withInterceptors } from '@angular/common/http';
-import { ErrorInterceptor } from './interceptors/error.interceptor'; // Ajusta la ruta
-import { LoadingInterceptor } from './interceptors/loading.interceptor';
+import { errorInterceptor } from './interceptors/error.interceptor'; // Ajusta la ruta
+import { loadingInterceptor } from './interceptors/loading.interceptor';
 import { tokenInterceptor } from './interceptors/token.interceptor'; // Tu nuevo interceptor
 import { environment } from '@env/environment';
 import { AndroidPermissions } from '@awesome-cordova-plugins/android-permissions/ngx';
@@ -19,9 +19,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FeatherModule } from 'angular-feather';
 import { allIcons } from 'angular-feather/icons';
-import { defineCustomElements as jeepSqlite } from 'jeep-sqlite/loader'
+import { defineCustomElements as jeepSqlite } from 'jeep-sqlite/loader';
 
-jeepSqlite(window)
+jeepSqlite(window);
 
 @NgModule({
   declarations: [
@@ -47,21 +47,14 @@ jeepSqlite(window)
       provide: RouteReuseStrategy,
       useClass: IonicRouteStrategy 
     },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: LoadingInterceptor,
-      multi: true
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: ErrorInterceptor,
-      multi: true // IMPORTANTE: permite tener varios interceptores
-    },
     AndroidPermissions,
     provideHttpClient(
-      withInterceptors([tokenInterceptor]) // <--- Aquí registras el interceptor funcional
-    ),
-  
+      withInterceptors([
+        loadingInterceptor, // Controla el spinner
+        tokenInterceptor,   // Inyecta el JWT
+        errorInterceptor    // Atrapa fallos (401, 500, etc)
+      ]) // <--- Aquí registras el interceptor funcional
+    ),  
   ],
   bootstrap: [AppComponent],
   schemas: [

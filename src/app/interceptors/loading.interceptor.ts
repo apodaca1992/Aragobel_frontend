@@ -1,29 +1,25 @@
-// src/app/interceptors/loading.interceptor.ts
-import { Injectable } from '@angular/core';
-import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { HttpRequest, HttpHandlerFn, HttpInterceptorFn, HttpEvent } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { LoadingService } from '@services/loading.service';
 
-@Injectable()
-export class LoadingInterceptor implements HttpInterceptor {
-  constructor(private loadingService: LoadingService) {}
+export const loadingInterceptor: HttpInterceptorFn = (req: HttpRequest<any>, next: HttpHandlerFn): Observable<HttpEvent<any>> => {
+  const loadingService = inject(LoadingService);
 
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Un Senior permite saltarse el loading si la petición lleva un header especial
-    if (request.headers.has('skipLoading')) {
-      // IMPORTANTE: Quitamos el header personalizado antes de enviar al servidor
-      const cleanRequest = request.clone({ headers: request.headers.delete('skipLoading') });
-      return next.handle(cleanRequest);
-    }
-
-    this.loadingService.show();
-
-    return next.handle(request).pipe(
-      finalize(() => {
-        // finalize se ejecuta tanto en éxito como en error
-        this.loadingService.hide();
-      })
-    );
+  // 1. Verificamos si debemos saltar el loading
+  if (req.headers.has('skipLoading')) {
+    const cleanRequest = req.clone({ headers: req.headers.delete('skipLoading') });
+    return next(cleanRequest);
   }
-}
+
+  // 2. Mostramos el loading
+  loadingService.show();
+
+  // 3. Usamos finalize para asegurar que SIEMPRE se oculte, incluso si la petición se cancela (Abort)
+  return next(req).pipe(
+    finalize(() => {
+      loadingService.hide();
+    })
+  );
+};
