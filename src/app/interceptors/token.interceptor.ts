@@ -2,11 +2,12 @@ import { inject } from '@angular/core';
 import { HttpRequest, HttpHandlerFn, HttpEvent, HttpInterceptorFn } from '@angular/common/http';
 import { from, Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { Preferences } from '@capacitor/preferences';
+import { PreferencesService } from '@services/preference.service';
 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
+  const preferenceService = inject(PreferencesService);
   // 1. Obtenemos el token de Preferences (es una Promise, por eso usamos 'from' y 'switchMap')
-  return from(Preferences.get({ key: 'token' })).pipe(
+  return from(preferenceService.getItem('token')).pipe(
     switchMap((res) => {
       const token = res.value;
 
