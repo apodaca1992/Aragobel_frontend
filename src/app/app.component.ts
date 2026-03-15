@@ -1,5 +1,4 @@
 import { Component, ViewChild } from '@angular/core';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Platform, MenuController, IonRouterOutlet } from "@ionic/angular";
 //import { SplashScreen } from '@capacitor/splash-screen';
 import { AndroidPermissions } from '@awesome-cordova-plugins/android-permissions/ngx';
@@ -17,7 +16,6 @@ export class AppComponent {
   @ViewChild(IonRouterOutlet, { static: false}) routerOutlet?: IonRouterOutlet;
 
   constructor(
-    private modalService: NgbModal,
     private platform: Platform,
     private androidPermissions: AndroidPermissions,
     private databaseService: DatabaseService,
