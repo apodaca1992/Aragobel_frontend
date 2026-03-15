@@ -1,69 +1,13 @@
-/*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
- */
-
-/* Core CSS required for Ionic components to work properly */
+/* Estilos Core requeridos */
 @import "@ionic/angular/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
 
-/* Optional CSS utils that can be commented out */
+/* Utilidades opcionales (Padding, Flex, etc) */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
-
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
-
-/* You can add global styles to this file, and also import other style files */
-@import '../node_modules/ngx-toastr/toastr';
-
-
-/* Pulido final para el Header nativo */
-ion-toolbar {
-  --min-height: 56px !important; /* Altura oficial de Android */
-   height: 56px !important;
-}
-
-ion-title {
-  font-size: 1.1rem !important; /* Un poco más pequeño y elegante */
-  font-weight: 500;
-  letter-spacing: 0.0125em;
-  text-transform: none; /* Asegura que no se ponga todo en mayúsculas */
-}
-
-ion-item {
-  /* Esto ayuda a que el label flotante use todo el ancho disponible */
-  --padding-start: 8px; 
-}
-
-ion-input {
-  /* Ajusta el margen interno para que el texto no choque con el icono */
-  --padding-start: 10px !important;
-}
-
-/* Si quieres que el texto de error sea un poquito más pequeño para que no ocupe tanto */
-.error-text {
-  font-size: 0.8rem !important;
-}

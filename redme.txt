@@ -1,0 +1,8 @@
+##instalar node virtual
+nvm install 20
+
+##usar en la terminal la version de node
+nvm use 20;
+
+#ejecutar el proyecto
+npm start

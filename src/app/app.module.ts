@@ -10,7 +10,6 @@ import { AppRoutingModule } from './app-routing.module';
 //import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 //LIBRARIES
-import { ToastrModule } from 'ngx-toastr';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ErrorInterceptor } from './interceptors/error.interceptor'; // Ajusta la ruta
@@ -53,7 +52,6 @@ jeepSqlite(window)
     RouterModule,
     //RecaptchaV3Module,
     BrowserAnimationsModule,
-    ToastrModule.forRoot(),
     FormsModule,
     ReactiveFormsModule,    
     CommonModule,
