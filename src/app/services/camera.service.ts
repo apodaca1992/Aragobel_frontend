@@ -4,97 +4,84 @@ import { Capacitor } from '@capacitor/core';
 import { Platform } from '@ionic/angular';
 import { FileSystemService } from './file-system.service';
 
-
 @Injectable({
   providedIn: 'root'
 })
 export class CameraService {
 
-  constructor(private platform: Platform,
-              private fileSystem: FileSystemService) {     
-    Camera.checkPermissions();
-  }
+  constructor(
+    private platform: Platform,
+    private fileSystem: FileSystemService
+  ) { }
 
-  async takePicture(nameFile:string){
-    const capturedPhoto = await Camera.getPhoto({
-      quality: 80,
-      saveToGallery: false,
-      source: CameraSource.Camera, // automatically take a new photo with the camera
-      resultType: this.platform.is('hybrid') ? CameraResultType.Base64 : CameraResultType.Uri
-    });
+  /**
+   * Toma una foto, la guarda permanentemente y retorna la URL para mostrarla en el HTML.
+   */
+  async takeAndSavePicture(folderName: string) {
+    try {
+      // 1. Verificar/Solicitar permisos antes de abrir la cámara
+      const hasPermission = await this.checkPermissions();
+      if (!hasPermission) return null;
 
-    // Write the file to the data directory
-    const fileName = nameFile + '_' + new Date().getTime() + '.' + capturedPhoto.format;
+      // 2. Capturar la foto
+      const capturedPhoto = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        saveToGallery: false,
+        source: CameraSource.Camera,
+        resultType: this.platform.is('hybrid') ? CameraResultType.Base64 : CameraResultType.Uri
+      });
 
-    if (this.platform.is('hybrid')) {     
-      // Convert photo to base64 format, required by Filesystem API to save
-      const base64Data = capturedPhoto.base64String!; //await this.readAsBase64(photo);
-      
-      //const prefix = `data:image/${capturedPhoto.format};base64,`;
-      const base64Complete = base64Data;
+      const fileName = `${folderName}_${new Date().getTime()}.${capturedPhoto.format}`;
 
-      console.log(fileName);
-      console.log(base64Complete);
-      //create folder
-      await this.fileSystem.mkdir(nameFile); 
-      
-      console.log(nameFile);
-      
-      const savedFile = await this.fileSystem.writeFile(nameFile + '/' + fileName, base64Complete); 
-
-      console.log("paso writeFile");
-      console.log(savedFile.uri);
-
-      return  Capacitor.convertFileSrc(savedFile.uri);
-    } else {            
-      return  capturedPhoto.webPath;
+      // 3. Manejo por plataforma
+      if (this.platform.is('hybrid')) {
+        return await this.saveHybridPhoto(folderName, fileName, capturedPhoto);
+      } else {
+        return capturedPhoto.webPath; // En web no guardamos en FileSystem usualmente
+      }
+    } catch (error) {
+      console.error('Error en CameraService:', error);
+      return null;
     }
   }
 
-  // Save picture to file on device
-  async savePictureBase64(nameFolder: string) { 
+  private async saveHybridPhoto(folder: string, name: string, photo: Photo) {
+    if (!photo.base64String) return null;
+
+    // Aseguramos que la subcarpeta exista
+    await this.fileSystem.mkdir(folder);
+
+    // Escribimos el archivo
+    const savedFile = await this.fileSystem.writeFile(`${folder}/${name}`, photo.base64String);
     
-    const capturedPhoto = await Camera.getPhoto({
+    // Convertimos la URI nativa a una URL que el <img> de la app pueda leer
+    return savedFile ? Capacitor.convertFileSrc(savedFile.uri) : null;
+  }
+
+  /**
+   * Solo captura y devuelve el Base64 listo para enviar al API (con prefijo)
+   */
+  async getBase64Picture() {
+    const photo = await Camera.getPhoto({
       quality: 80,
-      saveToGallery: false,
-      source: CameraSource.Camera, // automatically take a new photo with the camera
-      resultType: this.platform.is('hybrid') ? CameraResultType.Base64 : CameraResultType.Uri
+      resultType: CameraResultType.Base64,
+      source: CameraSource.Camera
     });
-    // Write the file to the data directory
-    const fileName = nameFolder + '_' + new Date().getTime() + '.' + capturedPhoto.format;
-   
-      // Convert photo to base64 format, required by Filesystem API to save
-      const base64Data = capturedPhoto.base64String!; //await this.readAsBase64(photo);
 
-      const prefix = `data:image/${capturedPhoto.format};base64,`;
-
-      return prefix + base64Data;
+    return `data:image/${photo.format};base64,${photo.base64String}`;
   }
 
-  // Read camera photo into base64 format based on the platform the app is running on
-  private async readAsBase64(photo: Photo) {
-    // "hybrid" will detect Cordova or Capacitor
-    if (this.platform.is('hybrid')) {
-      // Read the file into base64 format
-      const file = await this.fileSystem.readFile(photo.path!); 
-      return file.data;
-    } else {
-      // Fetch the photo, read as a blob, then convert to base64 format
-      const response = await fetch(photo.webPath!);
-      const blob = await response.blob();
-
-      return (await this.convertBlobToBase64(blob)) as string;
+  private async checkPermissions(): Promise<boolean> {
+    if (!this.platform.is('hybrid')) {
+      return true; 
     }
+    
+    const status = await Camera.checkPermissions();
+    if (status.camera !== 'granted') {
+      const request = await Camera.requestPermissions();
+      return request.camera === 'granted';
+    }
+    return true;
   }
-
-  convertBlobToBase64 = (blob: Blob) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onerror = reject;
-      reader.onload = () => {
-        resolve(reader.result);
-      };
-      reader.readAsDataURL(blob);
-  });
-
 }

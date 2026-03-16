@@ -27,7 +27,7 @@ export class FormMiFormularioComponent  extends FormClass implements OnInit  {
   
   async takePicture() {
     try {
-      const photo = await this.cameraService.takePicture('prueba');
+      const photo = await this.cameraService.takeAndSavePicture('prueba');
       
       if (photo) {
         this.urlImage = photo;
@@ -38,7 +38,7 @@ export class FormMiFormularioComponent  extends FormClass implements OnInit  {
     }
   }
 
-async takeLocation() {
+  async takeLocation() {
     try {
       // 1. Obtenemos la posición (un solo await basta)
       const location = await this.geolocationService.getPosition();
