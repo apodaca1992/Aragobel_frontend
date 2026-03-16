@@ -25,38 +25,43 @@ export class FormMiFormularioComponent  extends FormClass implements OnInit  {
 
   ngOnInit() {}
   
-  async takePicture(){
-    console.log(this.urlImage);
-    try{
-      this.urlImage = await this.cameraService.takePicture('prueba') || ''; 
-      this.position = this.urlImage;
-    }catch(e:any){
-      this.position = e.message;
-      if (e instanceof GeolocationPositionError) {
-        console.log(e.message);
-        this.position = e.message;
+  async takePicture() {
+    try {
+      const photo = await this.cameraService.takePicture('prueba');
+      
+      if (photo) {
+        this.urlImage = photo;
+        this.position = 'Imagen capturada correctamente';
       }
+    } catch (e: any) {
+      this.toastService.show('Cámara cancelada o error', 'warning');
     }
-  
   }
 
-  async takeLocation(){
-    try{
-      var location = await (await this.geolocationService.getPosition());
-      console.log(location);
-      this.position = 'Latitud:' + location.latitude.toString() + ' Longitud:' +  location.longitude.toString();
-    }catch(e:any){
-      this.position = e.message;
-      if (e instanceof GeolocationPositionError) {
-        console.log(e.message);
-        this.position = e.message;
+async takeLocation() {
+    try {
+      // 1. Obtenemos la posición (un solo await basta)
+      const location = await this.geolocationService.getPosition();
+
+      // 2. Validación de seguridad para TypeScript
+      if (location) {
+        console.log(location);
+        this.position = `Latitud: ${location.latitude} | Longitud: ${location.longitude}`;
+      } else {
+        // El servicio ya disparó un Toast, así que solo actualizamos el estado local
+        this.position = 'No se pudo obtener la ubicación.';
       }
+
+    } catch (e: any) {
+      this.position = 'Error de ubicación: ' + e.message;
+      // Nota: Si usas Capacitor Geolocation, el error no siempre es "instanceof GeolocationPositionError"
+      // pero el catch capturará cualquier fallo de hardware.
     }
   }
 
   async isConnected(){
-    this.toastService.show('connected:' + this.networkService.isConnected() + ' name:' + this.networkService.getNameNetwork());
-    this.position = 'connected:' + this.networkService.isConnected() + ' name:' + this.networkService.getNameNetwork();
+    this.toastService.show('connected:' + this.networkService.isConnected());
+    this.position = 'connected:' + this.networkService.isConnected();
   }
 
 }

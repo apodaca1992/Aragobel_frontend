@@ -25,7 +25,7 @@ export class MiPerfilComponent  implements OnInit {
       redirectTo: '/home'
     }
   ];
-  public position: string = 'Prueba';
+  public position: string = 'Obteniendo ubicación...';
 
   constructor(
     private deviceService: DeviceService,
@@ -33,23 +33,30 @@ export class MiPerfilComponent  implements OnInit {
     ) {}
 
   async ngOnInit() {
+    this.logDeviceInfo();
+    
+    await this.loadCurrentLocation();
+  }
+
+  private async logDeviceInfo() {
     console.log(await this.deviceService.getDeviceId());
     console.log(await this.deviceService.getModel());
     console.log(await this.deviceService.getManufacturer());
     console.log(await this.deviceService.getOperationSystem());
     console.log(await this.deviceService.getOsVersion());
     console.log(await this.deviceService.getPlatform());
-    
-    try{
-      var location = await (await this.geolocationService.getPosition());
-      console.log(location);
-      this.position = 'Latitud:' + location.latitude.toString() + ' Longitud:' +  location.longitude.toString();
-    }catch(e:any){
-      this.position = e.message;
-      if (e instanceof GeolocationPositionError) {
-        console.log(e.message);
-        this.position = e.message;
-      }
+  }
+
+  private async loadCurrentLocation() {
+    const coords = await this.geolocationService.getPosition();
+
+    // AQUÍ ESTÁ EL TRUCO: Si coords no es nulo, TypeScript nos deja usarlo
+    if (coords) {
+      console.log('Ubicación recibida:', coords);
+      this.position = `Latitud: ${coords.latitude} | Longitud: ${coords.longitude}`;
+    } else {
+      // Si llegamos aquí, el servicio ya mostró un Toast con el error
+      this.position = 'Ubicación no disponible';
     }
   }
 

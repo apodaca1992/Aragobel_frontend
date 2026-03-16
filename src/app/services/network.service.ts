@@ -1,38 +1,55 @@
-import { Injectable } from '@angular/core';
-import { Network, ConnectionStatus } from '@capacitor/network';
+import { Injectable, NgZone } from '@angular/core';
+import { Network } from '@capacitor/network';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { ToastService } from '@services/toast.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class NetworkService {  
-  networkStatus!: ConnectionStatus;
+export class NetworkService {
+  // Usamos BehaviorSubject para que cualquier componente sepa el estado actual al suscribirse
+  private statusSubject = new BehaviorSubject<boolean>(true);
+  
+  constructor(
+    private zone: NgZone, 
+    private toast: ToastService
+  ) {
+    this.initializeNetworkCheck();
+  }
 
-  constructor() { 
-    if(Network){
-      Network.getStatus().then((status) =>{
-        this.networkStatus = status;
+  private async initializeNetworkCheck() {
+    // 1. Obtener estado inicial
+    const status = await Network.getStatus();
+    this.statusSubject.next(status.connected);
+
+    // 2. Escuchar cambios
+    Network.addListener('networkStatusChange', (status) => {
+      // NgZone asegura que Angular detecte el cambio de estado inmediatamente
+      this.zone.run(() => {
+        console.log('Network status changed', status);
+        this.statusSubject.next(status.connected);
+        
+        if (!status.connected) {
+          this.toast.show('Sin conexión a Internet', 'danger', 'cloud-offline-outline');
+        } else {
+          this.toast.show('Conexión restaurada', 'success', 'cloud-done-outline');
+        }
       });
-    }
-    Network.addListener('networkStatusChange', networkStatus2 => {
-      setTimeout(async () => {
-        this.networkStatus = await Network.getStatus();
-      }, 100);
     });
   }
 
-  public isConnected(){
-    if(Network){
-      return this.networkStatus.connected;
-    }else{
-      return false;
-    }
+  // Exponer el estado como Observable para los componentes
+  get onNetworkChange(): Observable<boolean> {
+    return this.statusSubject.asObservable();
   }
 
-  public getNameNetwork(){
-    if(Network){
-      return this.networkStatus.connectionType.toString();
-    }else{
-      return '';
-    }
+  // Método síncrono rápido
+  public isConnected(): boolean {
+    return this.statusSubject.value;
   }
 }
+/*
+<ion-button [disabled]="!(networkService.onNetworkChange | async)">
+  Enviar Datos
+</ion-button>
+*/
