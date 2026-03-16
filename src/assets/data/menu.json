@@ -1,21 +1,35 @@
 [
-    {
-      "name": "Inicio",
-      "redirectTo": "/home",
-      "icon": "home-outline"
-    },
-    {
-      "name": "Checador",
-      "redirectTo": "/category",
-      "icon": "time-outline"
-    },
-    {
-      "name": "Mis Entregas",
-      "redirectTo": "/formulario",
-      "icon": "cube-outline"
-    },{
-      "name": "Mi Perfil",
-      "redirectTo": "/miPerfil",
-      "icon": "person-circle-outline"
-    }
+  {
+    "name": "Inicio",
+    "redirectTo": "/home",
+    "icon": "home-outline",
+    "section": "PRINCIPAL"
+  },
+  {
+    "name": "Checador",
+    "redirectTo": "/category",
+    "icon": "time-outline",
+    "section": "PRINCIPAL",
+    "permisoRequerido": "CHECADOR"
+  },
+  {
+    "name": "Mis Entregas",
+    "redirectTo": "/formulario",
+    "icon": "cube-outline",
+    "section": "PRINCIPAL",
+    "permisoRequerido": "ENTREGAS"
+  },
+  {
+    "name": "Reportes",
+    "redirectTo": "/formulario",
+    "icon": "cube-outline",
+    "section": "PRINCIPAL",
+    "permisoRequerido": "ENTREGAS"
+  },
+  {
+    "name": "Mi Perfil",
+    "redirectTo": "/miPerfil",
+    "icon": "person-circle-outline",
+    "section": "CUENTA"
+  }
 ]

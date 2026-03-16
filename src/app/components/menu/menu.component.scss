@@ -1,51 +1,13 @@
 // menu.component.scss
 
-// Contenedor principal del menú
+// Contenedor principal
 ion-content {
   --background: #ffffff;
 }
 
-// Estilo de los ítems del menú
-ion-item {
-  --border-radius: 12px; // Bordes redondeados para un look moderno
-  --padding-start: 16px;
-  --inner-padding-end: 16px;
-  margin: 4px 8px; // Separación entre ítems para que no se vean pegados
-  font-size: 15px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-
-  ion-icon {
-    font-size: 22px;
-    color: #5f6368; // Color neutro para iconos no seleccionados
-  }
-}
-
-// El estado SELECCIONADO (La clave del éxito)
-.selected {
-  --background: rgba(var(--ion-color-primary-rgb), 0.08); // Fondo sutil azul
-  --color: var(--ion-color-primary);
-  font-weight: 700;
-
-  ion-icon {
-    color: var(--ion-color-primary); // Icono resalta en azul
-  }
-}
-
-// Botón de Cerrar Sesión (Separación y peligro)
-.logout-item {
-  margin-top: 20px;
-  border-top: 0.5px solid #f0f0f0;
-  --color: #d93025; // Rojo Google para acciones destructivas
-  
-  ion-icon {
-    color: #d93025;
-  }
-}
-
-// Texto del encabezado
+// Encabezado del menú (Branding)
 .menu-header-bg {
-  padding: 32px 16px;
+  padding: 40px 16px 24px 16px; // Un poco más de aire arriba
   background: var(--ion-color-primary);
   display: flex;
   flex-direction: column;
@@ -57,5 +19,70 @@ ion-item {
     margin: 0;
     letter-spacing: 0.5px;
     font-size: 24px;
+  }
+}
+
+// Estilo de los títulos de sección (CUENTA, etc.)
+ion-list-header {
+  margin-top: 16px;
+  min-height: 20px;
+  padding-start: 24px; // Alineado con el texto de los iconos
+  
+  ion-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #80868b; // Gris Google
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+  }
+}
+
+// Estilo base de los ítems
+ion-item {
+  --border-radius: 8px; 
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  margin: 2px 12px; // Un poco más de margen lateral
+  --min-height: 44px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  --color: #3c4043;
+
+  ion-icon {
+    font-size: 20px;
+    color: #5f6368;
+    margin-inline-end: 16px; // Espacio entre icono y texto
+  }
+
+  // Efecto Hover (solo para escritorio)
+  &:hover {
+    --background: #f1f3f4;
+  }
+}
+
+// Estado SELECCIONADO
+.selected {
+  --background: rgba(var(--ion-color-primary-rgb), 0.1); 
+  --color: var(--ion-color-primary);
+  font-weight: 600;
+
+  ion-icon {
+    color: var(--ion-color-primary);
+  }
+}
+
+// Botón de Cerrar Sesión
+.logout-item {
+  margin-top: 8px;
+  border-top: 1px solid #f1f3f4;
+  --color: #d93025; 
+  
+  ion-icon {
+    color: #d93025;
+  }
+
+  &:hover {
+    --background: #fdf2f2; // Un rojo muy tenue al pasar el mouse
   }
 }

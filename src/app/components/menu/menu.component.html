@@ -7,28 +7,47 @@
   </div>
 
   <ion-content>
-    <div style="margin-top: 10px;"> <ion-menu-toggle auto-hide="false" *ngFor="let p of appPages | async">
-        <ion-item
-          routerDirection="root"
-          [routerLink]="[p.redirectTo]"
-          routerLinkActive="selected"
-          [routerLinkActiveOptions]="{ exact: false }"
-          lines="none"
-          detail="false"
-          button>
+    <div style="margin-top: 10px;">
+      <ng-container *ngFor="let p of appPages | async">
+        <ion-menu-toggle auto-hide="false" *ngIf="p.section === 'PRINCIPAL'">
+          <ion-item
+            routerDirection="root"
+            [routerLink]="[p.redirectTo]"
+            routerLinkActive="selected"
+            lines="none"
+            detail="false"
+            button>
             <ion-icon slot="start" [name]="p.icon"></ion-icon>        
             <ion-label>{{ p.name }}</ion-label>
-        </ion-item>    
-      </ion-menu-toggle>
+          </ion-item>    
+        </ion-menu-toggle>
+      </ng-container>
     </div>
 
     <ion-list-header style="margin-top: 20px;">
-      <ion-label color="medium" style="font-size: 12px;">CUENTA</ion-label>
+      <ion-label color="medium" style="font-size: 12px; font-weight: 600; letter-spacing: 0.5px;">CUENTA</ion-label>
     </ion-list-header>
 
-    <ion-item (click)="cerrarSesion()" button detail="false" class="logout-item" lines="none"> 
-      <ion-icon slot="start" name="log-out-outline"></ion-icon>   
-      <ion-label>Cerrar Sesión</ion-label>
-    </ion-item>
+    <div style="margin-top: 5px;">
+      <ng-container *ngFor="let p of appPages | async">
+        <ion-menu-toggle auto-hide="false" *ngIf="p.section === 'CUENTA'">
+          <ion-item
+            routerDirection="root"
+            [routerLink]="[p.redirectTo]"
+            routerLinkActive="selected"
+            lines="none"
+            detail="false"
+            button>
+            <ion-icon slot="start" [name]="p.icon"></ion-icon>        
+            <ion-label>{{ p.name }}</ion-label>
+          </ion-item>    
+        </ion-menu-toggle>
+      </ng-container>
+
+      <ion-item (click)="cerrarSesion()" button detail="false" class="logout-item" lines="none"> 
+        <ion-icon slot="start" name="log-out-outline" color="danger"></ion-icon>   
+        <ion-label color="danger">Cerrar Sesión</ion-label>
+      </ion-item>
+    </div>
   </ion-content>
 </ion-menu>

@@ -16,7 +16,7 @@ export class HomeComponent  implements OnInit {
   }
 
   ngOnInit() {
-    this.toastService.show('¡Guardado correctamente!', 'success', 'checkmark-circle-outline');
+    //this.toastService.show('¡Guardado correctamente!', 'success', 'checkmark-circle-outline');
   }
 
 
