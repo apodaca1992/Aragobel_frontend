@@ -2,21 +2,20 @@
     {
       "name": "Inicio",
       "redirectTo": "/home",
-      "icon": "home"
+      "icon": "home-outline"
     },
     {
-      "name": "Category",
+      "name": "Checador",
       "redirectTo": "/category",
-      "icon": "paper-plane"
+      "icon": "time-outline"
     },
     {
+      "name": "Mis Entregas",
+      "redirectTo": "/formulario",
+      "icon": "cube-outline"
+    },{
       "name": "Mi Perfil",
       "redirectTo": "/miPerfil",
-      "icon": "person-circle"
-    },
-    {
-      "name": "Mi Formulario",
-      "redirectTo": "/formulario",
-      "icon": "person-circle"
+      "icon": "person-circle-outline"
     }
 ]
