@@ -34,7 +34,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       // Mostramos el mensaje visual al usuario
-      toast.show(errorMessage);
+      toast.show(errorMessage, 'danger', 'bug-outline');
 
       // Propagamos el error por si el componente necesita manejar algo específico
       return throwError(() => error);

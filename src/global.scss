@@ -35,3 +35,9 @@ ion-input.ios, ion-input.md {
         background: transparent !important;
     }
 }
+
+.custom-toast {
+  --border-radius: 8px;
+  --button-color: #ffffff;
+  font-weight: 500;
+}

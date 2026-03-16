@@ -8,11 +8,23 @@ export class ToastService {
 
   constructor(private toastController: ToastController) { }
 
-  async show(message: string){
+  async show(message: string, color: 'success' | 'danger' | 'warning' | 'primary' = 'primary', icon?: string) {
     const toast = await this.toastController.create({
       message,
-      duration: 2000
+      color, // Esto cambia el fondo automáticamente según el tema de Ionic
+      duration: 3000,
+      position: 'bottom',
+      icon: icon || (color === 'danger' ? 'alert-circle-outline' : 'information-circle-outline'),
+      buttons: [
+        {
+          text: 'OK',
+          role: 'cancel'
+        }
+      ],
+      cssClass: 'custom-toast' // Por si quieres darle estilos extra en global.scss
     });
-    return toast.present();
+
+    return await toast.present();
   }
+
 }
