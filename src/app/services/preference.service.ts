@@ -12,20 +12,24 @@ export class PreferencesService {
   constructor(    
   ) { }
 
-  async getItem(key: string){
-    //return localStorage.getItem(this.prefijo+'.'+key);    
-    return await Preferences.get({key: this.prefijo+'.'+key  });
+  async getItem(key: string): Promise<string | null> {
+    const { value } = await Preferences.get({ key: this.prefijo + '.' + key });
+    return value;
   }
 
-  async setItem(key: string, value : string){
-    //localStorage.setItem(this.prefijo+'.'+key, value);
+  async setItem(key: string, value: string) {
     await Preferences.set({
-      key,
-      value,
+      key: this.prefijo + '.' + key,
+      value: value
     });
   }
 
   async clearSession() {
     await Preferences.clear();
+  }
+
+  // Tip Senior: Método para borrar una sola cosa
+  async removeItem(key: string) {
+    await Preferences.remove({ key: this.prefijo + '.' + key });
   }
 }

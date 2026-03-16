@@ -9,7 +9,7 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
   // 1. Obtenemos el token de Preferences (es una Promise, por eso usamos 'from' y 'switchMap')
   return from(preferenceService.getItem('token')).pipe(
     switchMap((res) => {
-      const token = res.value;
+      const token = res;
 
       // 2. Si hay token, clonamos la petición y le añadimos el Header
       if (token) {
