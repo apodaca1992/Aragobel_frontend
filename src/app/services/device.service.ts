@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Device } from '@capacitor/device';
+import { Device, DeviceInfo, DeviceId } from '@capacitor/device';
 
 @Injectable({
   providedIn: 'root'
@@ -9,27 +9,37 @@ export class DeviceService {
   constructor(    
   ) { }
 
-  async getDeviceId(){  
-    return (await Device.getId()).identifier;
+  async getDeviceId(): Promise<string> {
+    const { identifier } = await Device.getId();
+    return identifier;
   }
 
-  async getModel(){  
-    return (await Device.getInfo()).model;
+  async getInfo(): Promise<DeviceInfo> {
+    return await Device.getInfo();
   }
 
-  async getManufacturer(){  
-    return (await Device.getInfo()).manufacturer;
+  async getModel(): Promise<string> {
+    const info = await this.getInfo();
+    return info.model;
   }
 
-  async getOperationSystem(){  
-    return (await Device.getInfo()).operatingSystem;
+  async getManufacturer(): Promise<string> {
+    const info = await this.getInfo();
+    return info.manufacturer;
+  }
+  
+  async getOperationSystem(): Promise<string> {
+    const info = await this.getInfo();
+    return info.operatingSystem;
+  }
+  
+  async getOsVersion(): Promise<string> {
+    const info = await this.getInfo();
+    return info.osVersion;
   }
 
-  async getOsVersion(){  
-    return (await Device.getInfo()).osVersion;
-  }
-
-  async getPlatform(){  
-    return (await Device.getInfo()).platform;
+  async getPlatform(): Promise<'ios' | 'android' | 'web'> {
+    const info = await this.getInfo();
+    return info.platform;
   }
 }
