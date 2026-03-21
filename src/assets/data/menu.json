@@ -20,18 +20,18 @@
     "permisoRequerido": "ENTREGAS"
   },
   {
-    "name": "Reportes",
-    "redirectTo": "/reportes",
-    "icon": "bar-chart-outline",
-    "section": "PRINCIPAL",
-    "permisoRequerido": "ADMIN_ACCESS"
-  },
-  {
     "name": "Panel Admin",
     "redirectTo": "/panel-admin",
     "icon": "settings-outline",
     "section": "ADMINISTRACION",
     "permisoRequerido": "ADMIN_ACCESS" 
+  },
+  {
+    "name": "Reportes",
+    "redirectTo": "/reportes",
+    "icon": "bar-chart-outline",
+    "section": "ADMINISTRACION",
+    "permisoRequerido": "REPORTES_ADMIN"
   },
   {
     "name": "Mi Perfil",
