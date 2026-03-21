@@ -24,7 +24,7 @@
     "redirectTo": "/formulario",
     "icon": "bar-chart-outline",
     "section": "PRINCIPAL",
-    "permisoRequerido": "ENTREGAS"
+    "permisoRequerido": "ADMIN_ACCESS"
   },
   {
     "name": "Panel Admin",
