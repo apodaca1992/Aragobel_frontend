@@ -21,7 +21,7 @@
   },
   {
     "name": "Reportes",
-    "redirectTo": "/formulario",
+    "redirectTo": "/reportes",
     "icon": "bar-chart-outline",
     "section": "PRINCIPAL",
     "permisoRequerido": "ADMIN_ACCESS"

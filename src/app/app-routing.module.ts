@@ -32,6 +32,11 @@ const routes: Routes = [
     loadChildren: () => import('./pages/mi-formulario/mi-formulario.module').then(m => m.MiFormularioPageModule),
     canActivate: [authGuard]
   },
+  {
+    path: 'reportes',
+    loadChildren: () => import('./pages/reportes/reportes.module').then(m => m.ReportesPageModule),
+    canActivate: [authGuard]
+  },
   { path: '**',
     redirectTo: 'login'
   }
