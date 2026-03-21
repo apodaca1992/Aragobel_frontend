@@ -74,7 +74,9 @@ export class LoginComponent extends FormClass implements OnInit {
 			this._preferencesService.setItem('permisos',JSON.stringify(res.permisos)),
 			this._preferencesService.setItem('roles',JSON.stringify(res.user.roles)),	
 		]);
-		this.menu.enable(true);
+		await this.menu.enable(true, 'MenuPrincipal');
+		// 2. DISPARAMOS EL EVENTO (Esto es lo que quita la necesidad del F5)
+    	this._authService.loginStatus$.emit(true);
 	}
 
 	/*async getUserForId(id: number){  
