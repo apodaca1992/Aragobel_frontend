@@ -24,6 +24,19 @@
       </ng-container>
     </div>
 
+    <ion-list-header style="margin-top: 20px;" *ngIf="isAdmin">
+      <ion-label color="medium" style="font-size: 12px;">ADMINISTRACIÓN</ion-label>
+    </ion-list-header>
+
+    <ng-container *ngFor="let p of appPages | async">
+      <ion-menu-toggle auto-hide="false" *ngIf="p.section === 'ADMINISTRACION'">
+        <ion-item [routerLink]="[p.redirectTo]" routerDirection="root" routerLinkActive="selected" lines="none" detail="false" button>
+          <ion-icon slot="start" [name]="p.icon"></ion-icon>        
+          <ion-label>{{ p.name }}</ion-label>
+        </ion-item>    
+      </ion-menu-toggle>
+    </ng-container>
+
     <ion-list-header style="margin-top: 20px;">
       <ion-label color="medium" style="font-size: 12px; font-weight: 600; letter-spacing: 0.5px;">CUENTA</ion-label>
     </ion-list-header>

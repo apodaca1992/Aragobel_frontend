@@ -15,6 +15,7 @@ export class MenuComponent implements OnInit {
 
   // Ya no necesitamos selectedIndex
   appPages!: Observable<ComponenteInterface[]>;
+  public isAdmin: boolean = false;
     
   constructor(
     private menuService: MenuService,
@@ -32,6 +33,9 @@ export class MenuComponent implements OnInit {
         // Parseamos los strings a objetos reales
         const permisos = permisosStr ? JSON.parse(permisosStr as string) : {};
         const roles = rolesStr ? JSON.parse(rolesStr as string) : [];
+
+        // Seteamos la variable para el HTML
+        this.isAdmin = roles.includes('ADMINISTRADOR');
 
         // Ahora pedimos el menú y lo filtramos
         return this.menuService.getMenu().pipe(

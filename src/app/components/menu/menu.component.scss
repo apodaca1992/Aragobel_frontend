@@ -86,3 +86,9 @@ ion-item {
     --background: #fdf2f2; // Un rojo muy tenue al pasar el mouse
   }
 }
+
+.admin-header {
+  ion-label {
+    color: var(--ion-color-secondary) !important;
+  }
+}

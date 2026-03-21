@@ -22,9 +22,16 @@
   {
     "name": "Reportes",
     "redirectTo": "/formulario",
-    "icon": "cube-outline",
+    "icon": "bar-chart-outline",
     "section": "PRINCIPAL",
     "permisoRequerido": "ENTREGAS"
+  },
+  {
+    "name": "Panel Admin",
+    "redirectTo": "/admin-panel",
+    "icon": "settings-outline",
+    "section": "ADMINISTRACION",
+    "permisoRequerido": "ADMIN_ACCESS" 
   },
   {
     "name": "Mi Perfil",
