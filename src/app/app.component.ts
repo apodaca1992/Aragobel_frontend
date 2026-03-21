@@ -12,8 +12,8 @@ import { PreferencesService } from '@services/preference.service';
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent {
+  @ViewChild(IonRouterOutlet, { static: true}) routerOutlet!: IonRouterOutlet;
   public isWeb: boolean = false;
-  @ViewChild(IonRouterOutlet, { static: false}) routerOutlet?: IonRouterOutlet;
 
   constructor(
     private platform: Platform,
@@ -27,39 +27,47 @@ export class AppComponent {
     this.initializeApp();
   }
 
+  // Usamos AfterViewInit para asegurar que los componentes de Ionic estén listos
+  ngAfterViewInit() {
+    // Inicializamos el botón de atrás con el outlet ya renderizado
+    this.hardwareBackButtonService.init(this.routerOutlet);
+  }
+
   async initializeApp() {
     
     await this.platform.ready();
 
     // 1. Verificar sesión y cargar menú
-     const token = await this._preferencesService.getItem('token');       
-      if (token) {
-      await this.menu.enable(true, 'MenuPrincipal');
-    } else {
-      await this.menu.enable(false, 'MenuPrincipal');
-    }
+    const token = await this._preferencesService.getItem('token');       
+    await this.menu.enable(!!token, 'MenuPrincipal');
 
-    // 2. Hardware y Plataforma
-    this.hardwareBackButtonService.init(this.routerOutlet!);
-    this.hardwareBackButtonService.initBackButtonEvent();
+    // 2. Plataforma y Base de Datos
     const platform = await this.deviceService.getPlatform();
     this.isWeb = platform === 'web';
 
-    // 3. Plugins y Permisos
-    await this.databaseService.initializaePlugin();
-    this.requestNativePermissions();
+    try {
+      await this.databaseService.initializaePlugin();
+    } catch (error) {
+      console.error('Error inicializando base de datos:', error);
+    }
+
+    // 3. Permisos Nativo
+    if (!this.isWeb) {
+      this.requestNativePermissions();
+    }
   }
 
   private requestNativePermissions() {
-    if (!this.isWeb) {
-        this.androidPermissions.requestPermissions([
-        this.androidPermissions.PERMISSION.INTERNET,
-        this.androidPermissions.PERMISSION.READ_EXTERNAL_STORAGE,
-        this.androidPermissions.PERMISSION.WRITE_EXTERNAL_STORAGE,
-        this.androidPermissions.PERMISSION.READ_MEDIA_IMAGES,
-        this.androidPermissions.PERMISSION.ACCESS_COARSE_LOCATION,
-        this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION
-      ]);
-    }
+    const permissions = [
+      this.androidPermissions.PERMISSION.INTERNET,
+      this.androidPermissions.PERMISSION.READ_EXTERNAL_STORAGE,
+      this.androidPermissions.PERMISSION.WRITE_EXTERNAL_STORAGE,
+      this.androidPermissions.PERMISSION.ACCESS_COARSE_LOCATION,
+      this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION,
+      // Nota: READ_MEDIA_IMAGES es para Android 13+, cuidado con versiones anteriores
+      this.androidPermissions.PERMISSION.READ_MEDIA_IMAGES 
+    ];
+
+    this.androidPermissions.requestPermissions(permissions);
   }
 }

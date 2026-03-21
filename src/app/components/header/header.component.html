@@ -1,10 +1,24 @@
-<ion-header class="ion-no-border" translucent>
+<ion-header class="ion-no-border">
   <ion-toolbar color="primary">
-    <ion-buttons  *ngIf="showOnlyTitle" slot="start">
-      <ion-back-button *ngIf="showOnlyBtnBack" [defaultHref]="backRoute" (click)="backEvent()"></ion-back-button>
-      <ion-menu-button *ngIf="showOnlyBtnMenu" color="light" [menu]="idMenu"></ion-menu-button>
+    
+    <ion-buttons slot="start">
+      
+      <ion-button *ngIf="mode === 'back' || mode === 'full'" (click)="backEvent()">
+        <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+      </ion-button>
+
+      <ion-menu-button 
+        *ngIf="mode === 'menu' || mode === 'full'" 
+        [menu]="idMenu">
+      </ion-menu-button>
+
     </ion-buttons>
 
-    <ion-title text-capitalize>{{titulo}}</ion-title>
+    <ion-title>{{ titulo | titlecase }}</ion-title>
+
+    <ion-buttons slot="end">
+      <ng-content select="[action-buttons]"></ng-content>
+    </ion-buttons>
+
   </ion-toolbar>
 </ion-header>
