@@ -37,6 +37,11 @@ const routes: Routes = [
     loadChildren: () => import('./pages/reportes/reportes.module').then(m => m.ReportesPageModule),
     canActivate: [authGuard]
   },
+  {
+    path: 'panel-admin',
+    loadChildren: () => import('./pages/panel-admin/panel-admin.module').then(m => m.PanelAdminPageModule),
+    canActivate: [authGuard]
+  },
   { path: '**',
     redirectTo: 'login'
   }

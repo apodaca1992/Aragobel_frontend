@@ -28,7 +28,7 @@
   },
   {
     "name": "Panel Admin",
-    "redirectTo": "/admin-panel",
+    "redirectTo": "/panel-admin",
     "icon": "settings-outline",
     "section": "ADMINISTRACION",
     "permisoRequerido": "ADMIN_ACCESS" 
