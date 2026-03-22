@@ -46,7 +46,10 @@ export class AppComponent {
     this.isWeb = platform === 'web';
 
     try {
-      await this.databaseService.initializaePlugin();
+      const initialized = await this.databaseService.initializaePlugin();
+      if (initialized) {
+        console.log("Base de datos lista");
+      }
     } catch (error) {
       console.error('Error inicializando base de datos:', error);
     }

@@ -4,9 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { ComponentsModule } from '../../components/components.module';
 
-import { ListCategoryComponent } from './list-category/list-category.component';
-import { FormCategoryComponent } from './form-category/form-category.component';
-import { CategoryPageRoutingModule } from './category-routing.module';
+import { ListEntregasComponent } from './list-entregas/list-entregas.component';
+import { FormEntregasComponent } from './form-entregas/form-entregas.component';
+import { EntregasPageRoutingModule } from './entregas-routing.module';
 
 
 @NgModule({
@@ -14,12 +14,12 @@ import { CategoryPageRoutingModule } from './category-routing.module';
     CommonModule,
     FormsModule,
     IonicModule,
-    CategoryPageRoutingModule,
+    EntregasPageRoutingModule,
     ComponentsModule
   ],
   declarations: [
-    ListCategoryComponent,
-    FormCategoryComponent
+    ListEntregasComponent,
+    FormEntregasComponent
   ]
 })
-export class CategoryPageModule {}
+export class EntregasPageModule {}

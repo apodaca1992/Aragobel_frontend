@@ -1,4 +1,4 @@
-<app-header titulo="Listado Category" mode="menu"></app-header>   
+<app-header titulo="Mis Entregas" mode="menu"></app-header>   
 <ion-content>
   
   <ion-grid>
@@ -19,14 +19,14 @@
     </ion-row>
   </ion-grid>
 
-  <ion-item *ngFor="let category of categories()">
+  <ion-item *ngFor="let category of entregas()">
     <ion-checkbox
     aria-label="Label"
     slot="start"
     [(ngModel)]="category.active"
     (ionChange)="updateCategory(category)"
     ></ion-checkbox>
-    <ion-label>{{ category.name}}</ion-label>
+    <ion-label>{{ category.folio}}</ion-label>
     <ion-button
       slot="end"
       (click)="deleteCategory(category)"
@@ -39,7 +39,7 @@
   <br>
   <br><br><br><br><br><br>
 
-  <ion-button routerLink="/category/add" expand="full">
-    Ir a Categorías
+  <ion-button routerLink="/entregas/add" expand="full">
+    Ir a Entregas
   </ion-button>
 </ion-content>

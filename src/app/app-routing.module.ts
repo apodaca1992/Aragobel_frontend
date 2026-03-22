@@ -18,8 +18,8 @@ const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'category',
-    loadChildren: () => import('./pages/category/category.module').then(m => m.CategoryPageModule),
+    path: 'entregas',
+    loadChildren: () => import('./pages/entregas/entregas.module').then(m => m.EntregasPageModule),
     canActivate: [authGuard]
   },
   {

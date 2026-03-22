@@ -1,14 +1,9 @@
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
-import { DeviceService } from './device.service';
+import { DeviceService } from '@services/device.service';
+import { BehaviorSubject, filter, firstValueFrom } from 'rxjs';
 
-const disiMovilDb = 'disimovildb';
-
-export interface Category {
-  id: number;
-  name: string;
-  active: number;
-}
+const DB_NAME = 'aragobeldb';
 
 @Injectable({
   providedIn: 'root'
@@ -16,88 +11,66 @@ export interface Category {
 export class DatabaseService {
   private sqlite: SQLiteConnection = new SQLiteConnection(CapacitorSQLite);
   private db!: SQLiteDBConnection;
-  private categories: WritableSignal<Category[]> = signal<Category[]>([]);
-  // Indica si estamos en web
-  public isWeb: boolean;
-  // Indica si estamos en IOS
-  public isIOS: boolean;
+  public isWeb: boolean = false;
 
-  constructor(private deviceService: DeviceService) { 
-    this.isWeb = false;
-    this.isIOS = false;
+  // 🟢 El semáforo: Avisa cuando la conexión está lista
+  private isReady = new BehaviorSubject<boolean>(false);
+
+  constructor(private deviceService: DeviceService) { }
+
+  /**
+   * MÉTODO SENIOR: En lugar de un getter simple que puede devolver undefined,
+   * este método espera a que la base de datos esté realmente abierta.
+   */
+  async getDbConnection(): Promise<SQLiteDBConnection> {
+    // Si ya está lista, devuelve la db. Si no, espera a que isReady sea true.
+    await firstValueFrom(this.isReady.asObservable().pipe(filter(ready => ready)));
+    return this.db;
   }
 
-  async initializaePlugin(){
-    
+  async initializaePlugin(): Promise<boolean> {
     const platform = await this.deviceService.getPlatform();
-    // CapacitorSQLite no tiene disponible el metodo requestPermissions pero si existe y es llamable
-    const sqlite = CapacitorSQLite as any;
+    const sqlitePlugin = CapacitorSQLite as any;
 
-    // Si estamos en android, pedimos permiso
-    if (platform == 'android') {
-      try {
-        await sqlite.requestPermissions();
-      } catch (error) {
-        console.error("Esta app necesita permisos para funcionar")
-      }
-      // Si estamos en web, iniciamos la web store
-    } else if (platform == 'web') {
+    if (platform === 'web') {
       this.isWeb = true;
-      await sqlite.initWebStore();
-      //return true;
-    } else if (platform == 'ios') {
-      this.isIOS = true;
+      await sqlitePlugin.initWebStore();
     }
 
-    this.db = await this.sqlite.createConnection(
-      disiMovilDb,
-      false,
-      'no-encryption',
-      1,
-      false
-    );
+    try {
+      this.db = await this.sqlite.createConnection(DB_NAME, false, 'no-encryption', 1, false);
+      await this.db.open();
 
-    await this.db.open();
+      // Esquema inicial (Tablas)
+      const schema = `
+        CREATE TABLE IF NOT EXISTS entregas (
+          id_entrega TEXT PRIMARY KEY NOT NULL,   
+          folio TEXT NOT NULL,
+          id_repartidor TEXT NOT NULL,           
+          id_vehiculo TEXT,                       
+          colonia TEXT,
+          fec_registropedido TEXT NOT NULL,      
+          fec_salidapedido TEXT,                 
+          fec_entregapedido TEXT,                 
+          id_tienda TEXT NOT NULL,              
+          active INTEGER DEFAULT 1
+        );
+      `;
+      await this.db.execute(schema);
 
-    const schema = `CREATE TABLE IF NOT EXISTS categories (
-      id  INTEGER PRIMARY KEY AUTOINCREMENT,
-      name  TEXT NOT NULL,
-      active INTEGER DEFAULT 1
-    )`;
-
-    await this.db.execute(schema);
-
-    this.loadCategories();
-    return true;
+      // 🟢 Notificamos que la base de datos está lista para usarse
+      this.isReady.next(true);
+      return true;
+    } catch (error) {
+      console.error('Error DB:', error);
+      return false;
+    }
   }
 
-  getCategories(){
-    return this.categories;
-  }
-
-  async loadCategories(){
-    const categories = await this.db.query('SELECT * FROM categories;');
-    this.categories.set(categories.values || []);
-  }
-
-  async addCategory(name: string){
-    const query = `INSERT INTO categories (name) VALUES ('${name}')`;
-    const result = await this.db.query(query);
-    this.loadCategories();
-    return result;
-  }
-
-  async updateCategoryById(id: string, active: number){
-    const query = `UPDATE categories SET active=${active} WHERE id=${id}`;
-    const result = await this.db.query(query);
-    this.loadCategories();
-    return result;
-  }
-
-  async deleteCategoryById(id: string){
-    const query = `DELETE FROM categories WHERE id=${id}`;
-    const result = await this.db.query(query);
-    this.loadCategories();
-    return result;
+  /**
+   * Método de utilidad para persistir en Web
+   */
+  async persist() {
+    if (this.isWeb) await this.sqlite.saveToStore(DB_NAME);
   }
 }

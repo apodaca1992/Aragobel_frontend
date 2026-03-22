@@ -7,14 +7,14 @@
   },
   {
     "name": "Checador",
-    "redirectTo": "/category",
+    "redirectTo": "/formulario",
     "icon": "time-outline",
     "section": "PRINCIPAL",
     "permisoRequerido": "CHECADOR"
   },
   {
     "name": "Mis Entregas",
-    "redirectTo": "/formulario",
+    "redirectTo": "/entregas",
     "icon": "cube-outline",
     "section": "PRINCIPAL",
     "permisoRequerido": "ENTREGAS"
