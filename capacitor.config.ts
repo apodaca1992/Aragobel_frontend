@@ -4,6 +4,9 @@ const config: CapacitorConfig = {
   appId: 'com.aragobel',
   appName: 'AragobelFrontend',
   webDir: 'www',
+  server: {
+    androidScheme: 'http' // Este es el que debe coincidir con tu CORS
+  },
   plugins: {
     /*SplashScreen: {
       launchShowDuration: 0,
