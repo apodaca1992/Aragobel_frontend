@@ -20,9 +20,9 @@
     "permisoRequerido": "ENTREGAS"
   },
   {
-    "name": "Panel Admin",
+    "name": "Gestión",
     "redirectTo": "/panel-admin",
-    "icon": "settings-outline",
+    "icon": "grid-outline",
     "section": "ADMINISTRACION",
     "permisoRequerido": "ADMIN_ACCESS" 
   },

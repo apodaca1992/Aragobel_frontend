@@ -1,6 +1,31 @@
-  <app-header titulo="Panel Admin" mode="menu"></app-header>  
-  <ion-content>
-  <p>
-    Panel Admin!!
-  </p>
+<app-header titulo="Gestión" mode="menu"></app-header>
+
+<ion-content class="ion-padding gray-bg">
+  
+  <div class="welcome-header compact">
+    <h2>Panel de Control</h2>
+    <p>Configuración del sistema</p>
+  </div>
+
+  <div *ngFor="let section of sectionNames">
+    
+    <div class="section-title">{{ section }}</div>
+    
+    <ion-grid>
+      <ion-row>
+        <ion-col size="6" *ngFor="let opt of groupedOptions[section]">
+          <ion-card class="admin-card" [routerLink]="opt.route" button="true">
+            <ion-card-content>
+              <div class="icon-box" [ngClass]="opt.class">
+                <ion-icon [name]="opt.icon"></ion-icon>
+              </div>
+              <ion-label>{{ opt.title }}</ion-label>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+  </div>
+
 </ion-content>

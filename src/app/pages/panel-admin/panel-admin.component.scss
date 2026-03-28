@@ -1,0 +1,99 @@
+.gray-bg {
+  --background: #f8f9fa;
+}
+
+.welcome-header.compact {
+  padding: 15px 10px 5px 10px; // Reducimos paddings
+  h2 { 
+    font-size: 1.3rem; // Mucho más pequeño que el h1 original
+    font-weight: 700;
+    margin: 0;
+    color: #1a1a1a;
+  }
+  p { 
+    font-size: 0.85rem; 
+    margin: 2px 0 10px 0; 
+  }
+}
+
+.section-title {
+  padding-left: 10px;
+  margin-top: 15px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #666;
+}
+
+.admin-card {
+  margin: 5px;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.02);
+
+  ion-card-content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  ion-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+  }
+}
+
+// Contenedores de iconos con colores temáticos
+.icon-box {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  ion-icon { font-size: 26px; }
+
+  &.blue { background: #e3f2fd; ion-icon { color: #2196f3; } }
+  &.purple { background: #f3e5f5; ion-icon { color: #9c27b0; } }
+  &.green { background: #e8f5e9; ion-icon { color: #4caf50; } }
+  &.orange { background: #fff3e0; ion-icon { color: #ff9800; } }
+  &.red { background: #ffebee; ion-icon { color: #f44336; } }
+}
+
+.welcome-header.compact {
+  padding: 10px 5px;
+  h2 { font-size: 1.4rem; font-weight: 800; margin: 0; color: #1a1a1a; }
+  p { font-size: 0.85rem; color: #888; margin: 2px 0 10px 0; }
+}
+
+.section-title {
+  margin: 15px 0 5px 5px; // Espaciado controlado
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #666;
+}
+
+.admin-card {
+  margin: 4px;
+  border-radius: 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  
+  ion-card-content {
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    ion-label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-top: 8px;
+    }
+  }
+}
