@@ -1,0 +1,31 @@
+.entrega-card {
+  margin-bottom: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-left: 5px solid var(--ion-color-primary);
+}
+
+.fecha {
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+  margin-top: 8px;
+}
+
+ion-segment {
+  --background: #f4f5f8;
+}
+
+.count-badge {
+  background: var(--ion-color-danger);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  margin-left: 5px;
+}
+
+ion-toolbar {
+  --border-style: none; /* Quita la línea doble entre el header y el segmento */
+  --background: var(--ion-color-primary); /* Si quieres que el segmento sea del mismo color que el header */
+  color: white;
+}

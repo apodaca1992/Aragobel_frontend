@@ -1,45 +1,82 @@
-<app-header titulo="Mis Entregas" mode="menu"></app-header>   
-<ion-content>
-  
-  <ion-grid>
-    <ion-row>
-      <ion-col size="10">
-        <ion-input         
-        label="Name" 
-        labelPlacement="stacked"         
-        [(ngModel)]="newCategoryName"
-        placeholder="Name"></ion-input>
-      </ion-col>
-      <ion-col size="2">
-        <ion-button 
-        (click)="createCategory()">
-          <ion-icon name="add" slot="icon-only"></ion-icon>
-        </ion-button>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-
-  <ion-item *ngFor="let category of entregas()">
-    <ion-checkbox
-    aria-label="Label"
-    slot="start"
-    [(ngModel)]="category.active"
-    (ionChange)="updateCategory(category)"
-    ></ion-checkbox>
-    <ion-label>{{ category.folio}}</ion-label>
-    <ion-button
-      slot="end"
-      (click)="deleteCategory(category)"
-      fill="clear"
-      color="danger">
-      <ion-icon name="trash" slot="icon-only"></ion-icon>
+<ion-header [translucent]="true">
+  <app-header titulo="Mis Entregas" mode="menu">
+    <ion-button color="light" *ngIf="puedeCrear" action-buttons (click)="irAFormulario()">
+      <ion-icon slot="icon-only" name="add-circle"></ion-icon>
     </ion-button>
-  </ion-item>
+  </app-header>
 
-  <br>
-  <br><br><br><br><br><br>
+  <ion-toolbar>
+    <ng-container *ngIf="esCajero; else vistaRepartidor">
+      <ion-segment [(ngModel)]="segmentoActual" mode="md">
+        <ion-segment-button value="mis-registros">
+          <ion-label>Registros de Hoy</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ng-container>
 
-  <ion-button routerLink="/entregas/add" expand="full">
-    Ir a Entregas
-  </ion-button>
+    <ng-template #vistaRepartidor>
+      <ion-segment [(ngModel)]="segmentoActual" mode="md">
+        <ion-segment-button value="disponibles">
+          <ion-label>Disponibles</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="camino">
+          <ion-label>En Camino</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ng-template>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list lines="none" *ngIf="entregasFiltradas.length > 0; else sinDatos">
+    
+    <ion-card *ngFor="let entrega of entregasFiltradas" mode="ios" class="entrega-card">
+      <ion-item>
+        <ion-icon name="document-text-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2><strong>Folio: {{ entrega.folio }}</strong></h2>
+            <ion-badge *ngIf="esCajero" [color]="entrega.estatus === 3 ? 'success' : (entrega.estatus === 2 ? 'primary' : 'warning')">
+              {{ entrega.estatus === 1 ? 'Pendiente' : (entrega.estatus === 2 ? 'En Ruta' : 'Entregado') }}
+            </ion-badge>
+          </div>
+          <p>📍 {{ entrega.colonia }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-card-content>
+        <p><strong>Recibe:</strong> {{ entrega.persona_recibe }}</p>
+        <p class="fecha" *ngIf="entrega.fec_registropedido">
+          Registrado: {{ entrega.fec_registropedido | date:'shortTime' }}
+        </p>
+      </ion-card-content>
+
+      <div class="ion-padding-start ion-padding-end ion-padding-bottom" *ngIf="!esCajero">
+        <ion-button *ngIf="segmentoActual === 'disponibles'" 
+                    expand="block" 
+                    shape="round"
+                    (click)="abrirSelectorVehiculo(entrega)">
+          <ion-icon name="bicycle-outline" slot="start"></ion-icon>
+          Tomar Entrega
+        </ion-button>
+
+        <ion-button *ngIf="segmentoActual === 'camino'" 
+                    expand="block" 
+                    color="success" 
+                    shape="round"
+                    (click)="marcarComoEntregado(entrega)">
+          <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+          Finalizar Entrega
+        </ion-button>
+      </div>
+    </ion-card>
+
+  </ion-list>
+
+  <ng-template #sinDatos>
+    <div class="ion-text-center ion-padding mt-5">
+      <ion-icon name="clipboard-outline" style="font-size: 64px;" color="medium"></ion-icon>
+      <p>No hay entregas para mostrar</p>
+    </div>
+  </ng-template>
 </ion-content>
