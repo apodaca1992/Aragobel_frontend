@@ -1,0 +1,59 @@
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+
+  .stat-card {
+    margin: 0;
+    padding: 15px;
+    text-align: center;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+
+    h2 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin: 5px 0 0;
+      color: var(--ion-color-primary);
+    }
+    
+    ion-note {
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+  }
+}
+
+.section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 10px 5px;
+  color: var(--ion-color-step-600);
+}
+
+.custom-report-item {
+  --background: white;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+
+  .avatar-text {
+    background: var(--ion-color-primary-tint);
+    color: var(--ion-color-primary);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: bold;
+  }
+
+  .time-note {
+    font-size: 0.65rem;
+    margin-top: 2px;
+  }
+}

@@ -1,6 +1,75 @@
-  <app-header titulo="Reportes" mode="menu"></app-header>  
-  <ion-content>
-  <p>
-    Reportes!!
-  </p>
+<ion-header [translucent]="true">
+  <app-header titulo="Reportes" mode="menu">
+     <ion-button color="light" action-buttons (click)="exportarPDF()">
+      <ion-icon slot="icon-only" name="document-text-outline"></ion-icon>
+    </ion-button>
+  </app-header>
+</ion-header>
+
+<ion-content color="light" class="ion-padding">
+  <ion-segment [(ngModel)]="segmento" mode="ios" class="ion-margin-bottom">
+    <ion-segment-button value="asistencia">
+      <ion-label>Asistencia</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="entregas">
+      <ion-label>Entregas</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <div *ngIf="segmento === 'asistencia'">
+    <div class="stats-grid">
+      <ion-card class="stat-card">
+        <ion-note>Puntualidad</ion-note>
+        <h2>95%</h2>
+      </ion-card>
+      <ion-card class="stat-card">
+        <ion-note>Faltas Mes</ion-note>
+        <h2 color="danger">4</h2>
+      </ion-card>
+    </div>
+
+    <ion-list lines="none" class="report-list">
+      <div class="section-title">Últimos Marcajes</div>
+      <ion-item *ngFor="let item of reportAsistencia" class="custom-report-item">
+        <ion-avatar slot="start">
+          <div class="avatar-text">{{ item.nombre[0] }}</div>
+        </ion-avatar>
+        <ion-label>
+          <h3>{{ item.nombre }}</h3>
+          <p>{{ item.fecha | date:'mediumDate' }}</p>
+        </ion-label>
+        <div slot="end" class="ion-text-end">
+          <ion-badge color="success">{{ item.entrada }}</ion-badge>
+          <p class="time-note">Entrada</p>
+        </div>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <div *ngIf="segmento === 'entregas'">
+    <div class="stats-grid">
+      <ion-card class="stat-card">
+        <ion-note>Entregadas</ion-note>
+        <h2 color="primary">124</h2>
+      </ion-card>
+      <ion-card class="stat-card">
+        <ion-note>En Ruta</ion-note>
+        <h2 color="warning">8</h2>
+      </ion-card>
+    </div>
+
+    <ion-list lines="none" class="report-list">
+      <div class="section-title">Resumen por Repartidor</div>
+      <ion-item *ngFor="let rep of reportRepartidores" class="custom-report-item">
+        <ion-icon name="bicycle-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <h3>{{ rep.nombre }}</h3>
+          <p>{{ rep.entregas }} servicios realizados</p>
+        </ion-label>
+        <ion-button slot="end" fill="clear">
+          <ion-icon name="chevron-forward"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </ion-list>
+  </div>
 </ion-content>
