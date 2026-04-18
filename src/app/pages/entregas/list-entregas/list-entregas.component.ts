@@ -48,16 +48,16 @@ export class ListEntregasComponent  implements OnInit {
     // Aquí llamarías a tu servicio: this.entregaService.getEntregas().subscribe(...)
     // Ejemplo de datos basado en tu tabla SQL:
     this.todasLasEntregas = [
-      { id: 1, folio: 'A-101', persona_recibe: 'Adrian', colonia: 'Centro', estatus: 1, id_repartidor: null , id_usuario_creador: 1},
-      { id: 2, folio: 'A-102', persona_recibe: 'Adrian2', colonia: 'Centro', estatus: 1, id_repartidor: null , id_usuario_creador: 1},
-      { id: 3, folio: 'A-103', persona_recibe: 'Adrian3', colonia: 'Centro', estatus: 1, id_repartidor: null , id_usuario_creador: 1},
-      { id: 4, folio: 'A-104', persona_recibe: 'Adrian4', colonia: 'Centro', estatus: 1, id_repartidor: null , id_usuario_creador: 1},
-      { id: 5, folio: 'A-105', persona_recibe: 'Jesus', colonia: 'Industrial', estatus: 2, id_repartidor: 1 , id_usuario_creador: 1},
-      { id: 6, folio: 'A-106', persona_recibe: 'Jesus1', colonia: 'Industrial', estatus: 2, id_repartidor: 1 , id_usuario_creador: 1},
-      { id: 7, folio: 'A-107', persona_recibe: 'Jesus2', colonia: 'Industrial', estatus: 3, id_repartidor: 1 , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
-      { id: 8, folio: 'A-108', persona_recibe: 'Jesus3', colonia: 'Industrial', estatus: 1, id_repartidor: null , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
-      { id: 9, folio: 'A-109', persona_recibe: 'Jesus4', colonia: 'Industrial', estatus: 2, id_repartidor: 1 , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
-      { id: 9, folio: 'A-110', persona_recibe: 'Jesus5', colonia: 'Industrial2', estatus: 2, id_repartidor: 2, id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'}
+      { id: 1, folio: 'A-101', persona_recibe: 'Adrian', colonia: 'Centro', estatus: 1, id_repartidor: null, id_vehiculo: null , id_usuario_creador: 1},
+      { id: 2, folio: 'A-102', persona_recibe: 'Adrian2', colonia: 'Centro', estatus: 1, id_repartidor: null, id_vehiculo: null , id_usuario_creador: 1},
+      { id: 3, folio: 'A-103', persona_recibe: 'Adrian3', colonia: 'Centro', estatus: 1, id_repartidor: null, id_vehiculo: null , id_usuario_creador: 1},
+      { id: 4, folio: 'A-104', persona_recibe: 'Adrian4', colonia: 'Centro', estatus: 1, id_repartidor: null, id_vehiculo: null , id_usuario_creador: 1},
+      { id: 5, folio: 'A-105', persona_recibe: 'Jesus', colonia: 'Industrial', estatus: 2, id_repartidor: 1, id_vehiculo: null , id_usuario_creador: 1},
+      { id: 6, folio: 'A-106', persona_recibe: 'Jesus1', colonia: 'Industrial', estatus: 2, id_repartidor: 1, id_vehiculo: null, id_usuario_creador: 1},
+      { id: 7, folio: 'A-107', persona_recibe: 'Jesus2', colonia: 'Industrial', estatus: 3, id_repartidor: 1, id_vehiculo: null , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
+      { id: 8, folio: 'A-108', persona_recibe: 'Jesus3', colonia: 'Industrial', estatus: 1, id_repartidor: null, id_vehiculo: null , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
+      { id: 9, folio: 'A-109', persona_recibe: 'Jesus4', colonia: 'Industrial', estatus: 2, id_repartidor: 1, id_vehiculo: null , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
+      { id: 9, folio: 'A-110', persona_recibe: 'Jesus5', colonia: 'Industrial2', estatus: 2, id_repartidor: 2, id_vehiculo: null, id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'}
     ];
   }
 
