@@ -1,11 +1,5 @@
 [
   {
-    "name": "Inicio",
-    "redirectTo": "/home",
-    "icon": "home-outline",
-    "section": "PRINCIPAL"
-  },
-  {
     "name": "Checador",
     "redirectTo": "/checador",
     "icon": "time-outline",
@@ -32,11 +26,5 @@
     "icon": "bar-chart-outline",
     "section": "ADMINISTRACION",
     "permisoRequerido": "REPORTES_ADMIN"
-  },
-  {
-    "name": "Mi Perfil",
-    "redirectTo": "/miPerfil",
-    "icon": "person-circle-outline",
-    "section": "CUENTA"
   }
 ]

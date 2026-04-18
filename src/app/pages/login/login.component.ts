@@ -60,7 +60,7 @@ export class LoginComponent extends FormClass implements OnInit {
 		this._authService.login({...this.frmLogin.getRawValue()} as AuthLoginInterface).subscribe({
 			next : async res => {
 			  	await this.saveSession(res);
-      			this._router.navigate(['/home']);
+      			this._router.navigate(['/checador']);
 			}
 		});	 
 	}
