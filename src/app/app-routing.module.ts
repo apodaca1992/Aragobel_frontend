@@ -18,6 +18,11 @@ const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'checador',
+    loadChildren: () => import('./pages/checador/checador.module').then(m => m.ChecadorPageModule),
+    canActivate: [authGuard]
+  },
+  {
     path: 'entregas',
     loadChildren: () => import('./pages/entregas/entregas.module').then(m => m.EntregasPageModule),
     canActivate: [authGuard]

@@ -1,0 +1,54 @@
+<app-header titulo="Checador" mode="menu"></app-header>
+
+<ion-content color="light">
+  <ion-card class="status-card ion-no-margin ion-margin-bottom">
+    <ion-card-content class="ion-text-center">
+      <p class="txt-fecha">{{ fechaLegible }}</p>
+      <h1 class="reloj">{{ horaActual }}</h1>
+      
+      <ion-chip [color]="estadoActual.color" mode="ios">
+        <ion-label>{{ estadoActual.texto }}</ion-label>
+      </ion-chip>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-list lines="none" class="ion-padding-horizontal">
+    
+    <ion-item class="checador-item">
+      <ion-icon slot="start" [name]="registro.entrada ? 'checkmark-circle' : 'log-in-outline'" 
+                [color]="registro.entrada ? 'success' : 'primary'"></ion-icon>
+      <ion-label>Entrada</ion-label>
+      <ion-button slot="end" (click)="registrar('entrada')" *ngIf="!registro.entrada">CHECAR</ion-button>
+      <ion-note slot="end" class="hora-registro" *ngIf="registro.entrada">{{ registro.entrada | date:'shortTime' }}</ion-note>
+    </ion-item>
+
+    <ng-container *ngIf="registro.entrada && !registro.salida">
+      <ion-item class="checador-item">
+        <ion-icon slot="start" [name]="registro.comida_inicio ? 'checkmark-circle' : 'restaurant-outline'" 
+                  [color]="registro.comida_inicio ? 'success' : 'warning'"></ion-icon>
+        <ion-label>Salida a Comer</ion-label>
+        <ion-button slot="end" color="warning" (click)="registrar('comida_inicio')" *ngIf="!registro.comida_inicio">SALIR</ion-button>
+        <ion-note slot="end" class="hora-registro" *ngIf="registro.comida_inicio">{{ registro.comida_inicio | date:'shortTime' }}</ion-note>
+      </ion-item>
+
+      <ion-item class="checador-item" *ngIf="registro.comida_inicio">
+        <ion-icon slot="start" [name]="registro.comida_fin ? 'checkmark-circle' : 'cafe-outline'" 
+                  [color]="registro.comida_fin ? 'success' : 'warning'"></ion-icon>
+        <ion-label>Regreso de Comida</ion-label>
+        <ion-button slot="end" color="warning" (click)="registrar('comida_fin')" *ngIf="!registro.comida_fin">REGRESAR</ion-button>
+        <ion-note slot="end" class="hora-registro" *ngIf="registro.comida_fin">{{ registro.comida_fin | date:'shortTime' }}</ion-note>
+      </ion-item>
+    </ng-container>
+
+    <ion-item class="checador-item" *ngIf="registro.entrada">
+      <ion-icon slot="start" [name]="registro.salida ? 'checkmark-done-circle' : 'log-out-outline'" 
+                [color]="registro.salida ? 'success' : 'danger'"></ion-icon>
+      <ion-label>Salida Final</ion-label>
+      <ion-button slot="end" color="danger" (click)="registrar('salida')" 
+                  *ngIf="!registro.salida"
+                  [disabled]="registro.comida_inicio && !registro.comida_fin">FINALIZAR</ion-button>
+      <ion-note slot="end" class="hora-registro" *ngIf="registro.salida">{{ registro.salida | date:'shortTime' }}</ion-note>
+    </ion-item>
+
+  </ion-list>
+</ion-content>

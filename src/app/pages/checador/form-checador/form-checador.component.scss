@@ -1,0 +1,33 @@
+.status-card {
+  background: white;
+  border-bottom-left-radius: 30px;
+  border-bottom-right-radius: 30px;
+  padding: 20px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  .txt-fecha {
+    text-transform: capitalize;
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+  }
+
+  .reloj {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+    margin: 5px 0;
+  }
+}
+
+.checador-item {
+  --background: white;
+  margin-bottom: 10px;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  
+  .hora-registro {
+    font-weight: bold;
+    color: var(--ion-color-dark);
+    font-size: 1rem;
+  }
+}

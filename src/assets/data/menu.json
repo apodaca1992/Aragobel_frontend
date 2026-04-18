@@ -7,7 +7,7 @@
   },
   {
     "name": "Checador",
-    "redirectTo": "/formulario",
+    "redirectTo": "/checador",
     "icon": "time-outline",
     "section": "PRINCIPAL",
     "permisoRequerido": "CHECADOR"
