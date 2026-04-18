@@ -1,15 +1,18 @@
-<app-header titulo="Iniciar Sesión" mode="title-only"></app-header>  
 
 <ion-content class="ion-padding" fullscreen="true">
-  <div class="flex-center"> <form (ngSubmit)="login()" [formGroup]="frmLogin" style="width: 100%;">  
+  <div class="flex-center"> 
+    <form (ngSubmit)="login()" [formGroup]="frmLogin" style="width: 100%;">  
       <ion-grid>
         <ion-row class="ion-justify-content-center">
           <ion-col size="12" size-md="6" size-lg="4">
 
             <ion-card mode="ios" class="login-card"> 
               <ion-card-content>
-                <div class="ion-text-center ion-padding">
-                  <ion-img style="width: 180px; margin: 0 auto;" src="/assets/shapes.svg"></ion-img>
+                
+                <div class="brand-section">
+                  <h1 class="brand-title">ARAGOBEL</h1>
+                  <p class="brand-subtitle">SISTEMA DE GESTIÓN</p>
+                  <div class="brand-divider"></div>
                 </div>
 
                 <div class="input-group">
@@ -19,6 +22,7 @@
                       label="Usuario" 
                       labelPlacement="floating" 
                       type="text"
+                      placeholder="Ingresa tu usuario"
                       [errorText]="getErrorMessage('usuario', frmLogin)"
                       formControlName="usuario">
                     </ion-input>
@@ -30,6 +34,7 @@
                       label="Contraseña" 
                       labelPlacement="floating" 
                       type="password"
+                      placeholder="********"
                       [errorText]="getErrorMessage('contrasena', frmLogin)"
                       formControlName="contrasena">
                     </ion-input>
@@ -38,9 +43,10 @@
             
                 <div class="ion-padding-top">
                   <ion-button [disabled]="!frmLogin.valid" expand="block" type="submit" shape="round" class="main-button">
-                    Iniciar
+                    ENTRAR
                   </ion-button>
                 </div>
+
               </ion-card-content>
             </ion-card>   
 

@@ -16,7 +16,7 @@ export class PanelAdminComponent  implements OnInit {
     { title: 'Tiendas', icon: 'storefront-outline', route: '/admin/tiendas', class: 'green', section: 'Infraestructura y Logística' },
     { title: 'Vehículos', icon: 'bus-outline', route: '/admin/vehiculos', class: 'orange', section: 'Infraestructura y Logística' },
     { title: 'Entregas', icon: 'bicycle-outline', route: '/admin/deliveries', class: 'black', section: 'Infraestructura y Logística' },
-    { title: 'Categorías', icon: 'list-outline', route: '/category', class: 'red', section: 'Catálogos' },
+    //{ title: 'Categorías', icon: 'list-outline', route: '/category', class: 'red', section: 'Catálogos' },
   ];
 
   constructor(
