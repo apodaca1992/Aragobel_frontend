@@ -34,9 +34,18 @@ export class ReportesComponent  implements OnInit {
     //this.toastService.show('¡Guardado correctamente!', 'success', 'checkmark-circle-outline');
   }
 
+  onDateChange(event: any) {
+    const fechaSeleccionada = new Date(event.detail.value);
+    console.log("Filtrando datos para:", fechaSeleccionada);
+    // Aquí dispararías la carga de datos de tu API de Node.js para ese mes
+  }
+
   exportarPDF() {
     const doc = new jsPDF();
     const fechaDoc = new Date().toLocaleDateString();
+
+    // Obtener el nombre del mes seleccionado para el título
+    const mesReporte = "ABRIL 2026";
 
     // 1. Encabezado Estilo "Aragobel"
     doc.setFontSize(22);
@@ -46,7 +55,7 @@ export class ReportesComponent  implements OnInit {
     doc.setFontSize(10);
     doc.setTextColor(100);
     doc.text('SISTEMA DE GESTIÓN - REPORTE DE ' + this.segmento.toUpperCase(), 14, 28);
-    doc.text('Fecha de emisión: ' + fechaDoc, 14, 34);
+    doc.text(`REPORTE MENSUAL: ${mesReporte}`, 14, 33);
 
     // 2. Definir los datos según el segmento activo
     let columnas = [];

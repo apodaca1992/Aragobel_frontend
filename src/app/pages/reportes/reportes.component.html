@@ -16,6 +16,27 @@
     </ion-segment-button>
   </ion-segment>
 
+  <div class="filter-container ion-margin-bottom">
+    <ion-item lines="none" class="month-item">
+      <ion-icon name="calendar-clear-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <p>Periodo reportado</p>
+        <ion-datetime-button datetime="date-picker"></ion-datetime-button>
+      </ion-label>
+    </ion-item>
+  </div>
+
+  <ion-modal [keepContentsMounted]="true">
+    <ng-template>
+      <ion-datetime 
+        id="date-picker" 
+        presentation="month-year"
+        [preferWheel]="true"
+        (ionChange)="onDateChange($event)">
+      </ion-datetime>
+    </ng-template>
+  </ion-modal>
+
   <div *ngIf="segmento === 'asistencia'">
     <div class="stats-grid">
       <ion-card class="stat-card">
