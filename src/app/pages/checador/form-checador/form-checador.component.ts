@@ -22,6 +22,9 @@ export class FormChecadorComponent  implements OnInit {
   constructor() { }
 
   ngOnInit() {
+    // 1. Ejecutamos la hora inmediatamente para que no aparezca vacío
+    this.actualizarHora();
+    
     this.iniciarReloj();
     // Generamos la fecha en español de México
     const fecha = new Date();
@@ -41,16 +44,20 @@ export class FormChecadorComponent  implements OnInit {
 
   }
 
+  // Separamos la lógica de obtener la hora para poder llamarla al cargar
+  actualizarHora() {
+    this.horaActual = new Date().toLocaleTimeString('es-MX', {
+      timeZone: 'America/Mazatlan',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+  }
+
   iniciarReloj() {
     setInterval(() => {
-      // Forzamos el formato de 24h y la zona horaria de Sinaloa para el reloj visual
-      this.horaActual = new Date().toLocaleTimeString('es-MX', {
-        timeZone: 'America/Mazatlan',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      });
+      this.actualizarHora();
     }, 1000);
   }
 
