@@ -1,15 +1,11 @@
-import { CommonModule } from '@angular/common';
 import { Component, effect, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
-import { EntregaDbRepository } from '../../../repository/entrega-db.service';
 import { Router } from '@angular/router';
-import { LoadingController, AlertController } from '@ionic/angular';
 import { HttpHelper } from '../../../class/http-helper';
-
 import { EntregaService } from '@services/entrega.service'; // Asegura que la ruta sea correcta
 import { EntregaInterface } from '@interfaces/entrega-interface';
 import { PreferencesService } from '@services/preference.service';
+import { AlertService } from '@services/alert.service';
+import { ActionSheetService } from '@services/action-sheet.service';
 
 @Component({
   selector: 'app-list-entregas',
@@ -28,9 +24,10 @@ export class ListEntregasComponent  implements OnInit {
 
   constructor(
     private router: Router,
-    private alertCtrl: AlertController,
+    private _alertService: AlertService,
     private _preferencesService: PreferencesService,
     private _entregaService: EntregaService,
+    private _actionSheetService: ActionSheetService,
   ) {}
 
   async ngOnInit() {
@@ -51,6 +48,12 @@ export class ListEntregasComponent  implements OnInit {
       this.esCajero = false;
       this.segmentoActual = 'disponibles';
     }
+    this.cargarDatos();
+  }
+
+  // Se dispara cada vez que entras a la vista, incluso al regresar del formulario
+  async ionViewWillEnter() {
+    console.log('La vista va a entrar, refrescando datos...');
     this.cargarDatos();
   }
 
@@ -101,24 +104,35 @@ export class ListEntregasComponent  implements OnInit {
   }
 
   async abrirSelectorVehiculo(entrega: any) {
-    const alert = await this.alertCtrl.create({
-      header: 'Seleccionar Vehículo',
-      inputs: [
-        { type: 'radio', label: 'Moto 01', value: 'VtqPaBh3JxwbLm11tEpm', checked: true },
-        { type: 'radio', label: 'Camioneta', value: 'VtqPaBh3JxwbLm11tEpm' }
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { 
-          text: 'Confirmar Salida', 
-          handler: (idVehiculo) => this.asignarEntrega(entrega.id, idVehiculo) 
-        }
-      ]
-    });
-    await alert.present();
+    // DATOS ESTÁTICOS (Simulando lo que vendría de la DB)
+    const vehiculosEstaticos = [
+      { id: 'V-001', nombre: 'Moto Italika 150', tipo: 'moto' },
+      { id: 'V-002', nombre: 'Camioneta Ford', tipo: 'camioneta' },
+      { id: 'V-003', nombre: 'Bicicleta Eléctrica', tipo: 'bici' }
+    ];
+
+    // Mapeamos al formato que pide nuestro servicio
+    const opciones = vehiculosEstaticos.map(v => ({
+      text: v.nombre,
+      icon: v.tipo === 'moto' ? 'bicycle-outline' : (v.tipo === 'camioneta' ? 'car-outline' : 'walk-outline'),
+      value: v.id
+    }));
+
+    // Invocamos el Action Sheet y esperamos la respuesta
+    const idVehiculo = await this._actionSheetService.show(
+      '¿En qué vehículo sales?', 
+      opciones,
+      'Selecciona una unidad para el folio: ' + entrega.folio
+    );
+
+    // Si seleccionó algo (y no dio clic en cancelar)
+    if (idVehiculo) {
+      this.asignarEntrega(entrega.id, idVehiculo);
+    }
+
   }
 
-  async asignarEntrega(idEntrega: number | string, idVehiculo: number) {
+  async asignarEntrega(idEntrega: number | string, idVehiculo: number | string) {
     // Creamos el objeto para actualizar (Estatus 2 = En tránsito)
     const datosActualizar: any = {
       id: idEntrega,
@@ -154,21 +168,30 @@ export class ListEntregasComponent  implements OnInit {
     });
   }
 
-  irAFormulario() {
+  nuevaEntrega() {
     this.router.navigate(['/entregas/form-entregas']);
   }
 
-  async marcarComoEntregado(entrega: any) {
-    const alert = await this.alertCtrl.create({
-      header: '¿Finalizar Entrega?',
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { 
-          text: 'Aceptar', 
-          handler: () => this.finalizarEntrega(entrega.id) 
-        }
-      ]
+  editarEntrega(entrega: any) {
+    if (entrega.estatus === 3) {
+      // Opcional: mostrar un toast avisando que ya no se puede editar
+      return;
+    }
+  
+    this.router.navigate(['/entregas/form-entregas'], {
+      state: { entrega: entrega }
     });
-    await alert.present();
+  }
+
+  async marcarComoEntregado(entrega: any) {
+    // Usamos el servicio centralizado
+    await this._alertService.confirm(
+      '¿Finalizar Entrega?',
+      `¿Confirmas que el folio ${entrega.folio} ha sido entregado?`,
+      () => {
+        // Esta es la función que se ejecuta si el usuario da clic en "Aceptar"
+        this.finalizarEntrega(entrega.id);
+      }
+    );
   }
 }

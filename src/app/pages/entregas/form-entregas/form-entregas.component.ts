@@ -1,4 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { EntregaService } from '@services/entrega.service';
+import { PreferencesService } from '@services/preference.service';
+import { EntregaInterface } from '@interfaces/entrega-interface';
+import { HttpHelper } from '../../../class/http-helper';
+import { ToastService } from '@services/toast.service'; // Tu servicio de toast
 
 @Component({
   selector: 'app-form-entregas',
@@ -8,38 +14,69 @@ import { Component, OnInit } from '@angular/core';
 export class FormEntregasComponent  implements OnInit {
 
   // Objeto con la estructura que pediste
-  entrega: any = {
-    id: null, //1
+  entrega: Partial<EntregaInterface> = {
     folio: '',
     persona_recibe: '',
     colonia: '',
     estatus: 1,
-    id_repartidor: null,
-    id_vehiculo: null,
-    id_usuario_creador: 1 // Hardcodeado por ahora
+    activo: 1,
+    id_tienda: null,
+    id_usuario_creador: null,
+    fecha_venta: ''
   };
 
-  // Datos simulados para los selects
-  repartidores = [
-    { id: 10, nombre: 'Juan Pérez' },
-    { id: 11, nombre: 'Marcos Ruiz' }
-  ];
+  constructor(
+    private _entregaService: EntregaService,
+    private _preferencesService: PreferencesService,
+    private router: Router,
+    private _toastService: ToastService
+  ) { }
 
-  vehiculos = [
-    { id: 1, placa: 'VNK-90-21', modelo: 'Nissan NP300' },
-    { id: 2, placa: 'UL-12-88', modelo: 'Hilux' }
-  ];
-
-  constructor() { }
-
-  ngOnInit() {
-    // Si estuviéramos editando, aquí recibiríamos el objeto y lo asignaríamos
-    // this.entrega = ... datos de la entrega seleccionada
+  async ngOnInit() {
+    // 1. Primero capturamos si viene una entrega para edición
+    const state = this.router.getCurrentNavigation()?.extras.state;
+    
+    if (state && state['entrega']) {
+      // CASO EDICIÓN: Copiamos los datos existentes
+      this.entrega = { ...state['entrega'] };
+      console.log('Modo edición:', this.entrega);
+    } else {
+      // CASO NUEVA ENTREGA: Seteamos valores por defecto
+      console.log('Modo creación');
+      this.entrega.id_usuario_creador = await this._preferencesService.getIdUser();
+      
+      const userStr = await this._preferencesService.getItem('user');
+      if (userStr) {
+          const user = JSON.parse(userStr);
+          this.entrega.id_tienda = user.id_tienda;
+      }
+      
+      // Generamos la fecha del día para el filtro rápido
+      this.entrega.fecha_venta = HttpHelper.getFechaLocal();
+    }
   }
 
-  guardar() {
-    console.log('Datos a enviar a Node.js:', this.entrega);
-    // Aquí iría tu servicio: this.entregaService.save(this.entrega);
-  }
+  async guardar() {
+    // Validación básica
+    if (!this.entrega.folio || !this.entrega.persona_recibe || !this.entrega.colonia) {
+      this._toastService.show('Por favor rellena todos los campos', 'warning', 'warning-outline');
+      return;
+    }
 
+    // Decidimos si es POST (nuevo) o PUT (editar)
+    const peticion = this.entrega.id 
+      ? this._entregaService.put(this.entrega as EntregaInterface) 
+      : this._entregaService.post(this.entrega as EntregaInterface);
+
+    peticion.subscribe({
+      next: (res) => {
+        this._toastService.show('¡Entrega guardada con éxito!', 'success', 'checkmark-circle-outline');
+        this.router.navigate(['/entregas'], { replaceUrl: true }); // Regresamos a la lista
+      },
+      error: (err) => {
+        this._toastService.show('Error al conectar con el servidor', 'danger');
+        console.error(err);
+      }
+    });
+  }
 }

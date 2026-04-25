@@ -22,27 +22,7 @@
             <ion-icon slot="start" name="map-outline" color="primary"></ion-icon>
             <ion-input label="Colonia" labelPlacement="floating" [(ngModel)]="entrega.colonia"></ion-input>
           </ion-item>
-        </div>
-
-        <div class="section-title ion-margin-top">Asignación Logística</div>
-
-        <div class="input-group">
-          <ion-item lines="none" class="custom-item">
-            <ion-icon slot="start" name="bicycle-outline" color="primary"></ion-icon>
-            <ion-select label="Repartidor" labelPlacement="floating" [(ngModel)]="entrega.id_repartidor" placeholder="Seleccionar">
-              <ion-select-option [value]="null">Sin asignar</ion-select-option>
-              <ion-select-option *ngFor="let r of repartidores" [value]="r.id">{{ r.nombre }}</ion-select-option>
-            </ion-select>
-          </ion-item>
-
-          <ion-item lines="none" class="custom-item">
-            <ion-icon slot="start" name="car-sport-outline" color="primary"></ion-icon>
-            <ion-select label="Vehículo" labelPlacement="floating" [(ngModel)]="entrega.id_vehiculo" placeholder="Seleccionar">
-              <ion-select-option [value]="null">Sin asignar</ion-select-option>
-              <ion-select-option *ngFor="let v of vehiculos" [value]="v.id">{{ v.placa }} - {{ v.modelo }}</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </div>
+        </div>        
 
         <div class="ion-padding-top">
           <ion-button expand="block" shape="round" class="main-button" (click)="guardar()">

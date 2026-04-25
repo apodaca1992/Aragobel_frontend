@@ -32,3 +32,17 @@
   font-weight: 700;
   --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
 }
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 500px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}

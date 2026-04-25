@@ -29,3 +29,13 @@ ion-toolbar {
   --background: var(--ion-color-primary); /* Si quieres que el segmento sea del mismo color que el header */
   color: white;
 }
+
+.entrega-card.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    background-color: #f2f2f2;
+  }
+}

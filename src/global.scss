@@ -41,3 +41,38 @@ ion-input.ios, ion-input.md {
   --button-color: #ffffff;
   font-weight: 500;
 }
+
+//se agrego para el action sheet
+.aragobel-action-sheet {
+  --background: #ffffff;
+  
+  .action-sheet-title {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: var(--ion-color-primary) !important;
+    text-align: center;
+  }
+
+  .action-sheet-sub-header {
+    font-size: 14px !important;
+    text-align: center;
+    color: #666 !important;
+  }
+
+  .action-sheet-button {
+    padding-inline-start: 20px !important;
+    height: 55px !important; // Más alto para que sea fácil de picar
+    color: #333;
+    
+    .action-sheet-icon {
+      color: var(--ion-color-primary);
+      margin-inline-end: 15px !important;
+    }
+  }
+
+  // Estilo especial para el botón de cancelar
+  .action-sheet-button-cancel {
+    color: var(--ion-color-danger) !important;
+    font-weight: bold;
+  }
+}

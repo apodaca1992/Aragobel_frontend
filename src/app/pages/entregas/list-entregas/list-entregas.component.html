@@ -1,6 +1,6 @@
 <ion-header [translucent]="true">
   <app-header titulo="Mis Entregas" mode="menu">
-    <ion-button color="light" *ngIf="puedeCrear" action-buttons (click)="irAFormulario()">
+    <ion-button color="light" *ngIf="puedeCrear" action-buttons (click)="nuevaEntrega()">
       <ion-icon slot="icon-only" name="add-circle"></ion-icon>
     </ion-button>
   </app-header>
@@ -30,7 +30,11 @@
 <ion-content>
   <ion-list lines="none" *ngIf="entregasFiltradas.length > 0; else sinDatos">
     
-    <ion-card *ngFor="let entrega of entregasFiltradas" mode="ios" class="entrega-card">
+    <ion-card *ngFor="let entrega of entregasFiltradas" 
+              mode="ios" 
+              class="entrega-card"
+              [class.clickable]="esCajero"
+              (click)="esCajero ? editarEntrega(entrega) : null">
       <ion-item>
         <ion-icon name="document-text-outline" slot="start" color="primary"></ion-icon>
         <ion-label>
