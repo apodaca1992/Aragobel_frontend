@@ -1,6 +1,7 @@
-export interface Entrega {
-  id_entrega: string;
+export interface EntregaInterface {
+  id: string;
   folio: string;
+  persona_recibe: string;
   id_repartidor: string;
   id_vehiculo: string;
   colonia: string;
@@ -8,5 +9,7 @@ export interface Entrega {
   fec_salidapedido: string;
   fec_entregapedido: string;
   id_tienda: string;
-  active: number;
+  id_usuario_creador: string;
+  estatus: number;
+  activo: number;
 }

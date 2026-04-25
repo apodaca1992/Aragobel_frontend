@@ -3,9 +3,12 @@ import { Component, effect, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { EntregaDbRepository } from '../../../repository/entrega-db.service';
-import { Entrega } from '@interfaces/entrega-interface'; 
 import { Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
+import { LoadingController, AlertController } from '@ionic/angular';
+import { HttpHelper } from '../../../class/http-helper';
+
+import { EntregaService } from '@services/entrega.service'; // Asegura que la ruta sea correcta
+import { EntregaInterface } from '@interfaces/entrega-interface';
 import { PreferencesService } from '@services/preference.service';
 
 @Component({
@@ -15,9 +18,10 @@ import { PreferencesService } from '@services/preference.service';
 })
 export class ListEntregasComponent  implements OnInit {
   segmentoActual: string = 'disponibles';
-  todasLasEntregas: any[] = []; // Aquí llenas con tu API
+  todasLasEntregas: EntregaInterface[] = []; // Aquí llenas con tu API
  
   idUsuarioActual: string = '';
+  idTiendaUsuarioActual: string = '';
   puedeCrear: boolean = false; // Variable booleana para la vista
   esCajero: boolean = false;
   esAdmin: boolean = false;
@@ -26,12 +30,18 @@ export class ListEntregasComponent  implements OnInit {
     private router: Router,
     private alertCtrl: AlertController,
     private _preferencesService: PreferencesService,
+    private _entregaService: EntregaService,
   ) {}
 
   async ngOnInit() {
     this.puedeCrear = await this._preferencesService.tienePermiso('ENTREGAS', 'CREAR');
     this.esAdmin = await this._preferencesService.esAdmin(); // O tu lógica de rol
     this.idUsuarioActual = await this._preferencesService.getIdUser();
+    const userStr = await this._preferencesService.getItem('user');
+    if (userStr) {
+        const user = JSON.parse(userStr);
+        this.idTiendaUsuarioActual = user.id_tienda; // O la propiedad que necesites
+    }
     this.esCajero = this.puedeCrear;
     // 3. Definimos qué pestaña mostrar por defecto al entrar
     if (this.puedeCrear && !this.esAdmin) { //!this.esAdmin
@@ -44,32 +54,39 @@ export class ListEntregasComponent  implements OnInit {
     this.cargarDatos();
   }
 
-  cargarDatos() {
+  async cargarDatos() {
     // Aquí llamarías a tu servicio: this.entregaService.getEntregas().subscribe(...)
     // Ejemplo de datos basado en tu tabla SQL:
-    this.todasLasEntregas = [
-      { id: 1, folio: 'A-101', id_tienda: 'wEKDul8fyZuLeOKBbVSu', persona_recibe: 'Adrian', colonia: 'Centro', estatus: 1, id_repartidor: null, id_vehiculo: null , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
-      { id: 2, folio: 'A-102', id_tienda: 'wEKDul8fyZuLeOKBbVSu', persona_recibe: 'Adrian2', colonia: 'Centro', estatus: 1, id_repartidor: null, id_vehiculo: null , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
-      { id: 3, folio: 'A-103', id_tienda: 'wEKDul8fyZuLeOKBbVSu', persona_recibe: 'Adrian3', colonia: 'Centro', estatus: 1, id_repartidor: null, id_vehiculo: null , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
-      { id: 4, folio: 'A-104', id_tienda: 'wEKDul8fyZuLeOKBbVSu', persona_recibe: 'Adrian4', colonia: 'Centro', estatus: 1, id_repartidor: null, id_vehiculo: null , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
-      { id: 5, folio: 'A-105', id_tienda: 'wEKDul8fyZuLeOKBbVSu', persona_recibe: 'Jesus', colonia: 'Industrial', estatus: 2, id_repartidor: '8wpSXljQTO2fhQ5dNgUe', id_vehiculo: 'VtqPaBh3JxwbLm11tEpm' , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
-      { id: 6, folio: 'A-106', id_tienda: 'wEKDul8fyZuLeOKBbVSu', persona_recibe: 'Jesus1', colonia: 'Industrial', estatus: 2, id_repartidor: '8wpSXljQTO2fhQ5dNgUe', id_vehiculo: 'VtqPaBh3JxwbLm11tEpm', id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
-      { id: 7, folio: 'A-107', id_tienda: 'wEKDul8fyZuLeOKBbVSu', persona_recibe: 'Jesus2', colonia: 'Industrial', estatus: 3, id_repartidor: '8wpSXljQTO2fhQ5dNgUe', id_vehiculo: 'VtqPaBh3JxwbLm11tEpm' , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
-      { id: 8, folio: 'A-108', id_tienda: 'wEKDul8fyZuLeOKBbVSu', persona_recibe: 'Jesus3', colonia: 'Industrial', estatus: 1, id_repartidor: null, id_vehiculo: null , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
-      { id: 9, folio: 'A-109', id_tienda: 'wEKDul8fyZuLeOKBbVSu', persona_recibe: 'Jesus4', colonia: 'Industrial', estatus: 2, id_repartidor: '8wpSXljQTO2fhQ5dNgUe', id_vehiculo: null , id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'},
-      { id: 9, folio: 'A-110', id_tienda: 'wEKDul8fyZuLeOKBbVSu', persona_recibe: 'Jesus5', colonia: 'Industrial2', estatus: 2, id_repartidor: 2, id_vehiculo: null, id_usuario_creador: 'blIL9Ts6MeEbubvhnVpP'}
-    ];
+    const filtros = {
+      activo: 1,
+      id_tienda: this.idTiendaUsuarioActual,
+      fecha_venta: HttpHelper.getFechaLocal(),
+      estatus: '!=|3'
+    };
+
+    // Llamamos al servicio GET que definimos anteriormente
+    this._entregaService.get(filtros).subscribe({
+      next: (res:any) => {
+        this.todasLasEntregas = res.data;
+        console.log('Datos cargados:', res.data);
+      },
+      error: (err) => {
+        this.todasLasEntregas = [];
+        console.error('Error al cargar entregas', err);
+      }
+    });
+  
   }
 
   // El "motor" de las pestañas
   get entregasFiltradas() {
+
+    if (!Array.isArray(this.todasLasEntregas)) {
+      return [];
+    }
+    
     if (this.esCajero) {
-      return this.todasLasEntregas.filter(e => {
-        // Filtro 1: Que el creador sea él mismo
-        const esMio = e.id_usuario_creador === this.idUsuarioActual;
-        
-        return esMio ;
-      });
+      return this.todasLasEntregas.filter(e => e.id_usuario_creador === this.idUsuarioActual);
     }
 
 
@@ -87,8 +104,8 @@ export class ListEntregasComponent  implements OnInit {
     const alert = await this.alertCtrl.create({
       header: 'Seleccionar Vehículo',
       inputs: [
-        { type: 'radio', label: 'Moto 01', value: 1, checked: true },
-        { type: 'radio', label: 'Camioneta', value: 2 }
+        { type: 'radio', label: 'Moto 01', value: 'VtqPaBh3JxwbLm11tEpm', checked: true },
+        { type: 'radio', label: 'Camioneta', value: 'VtqPaBh3JxwbLm11tEpm' }
       ],
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
@@ -101,16 +118,57 @@ export class ListEntregasComponent  implements OnInit {
     await alert.present();
   }
 
-  asignarEntrega(idEntrega: number, idVehiculo: number) {
-    console.log('Asignando a repartidor:', this.idUsuarioActual, 'Vehiculo:', idVehiculo);
-    // Llamar a API -> UPDATE entregas SET id_repartidor = ?, id_vehiculo = ?, estatus = 2...
+  async asignarEntrega(idEntrega: number | string, idVehiculo: number) {
+    // Creamos el objeto para actualizar (Estatus 2 = En tránsito)
+    const datosActualizar: any = {
+      id: idEntrega,
+      id_repartidor: this.idUsuarioActual,
+      id_vehiculo: idVehiculo,
+      estatus: 2 
+    };
+
+    this._entregaService.put(datosActualizar).subscribe({
+      next: () => {
+        this.cargarDatos(); // Refrescamos la lista
+      },
+      error: (err) => {
+        console.error(err);
+      }
+    });
+  }
+
+  async finalizarEntrega(idEntrega: number | string) {
+    // Creamos el objeto para actualizar (Estatus 2 = En tránsito)
+    const datosActualizar: any = {
+      id: idEntrega,
+      estatus: 3
+    };
+
+    this._entregaService.put(datosActualizar).subscribe({
+      next: () => {
+        this.cargarDatos(); // Refrescamos la lista
+      },
+      error: (err) => {
+        console.error(err);
+      }
+    });
   }
 
   irAFormulario() {
     this.router.navigate(['/entregas/form-entregas']);
   }
 
-  marcarComoEntregado(datos: any) {
-    this.router.navigate(['/entregas/form-entregas']);
+  async marcarComoEntregado(entrega: any) {
+    const alert = await this.alertCtrl.create({
+      header: '¿Finalizar Entrega?',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { 
+          text: 'Aceptar', 
+          handler: () => this.finalizarEntrega(entrega.id) 
+        }
+      ]
+    });
+    await alert.present();
   }
 }

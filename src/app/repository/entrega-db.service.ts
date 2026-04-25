@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { DatabaseService } from '../services/database.service';
-import { Entrega } from '@interfaces/entrega-interface'; // Ajusta según tu interfaz
+import { EntregaInterface } from '@interfaces/entrega-interface'; // Ajusta según tu interfaz
 //import { v4 as uuidv4 } from 'uuid'; //uuidv4() Librería popular para generar UUIDs
 
 @Injectable({
@@ -8,7 +8,7 @@ import { Entrega } from '@interfaces/entrega-interface'; // Ajusta según tu int
 })
 export class EntregaDbRepository {
   // Usamos un Signal para que la UI se actualice automáticamente
-  public entregas = signal<Entrega[]>([]);
+  public entregas = signal<EntregaInterface[]>([]);
 
   constructor(private dbService: DatabaseService) {}
 
@@ -19,7 +19,7 @@ export class EntregaDbRepository {
     this.entregas.set(res.values || []);
   }
 
-  async create(pedido: Entrega) {
+  async create(pedido: EntregaInterface) {
     const db = await this.dbService.getDbConnection();
     const query = `
       INSERT INTO entregas (
@@ -29,7 +29,7 @@ export class EntregaDbRepository {
     `;
 
     const values = [
-      pedido.id_entrega,
+      pedido.id,
       pedido.folio,
       pedido.id_repartidor,
       pedido.id_vehiculo,
@@ -38,7 +38,7 @@ export class EntregaDbRepository {
       pedido.fec_salidapedido,
       pedido.fec_entregapedido,
       pedido.id_tienda,
-      pedido.active
+      pedido.activo
     ];
 
     await db.run(query, values);
