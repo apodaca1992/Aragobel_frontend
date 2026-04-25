@@ -2,7 +2,9 @@ import { Component, effect, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpHelper } from '../../../class/http-helper';
 import { EntregaService } from '@services/entrega.service'; // Asegura que la ruta sea correcta
+import { VehiculoService } from '@services/vehiculo.service'; 
 import { EntregaInterface } from '@interfaces/entrega-interface';
+import { VehiculoInterface } from '@interfaces/vehiculo-interface';
 import { PreferencesService } from '@services/preference.service';
 import { AlertService } from '@services/alert.service';
 import { ActionSheetService } from '@services/action-sheet.service';
@@ -27,6 +29,7 @@ export class ListEntregasComponent  implements OnInit {
     private _alertService: AlertService,
     private _preferencesService: PreferencesService,
     private _entregaService: EntregaService,
+    private _vehiculoService: VehiculoService,
     private _actionSheetService: ActionSheetService,
   ) {}
 
@@ -104,31 +107,32 @@ export class ListEntregasComponent  implements OnInit {
   }
 
   async abrirSelectorVehiculo(entrega: any) {
-    // DATOS ESTÁTICOS (Simulando lo que vendría de la DB)
-    const vehiculosEstaticos = [
-      { id: 'V-001', nombre: 'Moto Italika 150', tipo: 'moto' },
-      { id: 'V-002', nombre: 'Camioneta Ford', tipo: 'camioneta' },
-      { id: 'V-003', nombre: 'Bicicleta Eléctrica', tipo: 'bici' }
-    ];
+    
+    this._vehiculoService.get({ activo: 1, id_tienda: this.idTiendaUsuarioActual }).subscribe({
+      next: async (res: any) => {
+        const vehiculos = Array.isArray(res) ? res : (res.data || []);        
 
-    // Mapeamos al formato que pide nuestro servicio
-    const opciones = vehiculosEstaticos.map(v => ({
-      text: v.nombre,
-      icon: v.tipo === 'moto' ? 'bicycle-outline' : (v.tipo === 'camioneta' ? 'car-outline' : 'walk-outline'),
-      value: v.id
-    }));
+        // Mapeamos al formato que pide nuestro servicio
+        const opciones = vehiculos.map((v: VehiculoInterface) => ({
+          text: v.nombre,
+          icon: v.tipo === 'moto' ? 'bicycle-outline' : (v.tipo === 'camioneta' ? 'car-outline' : 'walk-outline'),
+          value: v.id
+        }));
 
-    // Invocamos el Action Sheet y esperamos la respuesta
-    const idVehiculo = await this._actionSheetService.show(
-      '¿En qué vehículo sales?', 
-      opciones,
-      'Selecciona una unidad para el folio: ' + entrega.folio
-    );
+        // Invocamos el Action Sheet y esperamos la respuesta
+        const idVehiculo = await this._actionSheetService.show<string>(
+          '¿En qué vehículo sales?', 
+          opciones,
+          'Selecciona una unidad para el folio: ' + entrega.folio
+        );
 
-    // Si seleccionó algo (y no dio clic en cancelar)
-    if (idVehiculo) {
-      this.asignarEntrega(entrega.id, idVehiculo);
-    }
+        // Si seleccionó algo (y no dio clic en cancelar)
+        if (idVehiculo) {
+          this.asignarEntrega(entrega.id, idVehiculo);
+        }
+
+      }
+    });
 
   }
 
