@@ -52,7 +52,7 @@ export class FormEntregasComponent  implements OnInit {
       }
       
       // Generamos la fecha del día para el filtro rápido
-      this.entrega.fecha_venta = HttpHelper.getFechaLocal();
+      this.entrega.fecha_venta = 'TODAY';
     }
   }
 

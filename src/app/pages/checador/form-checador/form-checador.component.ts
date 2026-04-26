@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AsistenciaInterface } from '@interfaces/asistencia-interface';
 import { AsistenciaService } from '@services/asistencia.service';
+import { PreferencesService } from '@services/preference.service';
+import { ToastService } from '@services/toast.service'; 
 
 @Component({
   selector: 'app-form-checador',
@@ -25,7 +27,9 @@ export class FormChecadorComponent  implements OnInit {
   };
 
   constructor(
-      private _asistenciaService: AsistenciaService
+      private _asistenciaService: AsistenciaService,
+          private _preferencesService: PreferencesService,
+          private _toastService: ToastService
     ) { }
 
   ngOnInit() {
@@ -99,15 +103,41 @@ export class FormChecadorComponent  implements OnInit {
   }
 
   async registrar(tipo: string) {
+    // 1. Calculamos la hora real para mostrarla en la UI de inmediato
     const ahoraReal = new Date(new Date().getTime() + this.offsetMs);
-    this.registro[tipo] = ahoraReal;
+    var tiendaUsuario = '';
 
-    console.log(`Marcaje ${tipo} guardado a las:`, ahoraReal.toISOString());
+    const userStr = await this._preferencesService.getItem('user');
+    if (userStr) {
+        const user = JSON.parse(userStr);
+        tiendaUsuario = user.id_tienda;
+    }
     
-    // Aquí es donde harías el this._service.post(...)
+    // 3. Preparamos el cuerpo del registro
+    const datosRegistro = {
+      tipo: tipo,           // 'entrada', 'comida_inicio', etc.
+      id_tienda: tiendaUsuario,
+      ubicacion: {lat: 24.809, lng: 107.394}
+    };
 
-    // TODO: Enviar a tu API de Node.js
-    // this._asistenciaService.guardarMarcaje({ tipo, hora: ahora, id_usuario: ... });
+    // 4. Llamamos al servicio de asistencia
+    this._asistenciaService.post(datosRegistro).subscribe({
+      next: (res: any) => {
+        // Actualizamos el estado visual del botón
+        this.registro[tipo] = ahoraReal;
+        
+        this._toastService.show(
+          `¡${tipo.replace('_', ' ').toUpperCase()} registrado con éxito!`, 
+          'success', 
+          'time-outline'
+        );        
+      },
+      error: (err) => {
+        console.error('Error al registrar asistencia:', err);
+        this._toastService.show('Error al conectar con el servidor', 'danger');
+      }
+    });
+    
   }
 
 }
