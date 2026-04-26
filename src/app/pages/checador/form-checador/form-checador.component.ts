@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { AsistenciaInterface } from '@interfaces/asistencia-interface';
+import { AsistenciaService } from '@services/asistencia.service';
 
 @Component({
   selector: 'app-form-checador',
@@ -7,9 +9,12 @@ import { Component, OnInit } from '@angular/core';
 })
 export class FormChecadorComponent  implements OnInit {
   hoy: Date = new Date();
-  horaActual: string = '';
+  horaActual: string = 'Cargando...';
   // Cambia tu variable hoy por esta lógica
   fechaLegible: string = '';
+
+  private timer: any;
+  private offsetMs: number = 0;
   
   // Objeto de registro
   registro: any = {
@@ -19,46 +24,71 @@ export class FormChecadorComponent  implements OnInit {
     salida: null
   };
 
-  constructor() { }
+  constructor(
+      private _asistenciaService: AsistenciaService
+    ) { }
 
   ngOnInit() {
-    // 1. Ejecutamos la hora inmediatamente para que no aparezca vacío
-    this.actualizarHora();
-    
-    this.iniciarReloj();
-    // Generamos la fecha en español de México
-    const fecha = new Date();
-    // En el ngOnInit después de generar la fecha
-    this.fechaLegible = fecha.toLocaleDateString('es-MX', {
+    this.sincronizarReloj();
+  }
+
+  ngOnDestroy() {
+    if (this.timer) clearInterval(this.timer);
+  }
+
+  sincronizarReloj() {
+    this._asistenciaService.getTime().subscribe({
+      next: (res: any) => {
+        // Validamos que la respuesta sea exitosa según tu JSON
+        if (res.success && res.data) {
+          const serverTime = res.data.serverTime; // Accedemos a data.serverTime
+          const localTime = new Date().getTime();
+
+          // Calculamos el desfase real
+          this.offsetMs = serverTime - localTime;
+
+          console.log('Sincronización Exitosa con Aragobel (Mazatlán Time)');
+          this.iniciarReloj();
+        }
+      },
+      error: (err) => {
+        console.error('Error al sincronizar hora:', err);
+        // Fallback: Si falla el internet, iniciamos con la hora local para no dejar la pantalla en blanco
+        this.iniciarReloj();
+      }
+    });    
+  }
+
+  iniciarReloj() {
+    if (this.timer) clearInterval(this.timer);
+
+    this.timer = setInterval(() => {
+      // Calculamos la hora real sumando el desfase a la hora actual del dispositivo
+      const ahoraReal = new Date(new Date().getTime() + this.offsetMs);
+      
+      this.horaActual = ahoraReal.toLocaleTimeString('es-MX', {
+        timeZone: 'America/Mazatlan',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+
+      if (!this.fechaLegible) {
+        this.actualizarFechaLegible(ahoraReal);
+      }
+    }, 1000);
+  }
+
+  actualizarFechaLegible(fecha: Date) {
+    let str = fecha.toLocaleDateString('es-MX', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
       year: 'numeric'
     });
-
-    // Forzar minúsculas en los conectores para que se vea bien pro
-    this.fechaLegible = this.fechaLegible.replace(/ De /g, ' de ');
-    this.fechaLegible = this.fechaLegible.charAt(0).toUpperCase() + this.fechaLegible.slice(1);
-
-    // Aquí deberías cargar los registros guardados del día desde tu DB o Storage
-
-  }
-
-  // Separamos la lógica de obtener la hora para poder llamarla al cargar
-  actualizarHora() {
-    this.horaActual = new Date().toLocaleTimeString('es-MX', {
-      timeZone: 'America/Mazatlan',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
-  }
-
-  iniciarReloj() {
-    setInterval(() => {
-      this.actualizarHora();
-    }, 1000);
+    str = str.replace(/ de /gi, ' de ');
+    this.fechaLegible = str.charAt(0).toUpperCase() + str.slice(1);
   }
 
   get estadoActual() {
@@ -69,13 +99,12 @@ export class FormChecadorComponent  implements OnInit {
   }
 
   async registrar(tipo: string) {
-    // Capturamos la hora exacta en que se hace click
-    const ahora = new Date();
+    const ahoraReal = new Date(new Date().getTime() + this.offsetMs);
+    this.registro[tipo] = ahoraReal;
 
-    // Actualizamos el objeto local para que el HTML reaccione
-    this.registro[tipo] = ahora;
-
-    console.log(`Marcaje de ${tipo} en Sinaloa:`, ahora);
+    console.log(`Marcaje ${tipo} guardado a las:`, ahoraReal.toISOString());
+    
+    // Aquí es donde harías el this._service.post(...)
 
     // TODO: Enviar a tu API de Node.js
     // this._asistenciaService.guardarMarcaje({ tipo, hora: ahora, id_usuario: ... });
