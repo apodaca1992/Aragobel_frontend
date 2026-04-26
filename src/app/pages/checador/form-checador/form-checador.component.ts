@@ -11,7 +11,7 @@ import { ToastService } from '@services/toast.service';
 })
 export class FormChecadorComponent  implements OnInit {
   hoy: Date = new Date();
-  horaActual: string = 'Cargando...';
+  horaActual: string = '...';
   // Cambia tu variable hoy por esta lógica
   fechaLegible: string = '';
 
