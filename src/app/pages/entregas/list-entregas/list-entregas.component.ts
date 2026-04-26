@@ -66,7 +66,7 @@ export class ListEntregasComponent  implements OnInit {
     const filtros = {
       activo: 1,
       id_tienda: this.idTiendaUsuarioActual,
-      fecha_venta: HttpHelper.getFechaLocal(),
+      fecha_venta: 'TODAY',
       estatus: '!=|3'
     };
 
