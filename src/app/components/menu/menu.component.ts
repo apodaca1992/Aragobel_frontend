@@ -41,24 +41,32 @@ export class MenuComponent implements OnInit {
   cargarConfiguracionMenu() {
     this.appPages = forkJoin({
       permisosStr: from(this._preferencesService.getItem('permisos')),
-      rolesStr: from(this._preferencesService.getItem('roles'))
+      rolesStr: from(this._preferencesService.getItem('roles')),
+      empresaStr: from(this._preferencesService.getItem('empresa'))
     }).pipe(
-      switchMap(({ permisosStr, rolesStr }) => {
+      switchMap(({ permisosStr, rolesStr, empresaStr }) => {
         const permisos = permisosStr ? JSON.parse(permisosStr as string) : {};
         const roles = rolesStr ? JSON.parse(rolesStr as string) : [];
+        const moduloEmpresa = empresaStr ? JSON.parse(empresaStr as string) : { checador: true, entregas: true };
         
         this.isAdmin = roles.includes('ADMINISTRADOR');
 
         return this.menuService.getMenu().pipe(
-          map(items => this.filtrarMenu(items, roles, permisos))
+          map(items => this.filtrarMenu(items, roles, permisos, moduloEmpresa))
         );
       })
     );
   }
 
-  private filtrarMenu(items: ComponenteInterface[], roles: string[], permisos: any): ComponenteInterface[] {
+  private filtrarMenu(items: ComponenteInterface[], roles: string[], permisos: any, moduloEmpresa: any): ComponenteInterface[] {
     return items.filter(item => {
       console.log(`Evaluando ${item.name}: requiere ${item.permisoRequerido}`);
+
+      // --- VALIDACIÓN DE MÓDULOS DE EMPRESA ---
+      if (item.permisoRequerido && moduloEmpresa && moduloEmpresa[item.permisoRequerido] === false) {
+        return false;
+      }
+
       // 1. Si es ADMINISTRADOR, tiene permiso total
       if (roles.includes('ADMINISTRADOR')) return true;
 

@@ -3,15 +3,15 @@
     "name": "Checador",
     "redirectTo": "/checador",
     "icon": "time-outline",
-    "section": "PRINCIPAL",
-    "permisoRequerido": "CHECADOR"
+    "section": "OPERACION",
+    "permisoRequerido": "checador"
   },
   {
     "name": "Mis Entregas",
     "redirectTo": "/entregas",
-    "icon": "cube-outline",
-    "section": "PRINCIPAL",
-    "permisoRequerido": "ENTREGAS"
+    "icon": "bicycle-outline",
+    "section": "OPERACION",
+    "permisoRequerido": "entregas"
   },
   {
     "name": "Gestión",
@@ -26,5 +26,12 @@
     "icon": "bar-chart-outline",
     "section": "ADMINISTRACION",
     "permisoRequerido": "REPORTES_ADMIN"
+  },
+  {
+    "name": "Perfil",
+    "redirectTo": "/perfil",
+    "icon": "person-outline",
+    "section": "CUENTA",
+    "permisoRequerido": "" 
   }
 ]

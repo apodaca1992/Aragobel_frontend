@@ -2,6 +2,7 @@ export interface AuthInterface{
     token                : string;
     user                 : AuthUserInterface;
     permisos            ?: any[];
+    empresa              : any;
 }
 
 export interface AuthLoginInterface{

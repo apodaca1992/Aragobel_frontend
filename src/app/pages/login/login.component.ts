@@ -60,9 +60,40 @@ export class LoginComponent extends FormClass implements OnInit {
 		this._authService.login({...this.frmLogin.getRawValue()} as AuthLoginInterface).subscribe({
 			next : async res => {
 			  	await this.saveSession(res);
-      			this._router.navigate(['/checador']);
+      			
+				// Extraemos la info necesaria de la respuesta
+				const roles = res.user.roles || [];
+				const permisos = res.permisos || {};
+				const configEmpresa = res.empresa || {};
+
+				// Ejecutamos la redirección inteligente
+				this.redireccionarUsuario(roles, permisos, configEmpresa.modulos);
 			}
 		});	 
+	}
+
+	private redireccionarUsuario(roles: string[], permisos: any, configEmpresa: any) {	
+		// 1. Prioridad: ADMINISTRADOR
+		if (roles.includes('ADMINISTRADOR')) {
+			this._router.navigate(['/panel-admin']);
+			return;
+		}
+
+		// 2. Operación: Checador (Si la empresa lo tiene activo Y el usuario tiene permiso)
+		// Nota: Usamos !== false por si el campo es undefined (asumimos true)
+		if (configEmpresa.checador !== false && permisos['CHECADOR']) {
+			this._router.navigate(['/checador']);
+			return;
+		}
+
+		// 3. Operación: Mis Entregas (Si el checador está apagado pero entregas no)
+		if (configEmpresa.entregas !== false && permisos['ENTREGAS']) {
+			this._router.navigate(['/entregas']);
+			return;
+		}
+
+		// 4. Comodín: Si no tiene nada de lo anterior, mándalo al Perfil o Home
+		this._router.navigate(['/perfil']); 
 	}
 
 	private async saveSession(res: any) {
@@ -73,6 +104,7 @@ export class LoginComponent extends FormClass implements OnInit {
 			this._preferencesService.setItem('user',JSON.stringify(res.user)),
 			this._preferencesService.setItem('permisos',JSON.stringify(res.permisos)),
 			this._preferencesService.setItem('roles',JSON.stringify(res.user.roles)),	
+			this._preferencesService.setItem('empresa',JSON.stringify(res.empresa.modulos)),	
 		]);
 		await this.menu.enable(true, 'MenuPrincipal');
 		// 2. DISPARAMOS EL EVENTO (Esto es lo que quita la necesidad del F5)

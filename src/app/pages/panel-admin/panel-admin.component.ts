@@ -12,7 +12,7 @@ export class PanelAdminComponent  implements OnInit {
   
   options: AdminOption[] = [
     { title: 'Usuarios', icon: 'people-outline', route: '/admin/usuarios', class: 'blue', section: 'Personal y Seguridad' },
-    { title: 'Roles', icon: 'shield-checkmark-outline', route: '/admin/roles', class: 'purple', section: 'Personal y Seguridad' },
+    { title: 'Asistencias', icon: 'time-outline', route: '/admin/asistencias', class: 'purple', section: 'Personal y Seguridad' },
     { title: 'Tiendas', icon: 'storefront-outline', route: '/admin/tiendas', class: 'green', section: 'Infraestructura y Logística' },
     { title: 'Vehículos', icon: 'bus-outline', route: '/admin/vehiculos', class: 'orange', section: 'Infraestructura y Logística' },
     { title: 'Entregas', icon: 'bicycle-outline', route: '/admin/deliveries', class: 'black', section: 'Infraestructura y Logística' },

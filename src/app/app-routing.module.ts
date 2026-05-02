@@ -28,7 +28,7 @@ const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'miPerfil',
+    path: 'perfil',
     loadChildren: () => import('./pages/mi-perfil/mi-perfil.module').then(m => m.MiPerfilPageModule),
     canActivate: [authGuard]
   },
