@@ -1,40 +1,55 @@
+<app-header titulo="Mi Perfil" mode="menu"></app-header>
 
-<app-header titulo="Mi Perfil" mode="menu"></app-header>  
+<ion-content color="light">
+  <div class="header-profile ion-text-center ion-padding">
+    <div class="avatar-container">
+      <ion-avatar>
+        <img src="https://ionicframework.com/docs/img/demos/avatar.svg" />
+      </ion-avatar>
+    </div>
+    <h2 class="ion-no-margin">{{ nombreCompleto }}</h2>
+    <p class="ion-no-margin txt-role">{{ usuario?.roles[0] }}</p>
+  </div>
 
-<ion-content> 
-  <ion-list>
+  <ion-list lines="inset" class="ion-margin-top">
+    <ion-list-header>
+      <ion-label color="primary">INFORMACIÓN PERSONAL</ion-label>
+    </ion-list-header>
 
-    <ion-item-sliding *ngFor="let user of componentes">
+    <ion-item>
+      <ion-icon slot="start" name="person-circle-outline" color="medium"></ion-icon>
+      <ion-label>
+        <p>Usuario</p>
+        <h3 class="font-bold">{{ usuario?.usuario }}</h3>
+      </ion-label>
+    </ion-item>
 
-        <ion-item-options side="start">
-            <ion-item-option (click)="favorite(user)">
-                <ion-icon slot="icon-only" name="heart-outline"></ion-icon>
-            </ion-item-option>
-            <ion-item-option color="danger" (click)="share(user)">
-                <ion-icon slot="icon-only" name="share-outline"></ion-icon>
-            </ion-item-option>
-        </ion-item-options>
+    <ion-item>
+      <ion-icon slot="start" name="mail-outline" color="medium"></ion-icon>
+      <ion-label>
+        <p>Correo Electrónico</p>
+        <h3 class="font-bold">{{ usuario?.email }}</h3>
+      </ion-label>
+    </ion-item>
 
-        <ion-item>
-            <ion-label>
-              <h3>{{ user.name }}</h3>  
-              <p> {{ user.name }} </p>
-            </ion-label>
-  
-            <ion-label slot="end" class="ion-text-end text-small"> {{ user.name }} </ion-label>
-  
-        </ion-item>
+    <ion-list-header class="ion-margin-top">
+      <ion-label color="primary">ADSCRIPCIÓN</ion-label>
+    </ion-list-header>
 
-        <ion-item-options side="end">
-            <ion-item-option color="danger" (click)="delete(user)">
-                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-            </ion-item-option>
-        </ion-item-options>
+    <ion-item>
+      <ion-icon slot="start" name="business-outline" color="medium"></ion-icon>
+      <ion-label>
+        <p>ID Empresa</p>
+        <h3 class="font-bold">{{ usuario?.id_empresa }}</h3>
+      </ion-label>
+    </ion-item>
 
-    </ion-item-sliding>
-      
+    <ion-item>
+      <ion-icon slot="start" name="storefront-outline" color="medium"></ion-icon>
+      <ion-label>
+        <p>ID Tienda</p>
+        <h3 class="font-bold">{{ usuario?.id_tienda }}</h3>
+      </ion-label>
+    </ion-item>
   </ion-list>
-  <ion-item>
-    <ion-text>{{position}}</ion-text>
-  </ion-item>
 </ion-content>
