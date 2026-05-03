@@ -3,6 +3,8 @@ import { AsistenciaInterface } from '@interfaces/asistencia-interface';
 import { AsistenciaService } from '@services/asistencia.service';
 import { PreferencesService } from '@services/preference.service';
 import { ToastService } from '@services/toast.service'; 
+import { AlertService } from '@services/alert.service';
+
 
 @Component({
   selector: 'app-form-checador',
@@ -30,7 +32,8 @@ export class FormChecadorComponent  implements OnInit {
   constructor(
       private _asistenciaService: AsistenciaService,
       private _preferencesService: PreferencesService,
-      private _toastService: ToastService
+      private _toastService: ToastService,
+      private _alertService: AlertService
     ) { }
 
   ngOnInit() {
@@ -179,6 +182,26 @@ export class FormChecadorComponent  implements OnInit {
   }
 
   async registrar(tipo: string) {
+    // 1. VALIDACIÓN PREVENTIVA
+    if (this.registro[tipo]) {
+        this._toastService.show(
+          `Ya has registrado tu ${tipo.replace('_', ' ')} anteriormente.`, 
+          'warning', // Color naranja para advertir
+          'alert-circle-outline'
+        );  
+        return;
+    }
+
+    // Validación de orden lógico (Ejemplo: No salir si no ha regresado de comer)
+    if (tipo === 'salida' && (this.registro.comida_inicio && !this.registro.comida_fin)) {
+        this._toastService.show(
+          `No puedes finalizar la jornada si aún estás en tiempo de comida.`, 
+          'danger', // Color rojo para error de flujo
+          'hand-left-outline'
+        );  
+        return;
+    }
+
     // 1. Calculamos la hora real para mostrarla en la UI de inmediato
     const ahoraReal = new Date(new Date().getTime() + this.offsetMs);
     var tiendaUsuario = '';
@@ -210,7 +233,16 @@ export class FormChecadorComponent  implements OnInit {
       },
       error: (err) => {
         console.error('Error al registrar asistencia:', err);
-        this._toastService.show('Error al conectar con el servidor', 'danger');
+        if (err.status === 400) {
+          // Aquí es donde capturas el "Ya existe un registro"
+          this._toastService.show(
+            err.error.message, 
+            'warning', // Color naranja para advertir
+            'alert-circle-outline'
+          ); 
+        }else{         
+          this._toastService.show('Error al conectar con el servidor', 'danger');
+        }
       }
     });
     
