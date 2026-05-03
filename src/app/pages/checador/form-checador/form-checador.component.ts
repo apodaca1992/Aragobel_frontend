@@ -3,7 +3,7 @@ import { AsistenciaInterface } from '@interfaces/asistencia-interface';
 import { AsistenciaService } from '@services/asistencia.service';
 import { PreferencesService } from '@services/preference.service';
 import { ToastService } from '@services/toast.service'; 
-import { AlertService } from '@services/alert.service';
+import { GeolocationService } from '@services/geolocation.service';
 
 
 @Component({
@@ -16,6 +16,8 @@ export class FormChecadorComponent  implements OnInit {
   horaActual: string = '...';
   // Cambia tu variable hoy por esta lógica
   fechaLegible: string = '';
+  // 1. Declaras la variable al inicio de la clase
+  bloqueoBoton: boolean = false;
 
   private timer: any;
   private offsetMs: number = 0;
@@ -33,7 +35,7 @@ export class FormChecadorComponent  implements OnInit {
       private _asistenciaService: AsistenciaService,
       private _preferencesService: PreferencesService,
       private _toastService: ToastService,
-      private _alertService: AlertService
+      private _geoService: GeolocationService
     ) { }
 
   ngOnInit() {
@@ -182,6 +184,12 @@ export class FormChecadorComponent  implements OnInit {
   }
 
   async registrar(tipo: string) {
+    // 2. Si ya hay un proceso en curso o ya existe el registro, cancelamos
+    if (this.bloqueoBoton || this.registro[tipo]) return;
+
+    // 3. Activamos el bloqueo
+    this.bloqueoBoton = true;
+
     // 1. VALIDACIÓN PREVENTIVA
     if (this.registro[tipo]) {
         this._toastService.show(
@@ -202,6 +210,16 @@ export class FormChecadorComponent  implements OnInit {
         return;
     }
 
+    // 2. Obtener ubicación desde tu servicio
+    // Tu servicio ya maneja los Toasts de error internamente
+    const coords = await this._geoService.getPosition();
+
+    // Si coords es null, el servicio ya mostró un Toast informando el porqué
+    if (!coords) {
+      this.bloqueoBoton = false;
+      return;
+    }
+
     // 1. Calculamos la hora real para mostrarla en la UI de inmediato
     const ahoraReal = new Date(new Date().getTime() + this.offsetMs);
     var tiendaUsuario = '';
@@ -216,23 +234,27 @@ export class FormChecadorComponent  implements OnInit {
     const datosRegistro = {
       tipo: tipo,           // 'entrada', 'comida_inicio', etc.
       id_tienda: tiendaUsuario,
-      ubicacion: {lat: 24.809, lng: 107.394}
+      ubicacion: {
+        lat: coords.latitude,
+        lng: coords.longitude
+      }
     };
 
     // 4. Llamamos al servicio de asistencia
     this._asistenciaService.post(datosRegistro).subscribe({
       next: (res: any) => {
         // Actualizamos el estado visual del botón
-        this.registro[tipo] = ahoraReal;
-        
+        this.registro[tipo] = ahoraReal;        
         this._toastService.show(
           `¡${tipo.replace('_', ' ').toUpperCase()} registrado con éxito!`, 
           'success', 
           'time-outline'
-        );        
+        );      
+        this.bloqueoBoton = false; // Desbloqueamos al terminar 
       },
       error: (err) => {
         console.error('Error al registrar asistencia:', err);
+        this.bloqueoBoton = false; // Desbloqueamos al terminar
         if (err.status === 400) {
           // Aquí es donde capturas el "Ya existe un registro"
           this._toastService.show(

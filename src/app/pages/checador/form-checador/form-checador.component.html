@@ -18,7 +18,9 @@
       <ion-icon slot="start" [name]="registro.entrada ? 'checkmark-circle' : 'log-in-outline'" 
                 [color]="registro.entrada ? 'success' : 'primary'"></ion-icon>
       <ion-label>Entrada</ion-label>
-      <ion-button slot="end" (click)="registrar('entrada')" *ngIf="!registro.entrada">CHECAR</ion-button>
+      <ion-button slot="end" (click)="registrar('entrada')" *ngIf="!registro.entrada" [disabled]="bloqueoBoton">
+        {{ bloqueoBoton ? 'ESPERE...' : 'CHECAR' }}
+      </ion-button>
       <ion-note slot="end" class="hora-registro" *ngIf="registro.entrada">{{ registro.entrada | date:'shortTime' }}</ion-note>
     </ion-item>
 
@@ -29,7 +31,9 @@
                   [color]="registro.comida_inicio ? 'success' : 'warning'"></ion-icon>
         <ion-label>Salida a Comer</ion-label>
         <ion-button slot="end" color="warning" (click)="registrar('comida_inicio')" 
-                    *ngIf="!registro.comida_inicio">SALIR</ion-button>
+                    *ngIf="!registro.comida_inicio" [disabled]="bloqueoBoton">
+          {{ bloqueoBoton ? 'ESPERE...' : 'SALIR' }}
+        </ion-button>
         <ion-note slot="end" class="hora-registro" *ngIf="registro.comida_inicio">{{ registro.comida_inicio | date:'shortTime' }}</ion-note>
       </ion-item>
 
@@ -38,7 +42,9 @@
                   [color]="registro.comida_fin ? 'success' : 'warning'"></ion-icon>
         <ion-label>Regreso de Comida</ion-label>
         <ion-button slot="end" color="warning" (click)="registrar('comida_fin')" 
-                    *ngIf="!registro.comida_fin">REGRESAR</ion-button>
+                    *ngIf="!registro.comida_fin" [disabled]="bloqueoBoton">
+          {{ bloqueoBoton ? 'ESPERE...' : 'REGRESAR' }}
+        </ion-button>
         <ion-note slot="end" class="hora-registro" *ngIf="registro.comida_fin">{{ registro.comida_fin | date:'shortTime' }}</ion-note>
       </ion-item>
     </ng-container>
@@ -49,7 +55,9 @@
       <ion-label>Salida Final</ion-label>
       <ion-button slot="end" color="danger" (click)="registrar('salida')" 
                   *ngIf="!registro.salida"
-                  [disabled]="registro.comida_inicio && !registro.comida_fin">FINALIZAR</ion-button>
+                  [disabled]="bloqueoBoton || (registro.comida_inicio && !registro.comida_fin)">
+        {{ bloqueoBoton ? 'ESPERE...' : 'FINALIZAR' }}
+      </ion-button>
       <ion-note slot="end" class="hora-registro" *ngIf="registro.salida">{{ registro.salida | date:'shortTime' }}</ion-note>
     </ion-item>
 
