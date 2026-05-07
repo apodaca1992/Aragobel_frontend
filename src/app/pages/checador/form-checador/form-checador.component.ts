@@ -113,7 +113,10 @@ export class FormChecadorComponent  implements OnInit {
   }
 
   sincronizarReloj() {
-    this._asistenciaService.getTime().subscribe({
+    const datos = {         
+      tz: 'America/Mazatlan'
+    };
+    this._asistenciaService.getTime(datos).subscribe({
       next: (res: any) => {
         // Validamos que la respuesta sea exitosa según tu JSON
         if (res.success && res.data) {

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { PreferencesService } from '@services/preference.service';
 import { MenuController } from '@ionic/angular';
+import { TiendaService } from '@services/tienda.service';
 
 
 @Component({
@@ -16,7 +17,8 @@ export class SeleccionarTiendaComponent implements OnInit {
 	constructor(		
 		private _preferencesService: PreferencesService,
     	private _router: Router,
-  		private menu: MenuController
+  		private menu: MenuController,
+		private _tiendaService  : TiendaService
 	) {}
 
 	async ngOnInit() {
@@ -26,26 +28,45 @@ export class SeleccionarTiendaComponent implements OnInit {
 	}
 
 	async seleccionar(tienda: any) {
-		const userStr = await this._preferencesService.getItem('user');
-		const permisosStr = await this._preferencesService.getItem('permisos');
-    	const empresaStr = await this._preferencesService.getItem('empresa');
+		// 1. Consultamos los datos faltantes de la tienda seleccionada
+        this._tiendaService.getById(tienda.id_tienda).subscribe({
+            next: async (resTienda: any) => {
+                if (resTienda.data) {
+                    const config = resTienda.data.configuracion_asistencia;
 
-		const user = JSON.parse(userStr ?? '{}');
-		const permisos = JSON.parse(permisosStr ?? '{}');
-    	const modulosEmpresa = JSON.parse(empresaStr ?? '{}');
-		
-		// Guardamos la elección
-		user.id_tienda = tienda.id_tienda;
-		user.nombre_tienda = tienda.nombre; 
+                    // 2. Recuperamos los datos de sesión actuales
+                    const userStr = await this._preferencesService.getItem('user');
+                    const permisosStr = await this._preferencesService.getItem('permisos');
+                    const empresaStr = await this._preferencesService.getItem('empresa');
 
-		await this._preferencesService.setItem('user', JSON.stringify(user));
+                    const user = JSON.parse(userStr ?? '{}');
+                    const permisos = JSON.parse(permisosStr ?? '{}');
+                    const empresaData = JSON.parse(empresaStr ?? '{}');
+                    const modulosEmpresa = empresaData.modulos ?? { checador: true, entregas: true };
 
-		// --- EL CAMBIO CLAVE AQUÍ ---
-		await this.menu.enable(true, 'MenuPrincipal'); // Ahora sí, abrimos el menú
-		// ----------------------------
-		
-		// 4. Ejecutamos la redirección inteligente
-    	this.redireccionarUsuario(user.roles || [], permisos, modulosEmpresa);
+                    // 3. Armamos el objeto usuario con la tienda y sus horarios
+                    user.id_tienda = tienda.id_tienda;
+					user.nombre_tienda = tienda.nombre; 
+                    user.configuracion_asistencia = {
+                        apertura: config.hora_apertura,
+                        cierre: config.hora_cierre,
+                        tolerancia: config.tolerancia_minutos,
+                        timezone: config.time_zone
+                    };
+
+                    // 4. Guardamos todo y habilitamos el menú
+                    await this._preferencesService.setItem('user', JSON.stringify(user));
+                    await this.menu.enable(true, 'MenuPrincipal');
+
+                    // 5. Redireccionamos
+                    this.redireccionarUsuario(user.roles || [], permisos, modulosEmpresa);
+                }
+            },
+            error: (err) => {
+                console.error('Error al obtener detalles de la tienda:', err);
+                // Aquí podrías mostrar un toast de error si la red falla
+            }
+        });
 	}
 
 	private redireccionarUsuario(roles: string[], permisos: any, configEmpresa: any) {

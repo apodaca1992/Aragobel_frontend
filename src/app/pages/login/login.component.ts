@@ -4,6 +4,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { FormClass } from '@class/form-class';
 import { AuthLoginInterface } from '@interfaces/auth-interface';
 import { AuthService } from '@services/auth.service';
+import { TiendaService } from '@services/tienda.service';
 import { Location } from '@angular/common';
 //import { ReCaptchaV3Service } from 'ng-recaptcha';
 import { Router } from '@angular/router';
@@ -38,6 +39,7 @@ export class LoginComponent extends FormClass implements OnInit {
 	constructor(		
 		private toastService: ToastService,
 		private _authService  : AuthService,
+		private _tiendaService  : TiendaService,
 		//private _userService  : UserService,
 		private _preferencesService: PreferencesService,
 		private _location : Location,
@@ -69,16 +71,37 @@ export class LoginComponent extends FormClass implements OnInit {
                     // Si tiene más de una, lo mandamos a elegir
                     this._router.navigate(['/seleccionar-tienda']);
                 } else if (tiendas.length === 1) {
-					// Si solo tiene una, la asignamos de una vez como activa
-					const user = res.user;
-					user.id_tienda = tiendas[0].id_tienda;
-					user.nombre_tienda = tiendas[0].nombre;
-					await this._preferencesService.setItem('user', JSON.stringify(user));
+					// Caso 2: Una sola tienda -> Consultamos sus datos AHORA
+					const idTienda = tiendas[0].id_tienda;
 					
-                    const roles = res.user.roles || [];
-                    const permisos = res.permisos || {};
-                    const configEmpresa = res.empresa || {};
-                    this.redireccionarUsuario(roles, permisos, configEmpresa.modulos);
+					// 1. Llamamos a Firestore para traer el documento completo de la tienda
+					// (Puedes usar el servicio que creamos antes o una consulta directa)
+					this._tiendaService.getById(idTienda).subscribe({
+						next:async (resTienda: any) => {
+							if (resTienda.data) {
+								const config = resTienda.data.configuracion_asistencia;
+								// Si solo tiene una, la asignamos de una vez como activa
+								const user = res.user;
+								user.id_tienda = tiendas[0].id_tienda;
+								user.nombre_tienda = tiendas[0].nombre;
+								user.configuracion_asistencia = {
+									apertura: config.hora_apertura,
+									cierre: config.hora_cierre,
+									tolerancia: config.tolerancia_minutos,
+									timezone: config.time_zone
+								};
+								await this._preferencesService.setItem('user', JSON.stringify(user));
+								
+								const roles = res.user.roles || [];
+								const permisos = res.permisos || {};
+								const configEmpresa = res.empresa || {};
+								this.redireccionarUsuario(roles, permisos, configEmpresa.modulos);
+							}							
+						},
+						error: (err) => {							
+							console.error('Error al cargar historial del día:', err);
+						}
+					});					
                 }else {
 					// Sin tiendas asignadas
 					this._router.navigate(['/perfil']);

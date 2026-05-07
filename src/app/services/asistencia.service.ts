@@ -31,7 +31,7 @@ export class AsistenciaService {
   delete(id: string | number): Observable<AsistenciaInterface> {
     return this._httpClient.delete<AsistenciaInterface>(`${this.urlApi}/${id}`);
   }
-  getTime(): Observable<AsistenciaInterface> {
-    return this._httpClient.get<AsistenciaInterface>(`${this.urlApi}/time`);
+  getTime(params?: any): Observable<AsistenciaInterface> {
+    return this._httpClient.get<AsistenciaInterface>(`${this.urlApi}/time`,{ params: HttpHelper.convertToHttpParams(params) });
   }
 }

@@ -17,4 +17,5 @@ export interface AuthUserInterface{
     tiendas_asignadas   : any[];
     id_tienda    : string;
     nombre_tienda : string;
+    configuracion_asistencia   : {};
 }
