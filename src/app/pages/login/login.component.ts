@@ -60,14 +60,29 @@ export class LoginComponent extends FormClass implements OnInit {
 		this._authService.login({...this.frmLogin.getRawValue()} as AuthLoginInterface).subscribe({
 			next : async res => {
 			  	await this.saveSession(res);
-      			
-				// Extraemos la info necesaria de la respuesta
-				const roles = res.user.roles || [];
-				const permisos = res.permisos || {};
-				const configEmpresa = res.empresa || {};
 
-				// Ejecutamos la redirección inteligente
-				this.redireccionarUsuario(roles, permisos, configEmpresa.modulos);
+				// 1. Verificamos si tiene múltiples tiendas
+                // Asumiendo que res.user.tiendas_asignadas es el array de IDs o nombres
+                const tiendas = res.user.tiendas_asignadas || [];
+
+                if (tiendas.length > 1) {
+                    // Si tiene más de una, lo mandamos a elegir
+                    this._router.navigate(['/seleccionar-tienda']);
+                } else if (tiendas.length === 1) {
+					// Si solo tiene una, la asignamos de una vez como activa
+					const user = res.user;
+					user.id_tienda = tiendas[0].id_tienda;
+					user.nombre_tienda = tiendas[0].nombre;
+					await this._preferencesService.setItem('user', JSON.stringify(user));
+					
+                    const roles = res.user.roles || [];
+                    const permisos = res.permisos || {};
+                    const configEmpresa = res.empresa || {};
+                    this.redireccionarUsuario(roles, permisos, configEmpresa.modulos);
+                }else {
+					// Sin tiendas asignadas
+					this._router.navigate(['/perfil']);
+				}
 			}
 		});	 
 	}
@@ -104,9 +119,15 @@ export class LoginComponent extends FormClass implements OnInit {
 			this._preferencesService.setItem('user',JSON.stringify(res.user)),
 			this._preferencesService.setItem('permisos',JSON.stringify(res.permisos)),
 			this._preferencesService.setItem('roles',JSON.stringify(res.user.roles)),	
-			this._preferencesService.setItem('empresa',JSON.stringify(res.empresa.modulos)),	
+			this._preferencesService.setItem('empresa',JSON.stringify(res.empresa)),	
+			this._preferencesService.setItem('tiendas_asignadas',JSON.stringify(res.user.tiendas_asignadas)),
 		]);
-		await this.menu.enable(true, 'MenuPrincipal');
+		
+		if (res.user.tiendas_asignadas.length <= 1) {
+			await this.menu.enable(true, 'MenuPrincipal');
+		} else {
+			await this.menu.enable(false, 'MenuPrincipal'); // Aseguramos que esté apagado
+		}
 		// 2. DISPARAMOS EL EVENTO (Esto es lo que quita la necesidad del F5)
     	this._authService.loginStatus$.emit(true);
 	}

@@ -13,6 +13,11 @@ const routes: Routes = [
     loadChildren: () => import('./pages/login/login.module').then(m => m.LoginPageModule)
   },
   {
+    path: 'seleccionar-tienda',
+    loadChildren: () => import('./pages/seleccionar-tienda/seleccionar-tienda.module').then(m => m.SeleccionarTiendaPageModule),
+    canActivate: [authGuard]
+  },  
+  {
     path: 'checador',
     loadChildren: () => import('./pages/checador/checador.module').then(m => m.ChecadorPageModule),
     canActivate: [authGuard]

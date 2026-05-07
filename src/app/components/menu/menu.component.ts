@@ -17,6 +17,7 @@ export class MenuComponent implements OnInit {
   // Ya no necesitamos selectedIndex
   appPages!: Observable<ComponenteInterface[]>;
   public isAdmin: boolean = false;
+  public nombreEmpresa: string = '';
     
   constructor(
     private menuService: MenuService,
@@ -47,12 +48,17 @@ export class MenuComponent implements OnInit {
       switchMap(({ permisosStr, rolesStr, empresaStr }) => {
         const permisos = permisosStr ? JSON.parse(permisosStr as string) : {};
         const roles = rolesStr ? JSON.parse(rolesStr as string) : [];
-        const moduloEmpresa = empresaStr ? JSON.parse(empresaStr as string) : { checador: true, entregas: true };
+        const empresaData = empresaStr ? JSON.parse(empresaStr as string) : null;
+
+        // 3. Asignamos el nombre de la empresa (con un fallback por si no existe)
+        this.nombreEmpresa = empresaData?.nombre ?? '';
+
+        const configModulos = empresaData?.modulos ?? { checador: true, entregas: true };
         
         this.isAdmin = roles.includes('ADMINISTRADOR');
 
         return this.menuService.getMenu().pipe(
-          map(items => this.filtrarMenu(items, roles, permisos, moduloEmpresa))
+          map(items => this.filtrarMenu(items, roles, permisos, configModulos))
         );
       })
     );

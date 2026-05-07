@@ -1,0 +1,22 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Seleccionar Sucursal</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="ion-text-center ion-margin-bottom">
+    <ion-icon name="business-outline" style="font-size: 64px;" color="medium"></ion-icon>
+    <h3>¿En qué tienda trabajarás hoy?</h3>
+  </div>
+
+  <ion-list lines="inset">
+    <ion-item button *ngFor="let tienda of tiendas" (click)="seleccionar(tienda)" detail="true">
+      <ion-icon slot="start" name="storefront-outline" color="primary"></ion-icon>
+      <ion-label>
+        <h2>{{ tienda.nombre }}</h2>
+        <p>ID: {{ tienda.id_tienda }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

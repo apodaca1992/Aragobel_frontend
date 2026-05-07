@@ -14,4 +14,7 @@ export interface AuthUserInterface{
     id                   : string;
     usuario              : string;
     roles               : any[];
+    tiendas_asignadas   : any[];
+    id_tienda    : string;
+    nombre_tienda : string;
 }
