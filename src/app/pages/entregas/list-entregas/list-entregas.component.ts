@@ -20,6 +20,7 @@ export class ListEntregasComponent  implements OnInit {
  
   idUsuarioActual: string = '';
   idTiendaUsuarioActual: string = '';
+  nombreUsuario: string = '';
   puedeCrear: boolean = false; // Variable booleana para la vista
   esCajero: boolean = false;
   esAdmin: boolean = false;
@@ -41,6 +42,7 @@ export class ListEntregasComponent  implements OnInit {
     if (userStr) {
         const user = JSON.parse(userStr);
         this.idTiendaUsuarioActual = user.id_tienda; // O la propiedad que necesites
+        this.nombreUsuario = user.nombre + ' ' + user.apellido_paterno + ' ' + user.apellido_materno;
     }
     this.esCajero = this.puedeCrear;
     // 3. Definimos qué pestaña mostrar por defecto al entrar
@@ -116,19 +118,19 @@ export class ListEntregasComponent  implements OnInit {
         const opciones = vehiculos.map((v: VehiculoInterface) => ({
           text: v.nombre,
           icon: v.tipo === 'moto' ? 'bicycle-outline' : (v.tipo === 'camioneta' ? 'car-outline' : 'walk-outline'),
-          value: v.id
+          value: { id: v.id, nombre: v.nombre }
         }));
 
         // Invocamos el Action Sheet y esperamos la respuesta
-        const idVehiculo = await this._actionSheetService.show<string>(
+        const seleccion = await this._actionSheetService.show<{ id: string, nombre: string }>(
           '¿En qué vehículo sales?', 
           opciones,
           'Selecciona una unidad para el folio: ' + entrega.folio
         );
 
         // Si seleccionó algo (y no dio clic en cancelar)
-        if (idVehiculo) {
-          this.asignarEntrega(entrega.id, idVehiculo);
+        if (seleccion) {
+          this.asignarEntrega(entrega.id, seleccion.id, seleccion.nombre);
         }
 
       }
@@ -136,12 +138,14 @@ export class ListEntregasComponent  implements OnInit {
 
   }
 
-  async asignarEntrega(idEntrega: number | string, idVehiculo: number | string) {
+  async asignarEntrega(idEntrega: number | string, idVehiculo: string, nombreVehiculo: string) {
     // Creamos el objeto para actualizar (Estatus 2 = En tránsito)
     const datosActualizar: any = {
       id: idEntrega,
       id_repartidor: this.idUsuarioActual,
+      nombre_repartidor: this.nombreUsuario,
       id_vehiculo: idVehiculo,
+      nombre_vehiculo: nombreVehiculo,
       estatus: 2 
     };
 

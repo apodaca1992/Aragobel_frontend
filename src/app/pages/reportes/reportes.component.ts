@@ -3,6 +3,8 @@ import { LoadingService } from "@services/loading.service";
 import { ToastService } from "@services/toast.service";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { PreferencesService } from '@services/preference.service';
+import { AsistenciaService } from '@services/asistencia.service';
 
 @Component({
   selector: 'app-reportes',
@@ -12,11 +14,13 @@ import autoTable from 'jspdf-autotable';
 export class ReportesComponent  implements OnInit {
   segmento: string = 'asistencia';
 
-  reportAsistencia = [
-    { nombre: 'Adrian G.', fecha: new Date(), entrada: '08:02 AM' },
-    { nombre: 'Jose L.', fecha: new Date(), entrada: '08:15 AM' },
-    { nombre: 'Maria F.', fecha: new Date(), entrada: '07:55 AM' },
-  ];
+  // Objeto para controlar la visibilidad
+  modulosConfig = {
+    checador: true,
+    entregas: true
+  };
+
+  reportAsistencia: any[] = [];
 
   reportRepartidores = [
     { nombre: 'Ramon Valdes', entregas: 45 },
@@ -25,19 +29,75 @@ export class ReportesComponent  implements OnInit {
 
   constructor(
     private loadingService: LoadingService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private _preferencesService: PreferencesService,
+    private _asistenciaService: AsistenciaService
   ) {
 
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     //this.toastService.show('¡Guardado correctamente!', 'success', 'checkmark-circle-outline');
+    await this.cargarConfiguracionModulos();
+
+    // 1. Obtener el mes actual en formato "YYYY-MM"
+    const hoy = new Date();
+    const mesActual = hoy.toISOString().substring(0, 7); // Resultado: "2026-05"
+
+    this.definirSegmentoInicial(mesActual);
+  }
+
+  async cargarConfiguracionModulos() {
+    const empresaStr = await this._preferencesService.getItem('empresa');
+    if (empresaStr) {
+      const empresaData = JSON.parse(empresaStr);
+      // Extraemos los módulos (si no existen, por defecto true)
+      this.modulosConfig = empresaData.modulos ?? { checador: true, entregas: true };
+    }
+  }
+
+  // Esto evita que el segmento quede vacío si 'asistencia' está desactivado
+  async definirSegmentoInicial(mes: string) {
+    if (!this.modulosConfig.checador && this.modulosConfig.entregas) {
+      this.segmento = 'entregas';
+    } else if (this.modulosConfig.checador) {
+      this.segmento = 'asistencia';
+      await this.obtenerMarcajesPorMes(mes);
+    }
   }
 
   onDateChange(event: any) {
-    const fechaSeleccionada = new Date(event.detail.value);
-    console.log("Filtrando datos para:", fechaSeleccionada);
-    // Aquí dispararías la carga de datos de tu API de Node.js para ese mes
+    const fecha = event.detail.value; // Formato "2026-05-24..."
+    const mesSeleccionado = fecha.substring(0, 7); // Extrae "2026-05"
+    
+    this.obtenerMarcajesPorMes(mesSeleccionado);
+  }
+
+  async obtenerMarcajesPorMes(mes: string){
+    // Supongamos que ya tienes el id_tienda_activa en el objeto user
+    const user = JSON.parse(localStorage.getItem('user') ?? '{}');
+    const idTienda = user.id_tienda_activa;
+    
+    const datos = {         
+      id_tienda: idTienda,
+      id_usuario: user.id,
+      id_empresa: user.id_empresa,
+      fecha_gte: `${mes}-01`, // Mayor o igual que
+      fecha_lte: `${mes}-31`, // Menor o igual que
+      activo: 1
+    };
+    
+    this._asistenciaService.get(datos).subscribe({
+      next: (res: any) => {
+        if (res.data) {
+          console.log(res.data);
+          this.reportAsistencia = res.data;
+        }
+      },
+      error: (err) => {
+        console.error('Error al cargar historial del día:', err);
+      }
+    });
   }
 
   exportarPDF() {

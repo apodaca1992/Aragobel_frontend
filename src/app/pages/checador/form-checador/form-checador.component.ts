@@ -243,17 +243,20 @@ export class FormChecadorComponent  implements OnInit {
     // 1. Calculamos la hora real para mostrarla en la UI de inmediato
     const ahoraReal = new Date(new Date().getTime() + this.offsetMs);
     var tiendaUsuario = '';
+    var nombreUsuario = '';
 
     const userStr = await this._preferencesService.getItem('user');
     if (userStr) {
         const user = JSON.parse(userStr);
         tiendaUsuario = user.id_tienda;
+        nombreUsuario = user.nombre + ' ' + user.apellido_paterno + ' ' + user.apellido_materno;
     }
     
     // 3. Preparamos el cuerpo del registro
     const datosRegistro = {
       tipo: tipo,           // 'entrada', 'comida_inicio', etc.
       id_tienda: tiendaUsuario,
+      nombre_usuario: nombreUsuario,
       ubicacion: {
         lat: coords.latitude,
         lng: coords.longitude

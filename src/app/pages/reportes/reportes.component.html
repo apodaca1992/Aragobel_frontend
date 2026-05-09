@@ -8,10 +8,10 @@
 
 <ion-content color="light" class="ion-padding">
   <ion-segment [(ngModel)]="segmento" mode="ios" class="ion-margin-bottom">
-    <ion-segment-button value="asistencia">
+    <ion-segment-button value="asistencia" *ngIf="modulosConfig.checador">
       <ion-label>Asistencia</ion-label>
     </ion-segment-button>
-    <ion-segment-button value="entregas">
+    <ion-segment-button value="entregas" *ngIf="modulosConfig.entregas">
       <ion-label>Entregas</ion-label>
     </ion-segment-button>
   </ion-segment>
@@ -38,31 +38,27 @@
   </ion-modal>
 
   <div *ngIf="segmento === 'asistencia'">
-    <div class="stats-grid">
-      <ion-card class="stat-card">
-        <ion-note>Puntualidad</ion-note>
-        <h2>95%</h2>
-      </ion-card>
-      <ion-card class="stat-card">
-        <ion-note>Faltas Mes</ion-note>
-        <h2 color="danger">4</h2>
-      </ion-card>
-    </div>
-
     <ion-list lines="none" class="report-list">
-      <div class="section-title">Últimos Marcajes</div>
-      <ion-item *ngFor="let item of reportAsistencia" class="custom-report-item">
-        <ion-avatar slot="start">
-          <div class="avatar-text">{{ item.nombre[0] }}</div>
-        </ion-avatar>
-        <ion-label>
-          <h3>{{ item.nombre }}</h3>
-          <p>{{ item.fecha | date:'mediumDate' }}</p>
-        </ion-label>
-        <div slot="end" class="ion-text-end">
-          <ion-badge color="success">{{ item.entrada }}</ion-badge>
-          <p class="time-note">Entrada</p>
-        </div>
+      <div class="section-title">Últimos 10 Marcajes</div>
+        <ion-item *ngFor="let item of reportAsistencia" class="custom-report-item">
+          <ion-avatar slot="start">
+            <div class="avatar-text">
+              {{ item.nombre_usuario[0] }}
+            </div>
+          </ion-avatar>
+
+          <ion-label>
+            <h3>{{ item.nombre_usuario }}</h3> <p>{{ item.fecha | date:'mediumDate' }} · {{ item.tipo }}</p>
+          </ion-label>
+
+          <div slot="end" class="ion-text-end">
+            <ion-badge [color]="item.estatus === 'A_TIEMPO' ? 'success' : 'danger'">
+              {{ item.hora }}
+            </ion-badge>
+            <p class="time-note" [class.atraso]="item.estatus !== 'A_TIEMPO'">
+              {{ item.estatus }}
+            </p>
+          </div>
       </ion-item>
     </ion-list>
   </div>
