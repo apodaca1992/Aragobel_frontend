@@ -47,7 +47,7 @@ export class SeleccionarTiendaComponent implements OnInit {
                     // 3. Armamos el objeto usuario con la tienda y sus horarios
                     user.id_tienda = tienda.id_tienda;
 					user.nombre_tienda = tienda.nombre; 
-                    user.configuracion_asistencia = {
+                    user.tienda_activa_config = {
                         apertura: config.hora_apertura,
                         cierre: config.hora_cierre,
                         tolerancia: config.tolerancia_minutos,

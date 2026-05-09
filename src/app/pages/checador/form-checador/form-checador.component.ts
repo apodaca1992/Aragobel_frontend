@@ -31,6 +31,9 @@ export class FormChecadorComponent  implements OnInit {
     salida: null
   };
 
+  // Añadimos esta para tener la zona horaria a la mano
+  private timeZoneActiva: string = 'America/Mazatlan';
+
   constructor(
       private _asistenciaService: AsistenciaService,
       private _preferencesService: PreferencesService,
@@ -38,12 +41,26 @@ export class FormChecadorComponent  implements OnInit {
       private _geoService: GeolocationService
     ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+    // 1. Cargamos la configuración de la zona horaria antes que nada
+    await this.cargarConfiguracionTienda();
+
     // 1. Iniciamos el reloj de inmediato con la hora local
     this.iniciarReloj();
 
     this.sincronizarReloj();
     this.cargarAsistenciasDia(); // <--- Paso 1
+  }
+
+  // NUEVO MÉTODO: Carga la zona horaria del objeto tienda_activa_config
+  async cargarConfiguracionTienda() {
+    const userStr = await this._preferencesService.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      // Extraemos del nuevo objeto que creamos en el login/selección
+      this.timeZoneActiva = user.tienda_activa_config?.timezone || 'America/Mazatlan';
+      console.log('Zona horaria activa:', this.timeZoneActiva);
+    }
   }
 
   async cargarAsistenciasDia() {
@@ -114,7 +131,7 @@ export class FormChecadorComponent  implements OnInit {
 
   sincronizarReloj() {
     const datos = {         
-      tz: 'America/Mazatlan'
+      tz: this.timeZoneActiva
     };
     this._asistenciaService.getTime(datos).subscribe({
       next: (res: any) => {
@@ -155,7 +172,7 @@ export class FormChecadorComponent  implements OnInit {
     const ahoraReal = new Date(new Date().getTime() + this.offsetMs);
     
     this.horaActual = ahoraReal.toLocaleTimeString('es-MX', {
-      timeZone: 'America/Mazatlan',
+      timeZone: this.timeZoneActiva,
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
