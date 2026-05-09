@@ -1,79 +1,86 @@
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 20px;
-
-  .stat-card {
-    margin: 0;
-    padding: 15px;
-    text-align: center;
-    border-radius: 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-
-    h2 {
-      font-size: 1.8rem;
-      font-weight: 800;
-      margin: 5px 0 0;
-      color: var(--ion-color-primary);
-    }
-    
-    ion-note {
-      text-transform: uppercase;
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 1px;
-    }
-  }
+.report-list {
+  background: transparent; // Asegura que no tenga fondo propio
+  padding-bottom: 0 !important; // Elimina el espacio extra al final de la lista
+  margin-bottom: 0;
 }
 
-.section-title {
-  padding-left: 5px; // Alinea con el borde de las cards
-  margin-top: 20px;
-  margin-bottom: 10px;
-}
+.delivery-card {
+  --padding-start: 0; // Quitamos padding de ionic para usar el nuestro
+  --inner-padding-end: 15px;
+  margin-bottom: 12px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); // Sombra más suave
 
-.custom-report-item {
-  --background: white;
-  margin-bottom: 8px;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-
-  .avatar-text {
-    background: var(--ion-color-primary-tint);
-    color: var(--ion-color-primary);
-    width: 40px;
-    height: 40px;
+  .vehicle-icon-container {
+    background: #f4f5f8; // Gris muy claro
+    width: 45px;
+    height: 45px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    font-weight: bold;
+    border-radius: 12px;
+    margin: 10px 15px;
+    
+    ion-icon { 
+      font-size: 22px; 
+      color: var(--ion-color-primary);
+    }
   }
 
-  .time-note {
-    font-size: 0.65rem;
-    margin-top: 2px;
-  }
-}
+  .delivery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
 
-.month-item {
-  --background: #fff;
-  --border-radius: 15px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin: 5px 0 15px 0;
-  
-  ion-label p {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
-  }
-}
+    .folio-text {
+      font-weight: 800;
+      color: var(--ion-color-step-400);
+      font-size: 0.7rem;
+      letter-spacing: 0.5px;
+    }
 
-// Para que el botón de fecha de Ionic se vea más limpio
-ion-datetime-button {
-  --background: var(--ion-color-light);
-  --color: var(--ion-color-primary);
-  font-weight: bold;
+    ion-badge {
+      font-weight: 600;
+      font-size: 0.65rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+  }
+
+  .client-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #222;
+    margin: 4px 0;
+  }
+
+  .delivery-footer {
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+    margin-top: 8px;
+    margin-bottom: 5px;
+    border-top: 1px solid #f0f0f0; // Línea sutil divisoria
+    padding-top: 8px;
+
+    .info-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      color: var(--ion-color-step-600);
+
+      ion-icon { 
+        font-size: 14px; 
+        color: var(--ion-color-primary);
+      }
+      
+      &.repartidor {
+        color: var(--ion-color-dark);
+        font-weight: 500;
+      }
+    }
+  }
 }

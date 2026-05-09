@@ -5,6 +5,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { PreferencesService } from '@services/preference.service';
 import { AsistenciaService } from '@services/asistencia.service';
+import { EntregaService } from '@services/entrega.service'; // Asegúrate de tener este import
 
 @Component({
   selector: 'app-reportes',
@@ -20,18 +21,22 @@ export class ReportesComponent  implements OnInit {
     entregas: true
   };
 
-  reportAsistencia: any[] = [];
+  estatusEntregas: { [key: number]: { texto: string, color: string } } = {
+    1: { texto: 'Creado', color: 'medium' },
+    2: { texto: 'En Ruta', color: 'warning' },
+    3: { texto: 'Finalizado', color: 'success' }
+  };
 
-  reportRepartidores = [
-    { nombre: 'Ramon Valdes', entregas: 45 },
-    { nombre: 'Carlos Villagran', entregas: 38 },
-  ];
+  reportAsistencia: any[] = [];
+  reportEntregas: any[] = [];
+  mesReporteActual: string = new Date().toISOString().substring(0, 7);
 
   constructor(
     private loadingService: LoadingService,
     private toastService: ToastService,
     private _preferencesService: PreferencesService,
-    private _asistenciaService: AsistenciaService
+    private _asistenciaService: AsistenciaService,
+    private _entregaService: EntregaService
   ) {
 
   }
@@ -40,11 +45,7 @@ export class ReportesComponent  implements OnInit {
     //this.toastService.show('¡Guardado correctamente!', 'success', 'checkmark-circle-outline');
     await this.cargarConfiguracionModulos();
 
-    // 1. Obtener el mes actual en formato "YYYY-MM"
-    const hoy = new Date();
-    const mesActual = hoy.toISOString().substring(0, 7); // Resultado: "2026-05"
-
-    this.definirSegmentoInicial(mesActual);
+    this.definirSegmentoInicial(this.mesReporteActual);
   }
 
   async cargarConfiguracionModulos() {
@@ -60,6 +61,7 @@ export class ReportesComponent  implements OnInit {
   async definirSegmentoInicial(mes: string) {
     if (!this.modulosConfig.checador && this.modulosConfig.entregas) {
       this.segmento = 'entregas';
+      await this.obtenerEntregasPorMes(mes);
     } else if (this.modulosConfig.checador) {
       this.segmento = 'asistencia';
       await this.obtenerMarcajesPorMes(mes);
@@ -68,25 +70,56 @@ export class ReportesComponent  implements OnInit {
 
   onDateChange(event: any) {
     const fecha = event.detail.value; // Formato "2026-05-24..."
-    const mesSeleccionado = fecha.substring(0, 7); // Extrae "2026-05"
+    this.mesReporteActual = fecha.substring(0, 7); // Extrae "2026-05"    
+   
+    // Cargamos los datos de la pestaña que esté viendo el usuario actualmente
+    this.cargarDatosSegunSegmento();
+  }
+
+  cargarDatosSegunSegmento() {
+    if (this.segmento === 'asistencia' && this.modulosConfig.checador) {
+      this.obtenerMarcajesPorMes(this.mesReporteActual);
+    } else if (this.segmento === 'entregas' && this.modulosConfig.entregas) {
+      this.obtenerEntregasPorMes(this.mesReporteActual);
+    }
+  }
+
+  async obtenerEntregasPorMes(mes: string) {
+    const user = JSON.parse(await this._preferencesService.getItem('user') ?? '{}');
     
-    this.obtenerMarcajesPorMes(mesSeleccionado);
+    const datos = {         
+      id_tienda: user.id_tienda,
+      id_empresa: user.id_empresa,
+      fecha_venta_gte: `${mes}-01`,
+      fecha_venta_lte: `${mes}-31`,
+      activo: 1
+    };
+    console.log(datos)
+    this._entregaService.get(datos).subscribe({
+      next: (res: any) => {
+        if (res.data) {
+          this.reportEntregas = res.data;
+          console.log('Entregas cargadas:', this.reportEntregas);
+        }
+      },
+      error: (err) => console.error('Error al cargar entregas:', err)
+    });
   }
 
   async obtenerMarcajesPorMes(mes: string){
     // Supongamos que ya tienes el id_tienda_activa en el objeto user
-    const user = JSON.parse(localStorage.getItem('user') ?? '{}');
-    const idTienda = user.id_tienda_activa;
+    const user = JSON.parse(await this._preferencesService.getItem('user') ?? '{}');
+    const idTienda = user.id_tienda;
     
     const datos = {         
       id_tienda: idTienda,
-      id_usuario: user.id,
+      //id_usuario: user.id,
       id_empresa: user.id_empresa,
       fecha_gte: `${mes}-01`, // Mayor o igual que
       fecha_lte: `${mes}-31`, // Menor o igual que
       activo: 1
     };
-    
+    console.log(datos)
     this._asistenciaService.get(datos).subscribe({
       next: (res: any) => {
         if (res.data) {
@@ -101,7 +134,7 @@ export class ReportesComponent  implements OnInit {
   }
 
   exportarPDF() {
-    const doc = new jsPDF();
+    /*const doc = new jsPDF();
     const fechaDoc = new Date().toLocaleDateString();
 
     // Obtener el nombre del mes seleccionado para el título
@@ -147,7 +180,7 @@ export class ReportesComponent  implements OnInit {
     });
 
     // 4. Descargar el archivo
-    doc.save(`Reporte_${this.segmento}_${fechaDoc}.pdf`);
+    doc.save(`Reporte_${this.segmento}_${fechaDoc}.pdf`);*/
   }
 
 
