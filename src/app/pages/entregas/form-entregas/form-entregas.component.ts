@@ -49,10 +49,10 @@ export class FormEntregasComponent  implements OnInit {
       if (userStr) {
           const user = JSON.parse(userStr);
           this.entrega.id_tienda = user.id_tienda;
-      }
-      
-      // Generamos la fecha del día para el filtro rápido
-      this.entrega.fecha_venta = 'TODAY';
+
+          // Generamos la fecha del día para el filtro rápido
+          this.entrega.fecha_venta = `TODAY|${user.id_tienda}`;
+      }    
     }
   }
 
@@ -74,8 +74,19 @@ export class FormEntregasComponent  implements OnInit {
         this.router.navigate(['/entregas'], { replaceUrl: true }); // Regresamos a la lista
       },
       error: (err) => {
-        this._toastService.show('Error al conectar con el servidor', 'danger');
-        console.error(err);
+        // --- MANEJO DE ERRORES DINÁMICO ---
+        let mensajeError = 'Error al conectar con el servidor';
+
+        // Si el servidor mandó un error 400 o similar con un mensaje
+        if (err.error && err.error.message) {
+          mensajeError = err.error.message;
+        } else if (typeof err.error === 'string') {
+          mensajeError = err.error;
+        }
+
+        // Mostramos el mensaje real que viene del Backend
+        this._toastService.show(mensajeError, 'danger', 'alert-circle-outline');
+        console.error('Error detallado:', err);
       }
     });
   }

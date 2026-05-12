@@ -12,6 +12,54 @@
     </ion-card-content>
   </ion-card>
 
+  <div class="ion-padding-horizontal" *ngIf="registro.entrada && !registro.salida">
+    <div class="flexible-stats">
+      <div class="stat-item">
+        <ion-note>SALIDA ESTIMADA</ion-note>
+        <div class="value success">{{ salidaTentativa }}</div>
+      </div>
+      
+      <div class="stat-item" [class.extra-active]="horasExtras !== '00:00'">
+        <ion-note>HORAS EXTRAS</ion-note>
+        <div class="value danger">{{ horasExtras }}</div>
+      </div>
+    </div>
+
+    <ion-card class="comida-active-card ion-no-margin ion-margin-bottom" *ngIf="registro.comida_inicio && !registro.comida_fin">
+      <ion-card-content>
+        <div class="comida-container">
+          <div class="comida-main">
+            <ion-icon name="restaurant" color="warning"></ion-icon>
+            <div class="comida-text">
+              <span class="label">TIEMPO DE COMIDA</span>
+              <span class="timer">{{ tiempoComidaTranscurrido }}</span>
+            </div>
+          </div>
+          <div class="comida-limit">
+            <span class="label">LÍMITE</span>
+            <span class="value">{{ comidaMax }}h</span>
+          </div>
+        </div>
+        
+        <ion-progress-bar color="warning" [value]="progresoComida" class="mini-progress"></ion-progress-bar>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="progress-box ion-no-margin ion-margin-bottom">
+      <ion-card-content>
+        <div class="progress-label">
+          <span>Tiempo Efectivo Trabajado</span>
+          <span>{{ (progresoJornada * 100) | number:'1.0-0' }}%</span>
+        </div>
+        <ion-progress-bar [value]="progresoJornada" [color]="horasExtras !== '00:00' ? 'success' : 'primary'"></ion-progress-bar>
+        <div class="footer-stats">
+          <p>Hrs Cumplidas: <strong>{{ horasCumplidas }}</strong></p>
+          <p>Meta: <strong>{{ jornadaEf }}h</strong></p>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
   <ion-list lines="none" class="ion-padding-horizontal" *ngIf="!cargandoHistorial">
     
     <ion-item class="checador-item">

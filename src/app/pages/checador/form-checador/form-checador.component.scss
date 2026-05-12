@@ -31,3 +31,147 @@
     font-size: 1rem;
   }
 }
+
+.flexible-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 15px;
+
+  .stat-item {
+    background: white;
+    padding: 12px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+
+    ion-note {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .value {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-top: 4px;
+      
+      &.success {
+        color: var(--ion-color-success);
+      }
+    }
+  }
+}
+
+.progress-box {
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  ion-progress-bar {
+    height: 10px;
+    border-radius: 5px;
+  }
+
+  .meta-text {
+    font-size: 0.7rem;
+    color: #888;
+    text-align: center;
+    margin-top: 8px;
+  }
+}
+
+.flexible-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+
+  .stat-item {
+    background: white;
+    padding: 12px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    border: 2px solid transparent;
+
+    &.extra-active {
+      border-color: var(--ion-color-danger);
+      .value { color: var(--ion-color-danger); }
+    }
+    
+    .value.success { color: var(--ion-color-success); }
+    .value { font-size: 1.4rem; font-weight: 800; }
+    ion-note { font-weight: 700; font-size: 0.65rem; }
+  }
+}
+
+.footer-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  p { margin: 0; font-size: 0.8rem; color: #666; }
+}
+
+.comida-active-card {
+  background: #fffbe6; // Un amarillo muy suave, casi blanco
+  border-left: 4px solid var(--ion-color-warning);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  .comida-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+  }
+
+  .comida-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    ion-icon { font-size: 24px; }
+  }
+
+  .comida-text, .comida-limit {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #8a8a8a;
+    letter-spacing: 0.5px;
+  }
+
+  .timer {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--ion-color-warning-shade);
+  }
+
+  .comida-limit {
+    text-align: right;
+    .value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #444;
+    }
+  }
+
+  .mini-progress {
+    height: 3px;
+    border-radius: 10px;
+    margin-top: 10px;
+  }
+}
