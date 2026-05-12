@@ -84,6 +84,8 @@ export class LoginComponent extends FormClass implements OnInit {
 								const user = res.user;
 								user.id_tienda = tiendas[0].id_tienda;
 								user.nombre_tienda = tiendas[0].nombre;
+								user.jornada_efectiva = tiendas[0].jornada_efectiva;
+								user.tiempo_comida_max = tiendas[0].tiempo_comida_max;
 								user.tienda_activa_config = {
 									apertura: config.hora_apertura,
 									cierre: config.hora_cierre,
