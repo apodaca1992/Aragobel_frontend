@@ -11,12 +11,13 @@ import { AdminOption } from '@interfaces/admin-option.interface';
 export class PanelAdminComponent  implements OnInit {
   
   options: AdminOption[] = [
-    { title: 'Usuarios', icon: 'people-outline', route: '/admin/usuarios', class: 'blue', section: 'Personal y Seguridad' },
-    { title: 'Asistencias', icon: 'time-outline', route: '/admin/asistencias', class: 'purple', section: 'Personal y Seguridad' },
-    //{ title: 'Tiendas', icon: 'storefront-outline', route: '/admin/tiendas', class: 'green', section: 'Infraestructura y Logística' },
-    { title: 'Vehículos', icon: 'bus-outline', route: '/admin/vehiculos', class: 'orange', section: 'Infraestructura y Logística' },
-    { title: 'Entregas', icon: 'bicycle-outline', route: '/admin/deliveries', class: 'black', section: 'Infraestructura y Logística' },
-    //{ title: 'Categorías', icon: 'list-outline', route: '/category', class: 'red', section: 'Catálogos' },
+    { title: 'Usuarios', icon: 'people-outline', route: '/panel-admin/usuarios', class: 'blue', section: 'Personal y Seguridad' },
+    { title: 'Asistencias', icon: 'time-outline', route: '/panel-admin/asistencias', class: 'purple', section: 'Personal y Seguridad' },
+    { title: 'Vehículos', icon: 'bus-outline', route: '/panel-admin/vehiculos', class: 'orange', section: 'Infraestructura y Logística' },
+    { title: 'Entregas', icon: 'bicycle-outline', route: '/panel-admin/deliveries', class: 'black', section: 'Infraestructura y Logística' },
+    // Cambiamos iconos a "analytics" y "bar-chart" para diferenciar
+    { title: 'Asistencia', icon: 'analytics-outline', route: '/panel-admin/reporte-asistencia', class: 'report', section: 'Reportes y Resultados' },
+    { title: 'Entregas', icon: 'bar-chart-outline', route: '/panel-admin/reporte-entregas', class: 'report', section: 'Reportes y Resultados' },
   ];
 
   constructor(

@@ -9,6 +9,10 @@ import { PanelAdminComponent } from './panel-admin.component';
 // Importa tus componentes compartidos (si usas el header ahí)
 import { ComponentsModule } from 'src/app/components/components.module';
 
+// 1. Importa tus nuevos componentes de reporte
+import { AsistenciaComponent } from './reportes/asistencia/asistencia.component';
+import { EntregasComponent } from './reportes/entregas/entregas.component';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -19,9 +23,22 @@ import { ComponentsModule } from 'src/app/components/components.module';
       {
         path: '',
         component: PanelAdminComponent
+      },
+      // 2. Define las rutas hijas dentro de administración
+      {
+        path: 'reporte-asistencia',
+        component: AsistenciaComponent
+      },
+      {
+        path: 'reporte-entregas',
+        component: EntregasComponent
       }
     ])
   ],
-  declarations: [PanelAdminComponent]
+  declarations: [
+    PanelAdminComponent,
+    AsistenciaComponent,
+    EntregasComponent
+  ]
 })
 export class PanelAdminPageModule {}

@@ -3,5 +3,5 @@ export interface AdminOption {
   icon: string;
   route: string;
   class: string;
-  section: 'Personal y Seguridad' | 'Infraestructura y Logística' | 'Catálogos';
+  section: 'Personal y Seguridad' | 'Infraestructura y Logística' | 'Catálogos' | 'Reportes y Resultados';
 }

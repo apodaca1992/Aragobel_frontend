@@ -1,3 +1,4 @@
+
 import { Component, OnInit } from "@angular/core";
 import { LoadingService } from "@services/loading.service";
 import { ToastService } from "@services/toast.service";
@@ -8,11 +9,11 @@ import { AsistenciaService } from '@services/asistencia.service';
 import { EntregaService } from '@services/entrega.service'; // Asegúrate de tener este import
 
 @Component({
-  selector: 'app-reportes',
-  templateUrl: './reportes.component.html',
-  styleUrls: ['./reportes.component.scss'],
+  selector: 'app-asistencia',
+  templateUrl: './asistencia.component.html',
+  styleUrls: ['./asistencia.component.scss'],
 })
-export class ReportesComponent  implements OnInit {
+export class AsistenciaComponent  implements OnInit {
   segmento: string = 'asistencia';
 
   // Objeto para controlar la visibilidad
@@ -185,3 +186,4 @@ export class ReportesComponent  implements OnInit {
 
 
 }
+

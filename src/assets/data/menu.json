@@ -21,13 +21,6 @@
     "permisoRequerido": "ADMIN_ACCESS" 
   },
   {
-    "name": "Reportes",
-    "redirectTo": "/reportes",
-    "icon": "bar-chart-outline",
-    "section": "ADMINISTRACION",
-    "permisoRequerido": "REPORTES_ADMIN"
-  },
-  {
     "name": "Perfil",
     "redirectTo": "/perfil",
     "icon": "person-outline",
