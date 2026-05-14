@@ -126,9 +126,32 @@ export class FormChecadorComponent  implements OnInit {
       salida: null
     };
 
-    if (!asistencias || asistencias.length === 0) return;
+    if (!asistencias || asistencias.length === 0 || !asistencias[0].eventos) return;
 
-    asistencias.forEach(reg => {
+    const data = asistencias[0];
+    const ev = data.eventos;
+
+    // Mapeamos cada evento si existe en el objeto retornado por el servidor
+    // Usamos el campo 'fecha' y 'hora' que vienen dentro de cada tipo de evento
+    if (ev.ENTRADA) {
+      this.registro.entrada = new Date(`${data.fecha}T${ev.ENTRADA.hora}`);
+    }
+    
+    if (ev.COMIDA_INICIO) {
+      this.registro.comida_inicio = new Date(`${data.fecha}T${ev.COMIDA_INICIO.hora}`);
+    }
+    
+    if (ev.COMIDA_FIN) {
+      this.registro.comida_fin = new Date(`${data.fecha}T${ev.COMIDA_FIN.hora}`);
+    }
+    
+    if (ev.SALIDA) {
+      this.registro.salida = new Date(`${data.fecha}T${ev.SALIDA.hora}`);
+    }
+
+
+
+    /*asistencias.forEach(reg => {
       // Usamos el campo 'tipo' que viene en tu JSON (ENTRADA, etc)
       // Lo convertimos a minúsculas para que coincida con tus llaves del objeto registro
       const campo = reg.tipo.toLowerCase();
@@ -143,7 +166,7 @@ export class FormChecadorComponent  implements OnInit {
       else if (reg.tipo === 'COMIDA_INICIO') this.registro.comida_inicio = new Date(`${reg.fecha}T${reg.hora}`);
       else if (reg.tipo === 'COMIDA_FIN') this.registro.comida_fin = new Date(`${reg.fecha}T${reg.hora}`);
       else if (reg.tipo === 'SALIDA') this.registro.salida = new Date(`${reg.fecha}T${reg.hora}`);
-    });
+    });*/
 
     if (this.registro.entrada) {
       this.calcularMetricas();
