@@ -13,7 +13,7 @@ import { EntregaService } from '@services/entrega.service'; // Asegúrate de ten
   styleUrls: ['./entregas.component.scss'],
 })
 export class EntregasComponent  implements OnInit {
-  segmento: string = 'asistencia';
+  segmento: string = 'entregas';
 
   // Objeto para controlar la visibilidad
   modulosConfig = {

@@ -1,5 +1,5 @@
 <ion-header [translucent]="true">
-  <app-header titulo="Reportes" mode="back">
+  <app-header titulo="Asistencia" mode="back">
      <ion-button color="light" action-buttons (click)="exportarPDF()">
       <ion-icon slot="icon-only" name="document-text-outline"></ion-icon>
     </ion-button>
@@ -7,15 +7,6 @@
 </ion-header>
 
 <ion-content color="light" class="ion-padding">
-  <ion-segment [(ngModel)]="segmento" (ionChange)="cargarDatosSegunSegmento()" mode="ios" class="ion-margin-bottom">
-    <ion-segment-button value="asistencia" *ngIf="modulosConfig.checador">
-      <ion-label>Asistencia</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="entregas" *ngIf="modulosConfig.entregas">
-      <ion-label>Entregas</ion-label>
-    </ion-segment-button>
-  </ion-segment>
-
   <div class="filter-container ion-margin-bottom">
     <ion-item lines="none" class="month-item">
       <ion-icon name="calendar-clear-outline" slot="start" color="primary"></ion-icon>
@@ -37,80 +28,32 @@
     </ng-template>
   </ion-modal>
 
-  <div *ngIf="segmento === 'asistencia'">
-    <ion-list lines="none" class="report-list">
-      <div class="section-title">Últimos 10 Marcajes</div>
-        <ion-item *ngFor="let item of reportAsistencia" class="custom-report-item">
-          <ion-avatar slot="start">
-            <div class="avatar-text">
-              {{ item.nombre_usuario ? item.nombre_usuario[0] : 'U' }}
-            </div>
-          </ion-avatar>
-
-          <ion-label>
-            <h3>{{ item.nombre_usuario }}</h3> <p>{{ item.fecha | date:'mediumDate' }} · {{ item.tipo }}</p>
-          </ion-label>
-
-          <div slot="end" class="ion-text-end">
-            <ion-badge [color]="item.estatus === 'A_TIEMPO' ? 'success' : 'danger'">
-              {{ item.hora }}
-            </ion-badge>
-            <p class="time-note" [class.atraso]="item.estatus !== 'A_TIEMPO'">
-              {{ item.estatus }}
-            </p>
+  <ion-list lines="none" class="report-list">
+    <div class="section-title">Últimos 10 Marcajes</div>
+      <ion-item *ngFor="let item of reportAsistencia" class="custom-report-item">
+        <ion-avatar slot="start">
+          <div class="avatar-text">
+            {{ item.nombre_usuario ? item.nombre_usuario[0] : 'U' }}
           </div>
-        </ion-item>
-        <ion-item *ngIf="reportAsistencia.length === 0" lines="none">
-          <ion-label class="ion-text-center">
-            <p>No hay marcajes registrados en este periodo.</p>
-          </ion-label>
-        </ion-item>
-    </ion-list>
-  </div>
+        </ion-avatar>
 
-  <div *ngIf="segmento === 'entregas'">
-    <div class="stats-grid">
-    </div>
-
-    <ion-list lines="none" class="report-list">
-      <div class="section-title">Últimas 10 Entregas</div>
-      
-      <ion-item *ngFor="let entrega of reportEntregas" class="custom-report-item delivery-card">
-        <div slot="start" class="vehicle-icon-container">
-          <ion-icon [name]="entrega.vehiculo_tipo === 'moto' ? 'bicycle' : 'car'"></ion-icon>
-        </div>
-        
         <ion-label>
-          <div class="delivery-header">
-            <span class="folio-text">FOLIO #{{ entrega.folio }}</span>
-            <ion-badge [color]="estatusEntregas[+entrega.estatus]?.color" mode="ios">
-              {{ estatusEntregas[+entrega.estatus]?.texto }}
-            </ion-badge>
-          </div>
+          <h3>{{ item.nombre_usuario }}</h3> <p>{{ item.fecha | date:'mediumDate' }} · {{ item.tipo }}</p>
+        </ion-label>
 
-          <h2 class="client-name">{{ entrega.persona_recibe || 'Sin nombre' }}</h2>
-          
-          <div class="delivery-footer">
-            <span class="info-group">
-              <ion-icon name="calendar-outline"></ion-icon>
-              {{ entrega.createdAt | date:'shortDate' }}
-            </span>
-            <span class="info-group">
-              <ion-icon name="time-outline"></ion-icon>
-              {{ entrega.createdAt | date:'shortTime' }}
-            </span>
-            <span class="info-group repartidor">
-              <ion-icon name="person-outline"></ion-icon>
-              {{ entrega.nombre_repartidor?.split(' ')[0] }}
-            </span>
-          </div>
-        </ion-label>
+        <div slot="end" class="ion-text-end">
+          <ion-badge [color]="item.estatus === 'A_TIEMPO' ? 'success' : 'danger'">
+            {{ item.hora }}
+          </ion-badge>
+          <p class="time-note" [class.atraso]="item.estatus !== 'A_TIEMPO'">
+            {{ item.estatus }}
+          </p>
+        </div>
       </ion-item>
-      <ion-item *ngIf="reportEntregas.length === 0" lines="none">
+      <ion-item *ngIf="reportAsistencia.length === 0" lines="none">
         <ion-label class="ion-text-center">
-          <p>No hay entregas registradas en este periodo.</p>
+          <p>No hay marcajes registrados en este periodo.</p>
         </ion-label>
       </ion-item>
-    </ion-list>
-  </div>
+  </ion-list>
 </ion-content>
