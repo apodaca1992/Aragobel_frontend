@@ -6,7 +6,6 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { PreferencesService } from '@services/preference.service';
 import { AsistenciaService } from '@services/asistencia.service';
-import { EntregaService } from '@services/entrega.service'; // Asegúrate de tener este import
 
 @Component({
   selector: 'app-asistencia',
@@ -14,124 +13,111 @@ import { EntregaService } from '@services/entrega.service'; // Asegúrate de ten
   styleUrls: ['./asistencia.component.scss'],
 })
 export class AsistenciaComponent  implements OnInit {
-  segmento: string = 'asistencia';
-
-  // Objeto para controlar la visibilidad
-  modulosConfig = {
-    checador: true,
-    entregas: true
-  };
-
-  estatusEntregas: { [key: number]: { texto: string, color: string } } = {
-    1: { texto: 'Creado', color: 'medium' },
-    2: { texto: 'En Ruta', color: 'warning' },
-    3: { texto: 'Finalizado', color: 'success' }
-  };
 
   reportAsistencia: any[] = [];
-  reportEntregas: any[] = [];
-  mesReporteActual: string = new Date().toISOString().substring(0, 7);
+
+  // En tu componente de reporte
+  filtros = {
+    inicio: '',
+    fin: '',
+    id_usuario: '',
+    id_tienda: ''
+  };
+
+  selectedFilterLabel = 'Este mes';
+
+  reportAsistenciaAgrupado: any[] = [
+    {
+      id_usuario: 1,
+      nombre_usuario: "Jesus Adrian Apodaca Campos",
+      total_horas_periodo: 25.5,
+      balance_extras: 1.5,
+      foto: "J",
+      detalles: [
+        { fecha: '2026-05-12', entrada: '08:00 AM', salida: '05:00 PM', total_dia: 9.0, estatus: 'Extra', color: 'success' },
+        { fecha: '2026-05-13', entrada: '08:00 AM', salida: '04:00 PM', total_dia: 8.0, estatus: 'A tiempo', color: 'light' },
+        { fecha: '2026-05-14', entrada: '08:00 AM', salida: '12:00 PM', total_dia: 4.0, estatus: '-4h Faltante', color: 'danger' }
+      ]
+    },
+    {
+      id_usuario: 2,
+      nombre_usuario: "Beatriz Luna",
+      total_horas_periodo: 20.0,
+      balance_extras: -4.0,
+      foto: "B",
+      detalles: [
+        { fecha: '2026-05-12', entrada: '08:00 AM', salida: '12:00 PM', total_dia: 4.0, estatus: 'Faltante', color: 'danger' },
+        { fecha: '2026-05-13', entrada: '08:00 AM', salida: '04:00 PM', total_dia: 8.0, estatus: 'A tiempo', color: 'light' },
+        { fecha: '2026-05-14', entrada: '08:00 AM', salida: '04:00 PM', total_dia: 8.0, estatus: 'A tiempo', color: 'light' }
+      ]
+    },
+    {
+      id_usuario: 3,
+      nombre_usuario: "Carlos Mendoza",
+      total_horas_periodo: 24.0,
+      balance_extras: 0,
+      foto: "C",
+      detalles: [
+        { fecha: '2026-05-12', entrada: '08:00 AM', salida: '04:00 PM', total_dia: 8.0, estatus: 'A tiempo', color: 'light' },
+        { fecha: '2026-05-13', entrada: '08:00 AM', salida: '04:00 PM', total_dia: 8.0, estatus: 'A tiempo', color: 'light' },
+        { fecha: '2026-05-14', entrada: '08:00 AM', salida: '04:00 PM', total_dia: 8.0, estatus: 'A tiempo', color: 'light' }
+      ]
+    },
+    {
+      id_usuario: 4,
+      nombre_usuario: "Daniela Reyes",
+      total_horas_periodo: 24.3,
+      balance_extras: 0.3,
+      foto: "D",
+      detalles: [
+        { fecha: '2026-05-12', entrada: '08:00 AM', salida: '04:10 PM', total_dia: 8.1, estatus: 'Extra', color: 'success' },
+        { fecha: '2026-05-13', entrada: '08:00 AM', salida: '04:10 PM', total_dia: 8.1, estatus: 'Extra', color: 'success' },
+        { fecha: '2026-05-14', entrada: '08:00 AM', salida: '04:10 PM', total_dia: 8.1, estatus: 'Extra', color: 'success' }
+      ]
+    },
+    {
+      id_usuario: 5,
+      nombre_usuario: "Eduardo Ortiz",
+      total_horas_periodo: 18.0,
+      balance_extras: -6.0,
+      foto: "E",
+      detalles: [
+        { fecha: '2026-05-12', entrada: '09:00 AM', salida: '03:00 PM', total_dia: 6.0, estatus: 'Tarde', color: 'danger' },
+        { fecha: '2026-05-13', entrada: '09:00 AM', salida: '03:00 PM', total_dia: 6.0, estatus: 'Tarde', color: 'danger' },
+        { fecha: '2026-05-14', entrada: '09:00 AM', salida: '03:00 PM', total_dia: 6.0, estatus: 'Tarde', color: 'danger' }
+      ]
+    }
+  ];
+
 
   constructor(
     private loadingService: LoadingService,
     private toastService: ToastService,
     private _preferencesService: PreferencesService,
-    private _asistenciaService: AsistenciaService,
-    private _entregaService: EntregaService
+    private _asistenciaService: AsistenciaService
   ) {
 
   }
 
   async ngOnInit() {
-    //this.toastService.show('¡Guardado correctamente!', 'success', 'checkmark-circle-outline');
-    await this.cargarConfiguracionModulos();
-
-    this.definirSegmentoInicial(this.mesReporteActual);
+    this.setFechaActual();
+    // Aquí puedes llamar a tu carga inicial si lo deseas
+    this.aplicarFiltros();
   }
 
-  async cargarConfiguracionModulos() {
-    const empresaStr = await this._preferencesService.getItem('empresa');
-    if (empresaStr) {
-      const empresaData = JSON.parse(empresaStr);
-      // Extraemos los módulos (si no existen, por defecto true)
-      this.modulosConfig = empresaData.modulos ?? { checador: true, entregas: true };
-    }
-  }
-
-  // Esto evita que el segmento quede vacío si 'asistencia' está desactivado
-  async definirSegmentoInicial(mes: string) {
-    if (!this.modulosConfig.checador && this.modulosConfig.entregas) {
-      this.segmento = 'entregas';
-      await this.obtenerEntregasPorMes(mes);
-    } else if (this.modulosConfig.checador) {
-      this.segmento = 'asistencia';
-      await this.obtenerMarcajesPorMes(mes);
-    }
-  }
-
-  onDateChange(event: any) {
-    const fecha = event.detail.value; // Formato "2026-05-24..."
-    this.mesReporteActual = fecha.substring(0, 7); // Extrae "2026-05"    
-   
-    // Cargamos los datos de la pestaña que esté viendo el usuario actualmente
-    this.cargarDatosSegunSegmento();
-  }
-
-  cargarDatosSegunSegmento() {
-    if (this.segmento === 'asistencia' && this.modulosConfig.checador) {
-      this.obtenerMarcajesPorMes(this.mesReporteActual);
-    } else if (this.segmento === 'entregas' && this.modulosConfig.entregas) {
-      this.obtenerEntregasPorMes(this.mesReporteActual);
-    }
-  }
-
-  async obtenerEntregasPorMes(mes: string) {
-    const user = JSON.parse(await this._preferencesService.getItem('user') ?? '{}');
+  setFechaActual() {
+    const hoy = new Date();
     
-    const datos = {         
-      id_tienda: user.id_tienda,
-      id_empresa: user.id_empresa,
-      fecha_venta_gte: `${mes}-01`,
-      fecha_venta_lte: `${mes}-31`,
-      activo: 1
-    };
-    console.log(datos)
-    this._entregaService.get(datos).subscribe({
-      next: (res: any) => {
-        if (res.data) {
-          this.reportEntregas = res.data;
-          console.log('Entregas cargadas:', this.reportEntregas);
-        }
-      },
-      error: (err) => console.error('Error al cargar entregas:', err)
-    });
-  }
+    // Convertimos a formato YYYY-MM-DD usando la zona horaria local
+    const offset = hoy.getTimezoneOffset();
+    const fechaLocal = new Date(hoy.getTime() - (offset * 60 * 1000));
+    const fechaFormateada = fechaLocal.toISOString().split('T')[0];
 
-  async obtenerMarcajesPorMes(mes: string){
-    // Supongamos que ya tienes el id_tienda_activa en el objeto user
-    const user = JSON.parse(await this._preferencesService.getItem('user') ?? '{}');
-    const idTienda = user.id_tienda;
+    this.filtros.inicio = fechaFormateada;
+    this.filtros.fin = fechaFormateada;
     
-    const datos = {         
-      id_tienda: idTienda,
-      //id_usuario: user.id,
-      id_empresa: user.id_empresa,
-      fecha_gte: `${mes}-01`, // Mayor o igual que
-      fecha_lte: `${mes}-31`, // Menor o igual que
-      activo: 1
-    };
-    console.log(datos)
-    this._asistenciaService.get(datos).subscribe({
-      next: (res: any) => {
-        if (res.data) {
-          console.log(res.data);
-          this.reportAsistencia = res.data;
-        }
-      },
-      error: (err) => {
-        console.error('Error al cargar historial del día:', err);
-      }
-    });
+    // Actualizamos el label para que el usuario vea que está filtrado por hoy
+    this.selectedFilterLabel = 'Hoy';
   }
 
   exportarPDF() {
@@ -184,6 +170,46 @@ export class AsistenciaComponent  implements OnInit {
     doc.save(`Reporte_${this.segmento}_${fechaDoc}.pdf`);*/
   }
 
+
+  async aplicarFiltros() {
+    // Supongamos que ya tienes el id_tienda_activa en el objeto user
+    const user = JSON.parse(await this._preferencesService.getItem('user') ?? '{}');
+    const idTienda = user.id_tienda;
+    
+    const datos = {         
+      id_tienda: idTienda,
+      //id_usuario: user.id,
+      id_empresa: user.id_empresa,
+      fecha_gte: this.filtros.inicio,//fecha_gte: `${mes}-01`, // Mayor o igual que
+      fecha_lte: this.filtros.fin,//fecha_lte: `${mes}-31`, // Menor o igual que
+      activo: 1
+    };
+    console.log(datos)
+    this._asistenciaService.get(datos).subscribe({
+      next: (res: any) => {
+        if (res.data) {
+          console.log(res.data);
+          this.reportAsistencia = res.data;
+          this.actualizarLabel();
+        }
+      },
+      error: (err) => {
+        console.error('Error al cargar historial del día:', err);
+      }
+    });
+  }
+
+  actualizarLabel() {
+    const hoy = new Date().toISOString().split('T')[0];
+
+    if (this.filtros.inicio === hoy && this.filtros.fin === hoy) {
+      this.selectedFilterLabel = 'Hoy';
+    } else if (this.filtros.inicio === this.filtros.fin) {
+      this.selectedFilterLabel = this.filtros.inicio;
+    } else {
+      this.selectedFilterLabel = `${this.filtros.inicio} al ${this.filtros.fin}`;
+    }
+  }
 
 }
 

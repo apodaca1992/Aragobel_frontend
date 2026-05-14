@@ -1,59 +1,116 @@
 <ion-header [translucent]="true">
-  <app-header titulo="Asistencia" mode="back">
-     <ion-button color="light" action-buttons (click)="exportarPDF()">
-      <ion-icon slot="icon-only" name="document-text-outline"></ion-icon>
-    </ion-button>
-  </app-header>
+  <app-header titulo="Reporte de Asistencia" mode="back"></app-header>
 </ion-header>
 
-<ion-content color="light" class="ion-padding">
-  <div class="filter-container ion-margin-bottom">
-    <ion-item lines="none" class="month-item">
-      <ion-icon name="calendar-clear-outline" slot="start" color="primary"></ion-icon>
-      <ion-label>
-        <p>Periodo reportado</p>
-        <ion-datetime-button datetime="date-picker"></ion-datetime-button>
-      </ion-label>
-    </ion-item>
+<ion-content color="light" class="ion-padding">  
+  <div class="filter-header">
+    <div class="summary">
+      <ion-icon name="calendar-outline" color="primary"></ion-icon>
+      <div class="date-chips">
+        <span class="date-pill">{{ filtros.inicio | date:'dd MMM' }}</span>
+        <span class="separator">—</span>
+        <span class="date-pill">{{ filtros.fin | date:'dd MMM' }}</span>
+      </div>
+    </div>
+    <ion-button fill="clear" id="open-filters">
+      <ion-icon slot="icon-only" name="options-outline"></ion-icon>
+    </ion-button>
   </div>
 
-  <ion-modal [keepContentsMounted]="true">
+  <ion-modal 
+    trigger="open-filters" 
+    #filterModal 
+    class="custom-filter-modal"
+    [initialBreakpoint]="0.50" 
+    [breakpoints]="[0, 0.5, 0.75]"
+    handle="true">
     <ng-template>
-      <ion-datetime 
-        id="date-picker" 
-        presentation="month-year"
-        [preferWheel]="true"
-        (ionChange)="onDateChange($event)">
-      </ion-datetime>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Filtros Avanzados</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="filterModal.dismiss()">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <div class="modal-wrapper ion-padding">
+          <div class="filter-section">
+            <ion-label><b>Rango de Fechas</b></ion-label>
+            <div class="date-range-grid">
+              <ion-item lines="none" class="filter-input">
+                <ion-label position="stacked">Inicio</ion-label>
+                <div class="input-row">
+                  <ion-icon name="calendar-outline" class="calendar-icon"></ion-icon>
+                  <ion-input type="date" [(ngModel)]="filtros.inicio" class="custom-date-input"></ion-input>
+                </div>
+              </ion-item>
+
+              <ion-item lines="none" class="filter-input">
+                <ion-label position="stacked">Fin</ion-label>
+                <div class="input-row">
+                  <ion-icon name="calendar-outline" class="calendar-icon"></ion-icon>
+                  <ion-input type="date" [(ngModel)]="filtros.fin" class="custom-date-input"></ion-input>
+                </div>
+              </ion-item>
+            </div>
+          </div>
+          <ion-button 
+            expand="block" 
+            shape="round" 
+            color="primary" 
+            style="height: 56px; font-weight: 800; margin-top: auto;"
+            (click)="aplicarFiltros(); filterModal.dismiss()">
+            APLICAR FILTROS
+          </ion-button>
+        </div>
+      </ion-content>
     </ng-template>
   </ion-modal>
 
-  <ion-list lines="none" class="report-list">
-    <div class="section-title">Últimos 10 Marcajes</div>
-      <ion-item *ngFor="let item of reportAsistencia" class="custom-report-item">
+  <div class="section-title">Resultados del Periodo</div>
+
+  <ion-accordion-group [multiple]="true">
+    <ion-accordion [value]="emp.id_usuario" *ngFor="let emp of reportAsistenciaAgrupado" class="custom-accordion">
+      
+      <ion-item slot="header" lines="none">
         <ion-avatar slot="start">
-          <div class="avatar-text">
-            {{ item.nombre_usuario ? item.nombre_usuario[0] : 'U' }}
-          </div>
+          <div class="avatar-text">{{ emp.foto }}</div>
         </ion-avatar>
-
         <ion-label>
-          <h3>{{ item.nombre_usuario }}</h3> <p>{{ item.fecha | date:'mediumDate' }} · {{ item.tipo }}</p>
-        </ion-label>
-
-        <div slot="end" class="ion-text-end">
-          <ion-badge [color]="item.estatus === 'A_TIEMPO' ? 'success' : 'danger'">
-            {{ item.hora }}
-          </ion-badge>
-          <p class="time-note" [class.atraso]="item.estatus !== 'A_TIEMPO'">
-            {{ item.estatus }}
+          <h2>{{ emp.nombre_usuario }}</h2>
+          <p>
+            Total: {{ emp.total_horas_periodo }}h | 
+            <span [class.text-success]="emp.balance_extras >= 0" [class.text-danger]="emp.balance_extras < 0">
+              {{ emp.balance_extras > 0 ? '+' : '' }}{{ emp.balance_extras }}h Balance
+            </span>
           </p>
-        </div>
-      </ion-item>
-      <ion-item *ngIf="reportAsistencia.length === 0" lines="none">
-        <ion-label class="ion-text-center">
-          <p>No hay marcajes registrados en este periodo.</p>
         </ion-label>
       </ion-item>
-  </ion-list>
+
+      <div slot="content" class="accordion-detail">
+        <div class="day-row" *ngFor="let dia of emp.detalles">
+          <div class="date-col">
+            <span class="day">{{ dia.fecha | date:'dd' }}</span>
+            <span class="month">{{ dia.fecha | date:'MMM' | uppercase }}</span>
+          </div>
+          <div class="info-col">
+            <span class="time">{{ dia.entrada }} - {{ dia.salida }}</span>
+            <span class="total">{{ dia.total_dia }} hrs totales</span>
+          </div>
+          <div class="status-col">
+            <ion-badge [color]="dia.color">{{ dia.estatus }}</ion-badge>
+          </div>
+        </div>
+      </div>
+
+    </ion-accordion>
+  </ion-accordion-group>
 </ion-content>
+
+<ion-fab slot="fixed" vertical="bottom" horizontal="end" class="ion-margin">
+  <ion-fab-button color="primary" (click)="exportarPDF()">
+    <ion-icon name="document-text"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

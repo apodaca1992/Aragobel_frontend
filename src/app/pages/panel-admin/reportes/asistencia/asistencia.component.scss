@@ -1,86 +1,340 @@
-.report-list {
-  background: transparent; // Asegura que no tenga fondo propio
-  padding-bottom: 0 !important; // Elimina el espacio extra al final de la lista
-  margin-bottom: 0;
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 8px 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+  .summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    p { margin: 0; font-size: 0.9rem; color: #666; }
+  }
 }
 
-.delivery-card {
-  --padding-start: 0; // Quitamos padding de ionic para usar el nuestro
-  --inner-padding-end: 15px;
-  margin-bottom: 12px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); // Sombra más suave
+.filter-section {
+  margin-bottom: 20px;
+  ion-label { margin-bottom: 8px; display: block; color: #222; }
+}
 
-  .vehicle-icon-container {
-    background: #f4f5f8; // Gris muy claro
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    margin: 10px 15px;
+.filter-input {
+  --background: #f4f5f8;
+  --border-radius: 10px;
+  margin-top: 5px;
+}
+
+.date-range-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+ion-fab-button {
+  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.4);
+  --border-radius: 16px; // Un toque cuadrado-redondeado como tus cards
+  transition: transform 0.2s ease-in-out;
+
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
+.date-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+
+  .date-pill {
+    background: #eef2ff; // Azul muy claro
+    color: var(--ion-color-primary);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.1);
+  }
+
+  .separator {
+    color: #999;
+    font-weight: 300;
+  }
+}
+
+// Estilo extra para el contenedor de filtros para que se vea más como el de tu imagen 11
+.filter-header {
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+.custom-filter-modal {
+  --border-radius: 28px 28px 0 0;
+  
+  &::part(content) {
+    background: #ffffff; // Asegura fondo blanco total
+  }
+
+  ion-header {
+    ion-toolbar {
+      --background: #0061ff; 
+      --color: white;
+      --border-width: 0;
+      padding: 5px;
+
+      ion-title {
+        font-weight: 800;
+        font-size: 1.2rem;
+      }
+
+      ion-button {
+        --color: white;
+        font-weight: 700;
+      }
+    }
+  }
+
+  ion-content {
+    --background: #ffffff;
     
-    ion-icon { 
-      font-size: 22px; 
-      color: var(--ion-color-primary);
+    .modal-body-wrapper {
+      padding: 20px 16px 60px 16px; // El 60px evita que el botón choque abajo
+      display: flex;
+      flex-direction: column;
+      height: 100%; // Fuerza a ocupar todo el alto del breakpoint
     }
   }
 
-  .delivery-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 5px;
+  .section-label {
+    display: block;
+    margin: 10px 0 15px 5px;
+    font-weight: 800;
+    color: #1a1a1a;
+  }
+}
 
-    .folio-text {
-      font-weight: 800;
-      color: var(--ion-color-step-400);
-      font-size: 0.7rem;
-      letter-spacing: 0.5px;
-    }
+// Estilo de los inputs tipo Card
+.date-range-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 30px; // Separa los inputs del botón
 
-    ion-badge {
-      font-weight: 600;
-      font-size: 0.65rem;
-      padding: 4px 8px;
-      border-radius: 4px;
+  .filter-input {
+    --background: #f8fafc;
+    --border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    height: 80px;
+
+    ion-label {
+      color: #0061ff !important;
+      font-weight: 800 !important;
+      font-size: 0.85rem !important;
     }
   }
+}
 
-  .client-name {
+.filter-input {
+  --background: #f8fafc;
+  --border-radius: 14px;
+  --padding-start: 12px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 5px;
+  
+  // Cambiamos height por min-height para evitar cortes
+  min-height: 70px !important; 
+
+  ion-label {
+    color: #0061ff !important;
+    font-weight: 700 !important;
+    font-size: 0.8rem !important;
+    margin-bottom: 8px !important;
+    transform: translateY(5px); // Ajuste fino de posición
+  }
+
+  .custom-date-input {
     font-size: 1rem;
-    font-weight: 600;
-    color: #222;
-    margin: 4px 0;
+    font-weight: 500;
+    color: #333;
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    
+    // Esto asegura que el icono nativo del calendario sea visible y clickeable
+    &::-webkit-calendar-picker-indicator {
+      background: transparent;
+      bottom: 0;
+      color: transparent;
+      cursor: pointer;
+      height: auto;
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: auto;
+    }
+  }
+}
+
+.filter-input {
+  --background: #f8fafc;
+  --border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  min-height: 90px !important; // Un poco más de altura para que el icono no se corte
+
+  ion-label {
+    color: #0061ff !important;
+    font-weight: 800 !important;
+    font-size: 0.85rem !important;
+    margin-bottom: 12px !important;
   }
 
-  .delivery-footer {
-    display: flex;
-    justify-content: flex-start;
-    gap: 12px;
-    margin-top: 8px;
-    margin-bottom: 5px;
-    border-top: 1px solid #f0f0f0; // Línea sutil divisoria
-    padding-top: 8px;
+  .custom-date-input {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    
+    // ESTO HACE QUE EL ICONO SEA VISIBLE EN CHROME
+    &::-webkit-calendar-picker-indicator {
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%230061ff" d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>');
+      background-position: center;
+      background-size: contain;
+      background-repeat: no-repeat;
+      width: 22px;
+      height: 22px;
+      opacity: 1; // Forzamos visibilidad total
+      cursor: pointer;
+    }
+  }
+}
 
-    .info-group {
+.filter-input {
+  --background: #f8fafc;
+  --border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  min-height: 90px !important;
+
+  .input-row {
+    position: relative; // Necesario para las capas
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 40px;
+    margin-top: 5px;
+  }
+
+  .calendar-icon {
+    position: absolute; // Lo fijamos a la derecha
+    right: 5px;
+    font-size: 22px;
+    color: #0061ff;
+    z-index: 1; // Capa de abajo
+  }
+
+  .custom-date-input {
+    --padding-top: 0;
+    --padding-bottom: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #333;
+    position: relative;
+    z-index: 2; // Capa de arriba (recibe el click)
+    width: 100%;
+
+    // Forzamos a Chrome a que el área de click sea TODA la caja
+    &::-webkit-calendar-picker-indicator {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0; // Invisible en Chrome pero clickeable
+      cursor: pointer;
+    }
+  }
+}
+
+// Estilo extra para Firefox (donde sí se ve)
+@-moz-document url-prefix() {
+  .calendar-icon {
+    display: none; // Si Firefox ya muestra uno, ocultamos el nuestro para no duplicar
+  }
+}
+
+
+/* Estilos para el Acordeón */
+.custom-accordion {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 12px;
+  overflow: hidden;
+
+  ion-item[slot="header"] {
+    --background: #ffffff;
+    --padding-start: 12px;
+    --inner-padding-end: 12px;
+    
+    h2 {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #1a1a1a;
+    }
+    p {
+      font-size: 0.8rem;
+      color: #666;
+    }
+  }
+
+  /* Contenedor del detalle */
+  .accordion-detail {
+    background: #fcfdfe;
+    padding: 0 16px 10px 16px;
+    border-top: 1px solid #f0f0f0;
+
+    .day-row {
       display: flex;
       align-items: center;
-      gap: 4px;
-      font-size: 0.72rem;
-      color: var(--ion-color-step-600);
+      padding: 12px 0;
+      border-bottom: 1px dashed #e0e0e0;
 
-      ion-icon { 
-        font-size: 14px; 
-        color: var(--ion-color-primary);
+      &:last-child {
+        border-bottom: none;
       }
-      
-      &.repartidor {
-        color: var(--ion-color-dark);
-        font-weight: 500;
+
+      .date-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 40px;
+        .day { font-weight: 800; font-size: 1.1rem; color: #333; line-height: 1; }
+        .month { font-size: 0.6rem; color: #999; font-weight: 700; }
+      }
+
+      .info-col {
+        flex: 1;
+        padding-left: 15px;
+        .time { display: block; font-size: 0.8rem; color: #666; }
+        .total { display: block; font-size: 0.85rem; font-weight: 700; color: #0061ff; }
+      }
+
+      .status-col {
+        ion-badge {
+          font-size: 0.65rem;
+          --padding-start: 6px;
+          --padding-end: 6px;
+          text-transform: uppercase;
+        }
       }
     }
   }
 }
+
+/* Colores de texto auxiliares */
+.text-success { color: #2dd36f; font-weight: 700; }
+.text-danger { color: #eb445a; font-weight: 700; }
