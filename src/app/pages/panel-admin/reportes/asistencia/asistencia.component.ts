@@ -6,6 +6,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { PreferencesService } from '@services/preference.service';
 import { AsistenciaService } from '@services/asistencia.service';
+import { UsuarioService } from "@services/usuario.service";
 
 @Component({
   selector: 'app-asistencia',
@@ -20,87 +21,34 @@ export class AsistenciaComponent  implements OnInit {
   filtros = {
     inicio: '',
     fin: '',
-    id_usuario: '',
+    id_usuario: 'todos',
     id_tienda: ''
   };
 
-  selectedFilterLabel = 'Este mes';
+  selectedFilterLabel = 'Hoy';
 
-  reportAsistenciaAgrupado: any[] = [
-    {
-      id_usuario: 1,
-      nombre_usuario: "Jesus Adrian Apodaca Campos",
-      total_horas_periodo: 25.5,
-      balance_extras: 1.5,
-      foto: "J",
-      detalles: [
-        { fecha: '2026-05-12', entrada: '08:00 AM', salida: '05:00 PM', total_dia: 9.0, estatus: 'Extra', color: 'success' },
-        { fecha: '2026-05-13', entrada: '08:00 AM', salida: '04:00 PM', total_dia: 8.0, estatus: 'A tiempo', color: 'light' },
-        { fecha: '2026-05-14', entrada: '08:00 AM', salida: '12:00 PM', total_dia: 4.0, estatus: '-4h Faltante', color: 'danger' }
-      ]
-    },
-    {
-      id_usuario: 2,
-      nombre_usuario: "Beatriz Luna",
-      total_horas_periodo: 20.0,
-      balance_extras: -4.0,
-      foto: "B",
-      detalles: [
-        { fecha: '2026-05-12', entrada: '08:00 AM', salida: '12:00 PM', total_dia: 4.0, estatus: 'Faltante', color: 'danger' },
-        { fecha: '2026-05-13', entrada: '08:00 AM', salida: '04:00 PM', total_dia: 8.0, estatus: 'A tiempo', color: 'light' },
-        { fecha: '2026-05-14', entrada: '08:00 AM', salida: '04:00 PM', total_dia: 8.0, estatus: 'A tiempo', color: 'light' }
-      ]
-    },
-    {
-      id_usuario: 3,
-      nombre_usuario: "Carlos Mendoza",
-      total_horas_periodo: 24.0,
-      balance_extras: 0,
-      foto: "C",
-      detalles: [
-        { fecha: '2026-05-12', entrada: '08:00 AM', salida: '04:00 PM', total_dia: 8.0, estatus: 'A tiempo', color: 'light' },
-        { fecha: '2026-05-13', entrada: '08:00 AM', salida: '04:00 PM', total_dia: 8.0, estatus: 'A tiempo', color: 'light' },
-        { fecha: '2026-05-14', entrada: '08:00 AM', salida: '04:00 PM', total_dia: 8.0, estatus: 'A tiempo', color: 'light' }
-      ]
-    },
-    {
-      id_usuario: 4,
-      nombre_usuario: "Daniela Reyes",
-      total_horas_periodo: 24.3,
-      balance_extras: 0.3,
-      foto: "D",
-      detalles: [
-        { fecha: '2026-05-12', entrada: '08:00 AM', salida: '04:10 PM', total_dia: 8.1, estatus: 'Extra', color: 'success' },
-        { fecha: '2026-05-13', entrada: '08:00 AM', salida: '04:10 PM', total_dia: 8.1, estatus: 'Extra', color: 'success' },
-        { fecha: '2026-05-14', entrada: '08:00 AM', salida: '04:10 PM', total_dia: 8.1, estatus: 'Extra', color: 'success' }
-      ]
-    },
-    {
-      id_usuario: 5,
-      nombre_usuario: "Eduardo Ortiz",
-      total_horas_periodo: 18.0,
-      balance_extras: -6.0,
-      foto: "E",
-      detalles: [
-        { fecha: '2026-05-12', entrada: '09:00 AM', salida: '03:00 PM', total_dia: 6.0, estatus: 'Tarde', color: 'danger' },
-        { fecha: '2026-05-13', entrada: '09:00 AM', salida: '03:00 PM', total_dia: 6.0, estatus: 'Tarde', color: 'danger' },
-        { fecha: '2026-05-14', entrada: '09:00 AM', salida: '03:00 PM', total_dia: 6.0, estatus: 'Tarde', color: 'danger' }
-      ]
-    }
+  reportAsistenciaAgrupado: any[] = [];
+  listaUsuarios: any[] = [
+    { id: 'blIL9Ts6MeEbubvhnVpP', nombre: 'Jesus Adrian Apodaca Campos' },
+    { id: 'user_002', nombre: 'Beatriz Luna' },
+    { id: 'user_003', nombre: 'Carlos Mendoza' },
+    { id: 'user_004', nombre: 'Daniela Reyes' },
+    { id: 'user_005', nombre: 'Eduardo Ortiz' }
   ];
-
 
   constructor(
     private loadingService: LoadingService,
     private toastService: ToastService,
     private _preferencesService: PreferencesService,
-    private _asistenciaService: AsistenciaService
+    private _asistenciaService: AsistenciaService,
+    private _usuarioService: UsuarioService
   ) {
 
   }
 
   async ngOnInit() {
     this.setFechaActual();
+    await this.cargarListaUsuarios();
     // Aquí puedes llamar a tu carga inicial si lo deseas
     this.aplicarFiltros();
   }
@@ -118,6 +66,26 @@ export class AsistenciaComponent  implements OnInit {
     
     // Actualizamos el label para que el usuario vea que está filtrado por hoy
     this.selectedFilterLabel = 'Hoy';
+  }
+
+  async cargarListaUsuarios() {
+    const user = JSON.parse(await this._preferencesService.getItem('user') ?? '{}');
+    const idTienda = user.id_tienda;
+
+    const datos:any = {         
+      tiendas_ids: "array-contains|"+idTienda,
+      activo: 1
+    };
+
+    // Ajusta según cómo obtengas los usuarios de tu tienda
+    this._usuarioService.get(datos).subscribe({
+      next: (res: any) => {
+        console.log("onteniendo los empleados para el select")
+        console.log(res.data)
+        this.listaUsuarios = res.data;
+      },
+      error: (err) => console.error('Error cargando usuarios', err)
+    });
   }
 
   exportarPDF() {
@@ -176,21 +144,27 @@ export class AsistenciaComponent  implements OnInit {
     const user = JSON.parse(await this._preferencesService.getItem('user') ?? '{}');
     const idTienda = user.id_tienda;
     
-    const datos = {         
+    const datos:any = {         
       id_tienda: idTienda,
       //id_usuario: user.id,
-      id_empresa: user.id_empresa,
-      fecha_gte: this.filtros.inicio,//fecha_gte: `${mes}-01`, // Mayor o igual que
-      fecha_lte: this.filtros.fin,//fecha_lte: `${mes}-31`, // Menor o igual que
+      fecha_inicio: this.filtros.inicio,//fecha_gte: `${mes}-01`, // Mayor o igual que
+      fecha_fin: this.filtros.fin,//fecha_lte: `${mes}-31`, // Menor o igual que
       activo: 1
     };
+
+    // Si el filtro no es 'todos', enviamos el ID específico al Backend
+    if (this.filtros.id_usuario !== 'todos') {
+      datos.id_usuario = this.filtros.id_usuario;
+    }
+
     console.log(datos)
-    this._asistenciaService.get(datos).subscribe({
+    this._asistenciaService.generarReporte(datos).subscribe({
       next: (res: any) => {
-        if (res.data) {
-          console.log(res.data);
-          this.reportAsistencia = res.data;
+        if (res && res.empleados) {
+          this.reportAsistenciaAgrupado = res.empleados;
           this.actualizarLabel();
+        } else {
+          this.reportAsistenciaAgrupado = [];
         }
       },
       error: (err) => {
@@ -201,13 +175,22 @@ export class AsistenciaComponent  implements OnInit {
 
   actualizarLabel() {
     const hoy = new Date().toISOString().split('T')[0];
+    let label = '';
 
     if (this.filtros.inicio === hoy && this.filtros.fin === hoy) {
-      this.selectedFilterLabel = 'Hoy';
+      label = 'Hoy';
     } else if (this.filtros.inicio === this.filtros.fin) {
-      this.selectedFilterLabel = this.filtros.inicio;
+      label = this.filtros.inicio;
     } else {
-      this.selectedFilterLabel = `${this.filtros.inicio} al ${this.filtros.fin}`;
+      label = `${this.filtros.inicio} al ${this.filtros.fin}`;
+    }
+
+    // Si hay un usuario específico seleccionado, lo añadimos al label
+    if (this.filtros.id_usuario !== 'todos') {
+      const usuario = this.listaUsuarios.find(u => u.id === this.filtros.id_usuario);
+      this.selectedFilterLabel = usuario ? `${usuario.nombre} (${label})` : label;
+    } else {
+      this.selectedFilterLabel = label;
     }
   }
 

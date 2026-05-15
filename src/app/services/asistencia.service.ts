@@ -34,4 +34,7 @@ export class AsistenciaService {
   getTime(params?: any): Observable<AsistenciaInterface> {
     return this._httpClient.get<AsistenciaInterface>(`${this.urlApi}/time`,{ params: HttpHelper.convertToHttpParams(params) });
   }
+  generarReporte(params?: any): Observable<AsistenciaInterface> {
+    return this._httpClient.get<AsistenciaInterface>(`${this.urlApi}/generarReporte`,{ params: HttpHelper.convertToHttpParams(params) });
+  }
 }

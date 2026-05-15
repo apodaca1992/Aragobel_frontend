@@ -18,56 +18,76 @@
   </div>
 
   <ion-modal 
-    trigger="open-filters" 
-    #filterModal 
-    class="custom-filter-modal"
-    [initialBreakpoint]="0.50" 
-    [breakpoints]="[0, 0.5, 0.75]"
-    handle="true">
-    <ng-template>
-      <ion-header>
-        <ion-toolbar>
-          <ion-title>Filtros Avanzados</ion-title>
-          <ion-buttons slot="end">
-            <ion-button (click)="filterModal.dismiss()">Cerrar</ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
+  trigger="open-filters" 
+  #filterModal 
+  class="custom-filter-modal"
+  [initialBreakpoint]="1" 
+  [breakpoints]="[0, 1]" 
+  handle="true">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar color="primary">
+        <ion-title>Filtros Avanzados</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="filterModal.dismiss()" style="font-weight: 700;">CERRAR</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
 
-      <ion-content>
-        <div class="modal-wrapper ion-padding">
-          <div class="filter-section">
-            <ion-label><b>Rango de Fechas</b></ion-label>
-            <div class="date-range-grid">
-              <ion-item lines="none" class="filter-input">
-                <ion-label position="stacked">Inicio</ion-label>
-                <div class="input-row">
-                  <ion-icon name="calendar-outline" class="calendar-icon"></ion-icon>
-                  <ion-input type="date" [(ngModel)]="filtros.inicio" class="custom-date-input"></ion-input>
-                </div>
-              </ion-item>
-
-              <ion-item lines="none" class="filter-input">
-                <ion-label position="stacked">Fin</ion-label>
-                <div class="input-row">
-                  <ion-icon name="calendar-outline" class="calendar-icon"></ion-icon>
-                  <ion-input type="date" [(ngModel)]="filtros.fin" class="custom-date-input"></ion-input>
-                </div>
-              </ion-item>
-            </div>
-          </div>
-          <ion-button 
-            expand="block" 
-            shape="round" 
-            color="primary" 
-            style="height: 56px; font-weight: 800; margin-top: auto;"
-            (click)="aplicarFiltros(); filterModal.dismiss()">
-            APLICAR FILTROS
-          </ion-button>
+    <ion-content class="ion-padding">
+      <div class="modal-wrapper">
+        <div class="filter-section">
+          <ion-label class="section-label">Empleado</ion-label>
+          <ion-item lines="none" class="filter-input-container">
+            <ion-icon name="person-outline" color="primary" slot="start"></ion-icon>
+            <ion-select 
+              [(ngModel)]="filtros.id_usuario" 
+              placeholder="Todos los empleados" 
+              interface="action-sheet"
+              class="full-width-select">
+              <ion-select-option value="todos">Todos los empleados</ion-select-option>
+              <ion-select-option *ngFor="let user of listaUsuarios" [value]="user.id">
+                {{ user.nombre }} {{ user.apellido_paterno }} {{ user.apellido_materno }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
         </div>
-      </ion-content>
-    </ng-template>
-  </ion-modal>
+
+        <div class="filter-section">
+          <ion-label class="section-label">Rango de Fechas</ion-label>
+          <div class="date-range-grid">
+            <ion-item lines="none" class="filter-input-container">
+              <ion-label position="stacked">Inicio</ion-label>
+              <div class="input-row">
+                <ion-icon name="calendar-outline"  class="custom-calendar-icon" color="primary"></ion-icon>
+                <ion-input type="date" class="custom-date-input" [(ngModel)]="filtros.inicio"></ion-input>
+              </div>
+            </ion-item>
+
+            <ion-item lines="none" class="filter-input-container">
+              <ion-label position="stacked">Fin</ion-label>
+              <div class="input-row">
+                <ion-icon name="calendar-outline" class="custom-calendar-icon" color="primary"></ion-icon>
+                <ion-input type="date" class="custom-date-input" [(ngModel)]="filtros.fin"></ion-input>
+              </div>
+            </ion-item>
+          </div>
+        </div>
+      </div>
+    </ion-content>
+
+    <ion-footer class="ion-no-border ion-padding">
+      <ion-button 
+        expand="block" 
+        shape="round" 
+        color="primary" 
+        style="height: 56px; font-weight: 800; margin-bottom: 15px;"
+        (click)="aplicarFiltros(); filterModal.dismiss()">
+        APLICAR FILTROS
+      </ion-button>
+    </ion-footer>
+  </ng-template>
+</ion-modal>
 
   <div class="section-title">Resultados del Periodo</div>
 
@@ -79,25 +99,31 @@
           <div class="avatar-text">{{ emp.foto }}</div>
         </ion-avatar>
         <ion-label>
-          <h2>{{ emp.nombre_usuario }}</h2>
+          <h2>{{ emp.nombre }}</h2>
           <p>
-            Total: {{ emp.total_horas_periodo }}h | 
-            <span [class.text-success]="emp.balance_extras >= 0" [class.text-danger]="emp.balance_extras < 0">
-              {{ emp.balance_extras > 0 ? '+' : '' }}{{ emp.balance_extras }}h Balance
+            Total: {{ emp.total_horas }}h 
+            <span *ngIf="emp.extras > 0" class="text-success ion-margin-start">
+              <ion-icon name="arrow-up-circle-outline"></ion-icon>
+              +{{ emp.extras }}h Extras
+            </span>
+            
+            <span *ngIf="emp.faltantes > 0" class="text-danger ion-margin-start">
+              <ion-icon name="arrow-down-circle-outline"></ion-icon>
+              -{{ emp.faltantes }}h Faltantes
             </span>
           </p>
         </ion-label>
       </ion-item>
 
       <div slot="content" class="accordion-detail">
-        <div class="day-row" *ngFor="let dia of emp.detalles">
+        <div class="day-row" *ngFor="let dia of emp.asistencias">
           <div class="date-col">
             <span class="day">{{ dia.fecha | date:'dd' }}</span>
             <span class="month">{{ dia.fecha | date:'MMM' | uppercase }}</span>
           </div>
           <div class="info-col">
             <span class="time">{{ dia.entrada }} - {{ dia.salida }}</span>
-            <span class="total">{{ dia.total_dia }} hrs totales</span>
+            <span class="total">{{ dia.total_efectivo }} hrs totales</span>
           </div>
           <div class="status-col">
             <ion-badge [color]="dia.color">{{ dia.estatus }}</ion-badge>

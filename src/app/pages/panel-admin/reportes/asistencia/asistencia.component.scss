@@ -338,3 +338,193 @@ ion-fab-button {
 /* Colores de texto auxiliares */
 .text-success { color: #2dd36f; font-weight: 700; }
 .text-danger { color: #eb445a; font-weight: 700; }
+
+
+.text-success { color: var(--ion-color-success); font-weight: 600; }
+.text-danger { color: var(--ion-color-danger); font-weight: 600; }
+.text-muted { color: #888; font-size: 0.8rem; }
+
+.ion-margin-start {
+  margin-inline-start: 8px;
+}
+
+// Para alinear el icono con el texto
+span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+
+.custom-select {
+  width: 100%;
+  --placeholder-color: #999;
+  --placeholder-opacity: 1;
+  font-size: 0.95rem;
+}
+
+// Para asegurar que el icono y el select estén alineados
+.input-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  
+  ion-select {
+    flex: 1;
+  }
+}
+
+.modal-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .section-label {
+    font-weight: 700;
+    color: #333;
+    font-size: 1rem;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .filter-input-container {
+    --background: #f4f7fa; // Gris muy suave
+    --border-radius: 12px;
+    --padding-start: 12px;
+    margin-top: 5px;
+    border: 1px solid #e0e6ed;
+    
+    ion-icon {
+      font-size: 20px;
+      margin-right: 8px;
+    }
+  }
+
+  .full-width-select {
+    width: 100%;
+    max-width: 100%;
+    font-size: 0.95rem;
+    --placeholder-color: #666;
+  }
+
+  .date-range-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    ion-input {
+      --padding-start: 8px;
+    }
+  }
+
+  .spacer {
+    height: 20px;
+  }
+
+  .apply-btn {
+    margin-top: auto;
+    margin-bottom: 20px;
+    height: 56px;
+    --border-radius: 16px;
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+  }
+}
+
+// Estilo para el input de fecha nativo
+ion-input[type="date"] {
+  font-family: inherit;
+}
+
+.filter-input-container {
+  --background: #f4f7fa;
+  --border-radius: 12px;
+  --padding-start: 12px;
+  margin-top: 8px;
+  border: 1px solid #eef2f6;
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    ion-icon { margin-right: 10px; font-size: 20px; }
+    ion-input { --padding-start: 0; }
+  }
+}
+
+.date-range-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.section-label {
+  font-weight: 700;
+  color: #333;
+}
+
+.custom-filter-modal {
+  --height: 100%; // Forzamos altura completa
+  --border-radius: 0px; // Quitamos bordes redondeados para modo full-screen
+  
+  ion-toolbar {
+    --background: var(--ion-color-primary);
+    --color: white;
+  }
+
+  .section-label {
+    font-weight: 700;
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .filter-input-container {
+    --background: #f4f7fa;
+    --border-radius: 12px;
+    --padding-start: 12px;
+    border: 1px solid #eef2f6;
+  }
+}
+
+.custom-date-input {
+  --padding-start: 8px;
+  position: relative;
+
+  /* Ocultar el icono nativo de calendario en Chrome/Safari/Edge */
+  &::part(native) {
+    &::-webkit-calendar-picker-indicator {
+      background: transparent;
+      bottom: 0;
+      color: transparent;
+      cursor: pointer;
+      height: auto;
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: auto;
+      z-index: 2; /* Esto hace que al dar clic en tu icono también abra el calendario */
+    }
+  }
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  position: relative;
+
+  .custom-calendar-icon {
+    font-size: 18px;
+    color: var(--ion-color-primary);
+    z-index: 1; /* Queda visible detrás de la capa transparente de clic */
+    pointer-events: none; /* Permite que el clic pase al input */
+  }
+}
