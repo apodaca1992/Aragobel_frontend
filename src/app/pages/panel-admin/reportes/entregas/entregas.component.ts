@@ -1,8 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { LoadingService } from "@services/loading.service";
 import { ToastService } from "@services/toast.service";
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { PreferencesService } from '@services/preference.service';
 import { AsistenciaService } from '@services/asistencia.service';
 import { EntregaService } from '@services/entrega.service'; // Asegúrate de tener este import
