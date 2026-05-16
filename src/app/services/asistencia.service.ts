@@ -37,4 +37,7 @@ export class AsistenciaService {
   generarReporte(params?: any): Observable<AsistenciaInterface> {
     return this._httpClient.get<AsistenciaInterface>(`${this.urlApi}/generarReporte`,{ params: HttpHelper.convertToHttpParams(params) });
   }
+  obtenerPdfReporte(params?: any): Observable<Blob> {
+    return this._httpClient.get<Blob>(`${this.urlApi}/descargarReportePdf`,{ params: HttpHelper.convertToHttpParams(params), responseType: 'blob' as 'json' });
+  }
 }

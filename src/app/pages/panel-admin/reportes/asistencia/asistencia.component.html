@@ -136,7 +136,10 @@
 </ion-content>
 
 <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="ion-margin">
-  <ion-fab-button color="primary" (click)="exportarPDF()">
+  <ion-fab-button 
+    color="primary" 
+    (click)="exportarPDF()" 
+    [disabled]="!tieneDatosParaDescargar()">
     <ion-icon name="document-text"></ion-icon>
   </ion-fab-button>
 </ion-fab>

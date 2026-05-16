@@ -2,8 +2,6 @@
 import { Component, OnInit } from "@angular/core";
 import { LoadingService } from "@services/loading.service";
 import { ToastService } from "@services/toast.service";
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { PreferencesService } from '@services/preference.service';
 import { AsistenciaService } from '@services/asistencia.service';
 import { UsuarioService } from "@services/usuario.service";
@@ -28,13 +26,7 @@ export class AsistenciaComponent  implements OnInit {
   selectedFilterLabel = 'Hoy';
 
   reportAsistenciaAgrupado: any[] = [];
-  listaUsuarios: any[] = [
-    { id: 'blIL9Ts6MeEbubvhnVpP', nombre: 'Jesus Adrian Apodaca Campos' },
-    { id: 'user_002', nombre: 'Beatriz Luna' },
-    { id: 'user_003', nombre: 'Carlos Mendoza' },
-    { id: 'user_004', nombre: 'Daniela Reyes' },
-    { id: 'user_005', nombre: 'Eduardo Ortiz' }
-  ];
+  listaUsuarios: any[] = [];
 
   constructor(
     private loadingService: LoadingService,
@@ -88,75 +80,68 @@ export class AsistenciaComponent  implements OnInit {
     });
   }
 
-  exportarPDF() {
-    /*const doc = new jsPDF();
-    const fechaDoc = new Date().toLocaleDateString();
-
-    // Obtener el nombre del mes seleccionado para el título
-    const mesReporte = "ABRIL 2026";
-
-    // 1. Encabezado Estilo "Aragobel"
-    doc.setFontSize(22);
-    doc.setTextColor(0, 82, 204); // El azul de tu marca
-    doc.text('ARAGOBEL', 14, 20);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text('SISTEMA DE GESTIÓN - REPORTE DE ' + this.segmento.toUpperCase(), 14, 28);
-    doc.text(`REPORTE MENSUAL: ${mesReporte}`, 14, 33);
-
-    // 2. Definir los datos según el segmento activo
-    let columnas = [];
-    let cuerpo = [];
-
-    if (this.segmento === 'asistencia') {
-      columnas = ['Empleado', 'Fecha', 'Entrada'];
-      cuerpo = this.reportAsistencia.map(item => [
-        item.nombre, 
-        new Date(item.fecha).toLocaleDateString(), 
-        item.entrada
-      ]);
-    } else {
-      columnas = ['Repartidor', 'Total Entregas'];
-      cuerpo = this.reportRepartidores.map(rep => [
-        rep.nombre, 
-        rep.entregas + ' servicios'
-      ]);
-    }
-
-    // 3. Crear la tabla
-    autoTable(doc, {
-      startY: 40,
-      head: [columnas],
-      body: cuerpo,
-      theme: 'striped',
-      headStyles: { fillColor: [0, 82, 204] }, // Azul institucional
-      styles: { fontSize: 10, cellPadding: 3 }
-    });
-
-    // 4. Descargar el archivo
-    doc.save(`Reporte_${this.segmento}_${fechaDoc}.pdf`);*/
+  // 1. MÉTODO DE VALIDACIÓN: Controla si se permite o no accionar la descarga
+  tieneDatosParaDescargar(): boolean {
+    return this.reportAsistenciaAgrupado && this.reportAsistenciaAgrupado.length > 0;
   }
 
+  // 2. LOGICA ACTUALIZADA PARA SOLICITAR EL PDF AL BACKEND
+  async exportarPDF() {
+    // Validación preventiva secundaria
+    if (!this.tieneDatosParaDescargar()) {
+      this.toastService.show('No hay datos en pantalla para exportar.', 'warning');
+      return;
+    }
 
-  async aplicarFiltros() {
-    // Supongamos que ya tienes el id_tienda_activa en el objeto user
+    const datos = await this.obtenerPayloadFiltros();
+
+    // Invocamos el método del servicio que retornará el binario del PDF
+    this._asistenciaService.obtenerPdfReporte(datos).subscribe({
+      next: (blob: Blob) => {
+        // Creamos la URL del archivo binario recibido
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        // Creamos un disparador de descarga invisible en el navegador
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `Reporte_Asistencia_${this.filtros.inicio}_al_${this.filtros.fin}.pdf`;
+        
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpieza del árbol DOM y liberación de memoria intermedia
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+      },
+      error: (err) => {
+        this.toastService.show('Ocurrió un error al generar el archivo en el servidor.', 'danger');
+        console.error('Error al descargar el PDF:', err);
+      }
+    });
+  }
+
+  // Función centralizada para armar los parámetros de asistencia
+  async obtenerPayloadFiltros(): Promise<any> {
     const user = JSON.parse(await this._preferencesService.getItem('user') ?? '{}');
     const idTienda = user.id_tienda;
-    
-    const datos:any = {         
+
+    const datos: any = {         
       id_tienda: idTienda,
-      //id_usuario: user.id,
-      fecha_inicio: this.filtros.inicio,//fecha_gte: `${mes}-01`, // Mayor o igual que
-      fecha_fin: this.filtros.fin,//fecha_lte: `${mes}-31`, // Menor o igual que
+      fecha_inicio: this.filtros.inicio,
+      fecha_fin: this.filtros.fin,
       activo: 1
     };
 
-    // Si el filtro no es 'todos', enviamos el ID específico al Backend
     if (this.filtros.id_usuario !== 'todos') {
       datos.id_usuario = this.filtros.id_usuario;
     }
 
+    return datos;
+  }
+
+
+  async aplicarFiltros() {
+    const datos = await this.obtenerPayloadFiltros();
     console.log(datos)
     this._asistenciaService.generarReporte(datos).subscribe({
       next: (res: any) => {
