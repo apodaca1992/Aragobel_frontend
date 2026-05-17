@@ -31,4 +31,10 @@ export class EntregaService {
   delete(id: string | number): Observable<EntregaInterface> {
     return this._httpClient.delete<EntregaInterface>(`${this.urlApi}/${id}`);
   }
+  generarReporte(params?: any): Observable<EntregaInterface> {
+    return this._httpClient.get<EntregaInterface>(`${this.urlApi}/generarReporte`,{ params: HttpHelper.convertToHttpParams(params) });
+  }
+  obtenerPdfReporte(params?: any): Observable<Blob> {
+    return this._httpClient.get<Blob>(`${this.urlApi}/descargarReportePdf`,{ params: HttpHelper.convertToHttpParams(params), responseType: 'blob' as 'json' });
+  }
 }

@@ -1,74 +1,160 @@
 <ion-header [translucent]="true">
-  <app-header titulo="Entregas" mode="back">
-     <ion-button color="light" action-buttons (click)="exportarPDF()">
-      <ion-icon slot="icon-only" name="document-text-outline"></ion-icon>
-    </ion-button>
-  </app-header>
+  <app-header titulo="Reporte de Entregas" mode="back"></app-header>
 </ion-header>
 
-<ion-content color="light" class="ion-padding">
-  <div class="filter-container ion-margin-bottom">
-    <ion-item lines="none" class="month-item">
-      <ion-icon name="calendar-clear-outline" slot="start" color="primary"></ion-icon>
-      <ion-label>
-        <p>Periodo reportado</p>
-        <ion-datetime-button datetime="date-picker"></ion-datetime-button>
-      </ion-label>
-    </ion-item>
-  </div>
-
-  <ion-modal [keepContentsMounted]="true">
-    <ng-template>
-      <ion-datetime 
-        id="date-picker" 
-        presentation="month-year"
-        [preferWheel]="true"
-        (ionChange)="onDateChange($event)">
-      </ion-datetime>
-    </ng-template>
-  </ion-modal>
-
-  <div class="stats-grid">
-  </div>
-
-  <ion-list lines="none" class="report-list">
-    <div class="section-title">Últimas 10 Entregas</div>
-    
-    <ion-item *ngFor="let entrega of reportEntregas" class="custom-report-item delivery-card">
-      <div slot="start" class="vehicle-icon-container">
-        <ion-icon [name]="entrega.vehiculo_tipo === 'moto' ? 'bicycle' : 'car'"></ion-icon>
+<ion-content color="light" class="ion-padding">  
+  <div class="filter-header">
+    <div class="summary">
+      <ion-icon name="calendar-outline" color="primary"></ion-icon>
+      <div class="date-chips">
+        <span class="date-pill">{{ filtros.inicio | date:'dd MMM' }}</span>
+        <span class="separator">—</span>
+        <span class="date-pill">{{ filtros.fin | date:'dd MMM' }}</span>
       </div>
-      
-      <ion-label>
-        <div class="delivery-header">
-          <span class="folio-text">FOLIO #{{ entrega.folio }}</span>
-          <ion-badge [color]="estatusEntregas[+entrega.estatus]?.color" mode="ios">
-            {{ estatusEntregas[+entrega.estatus]?.texto }}
-          </ion-badge>
+    </div>
+    <ion-button fill="clear" id="open-filters">
+      <ion-icon slot="icon-only" name="options-outline"></ion-icon>
+    </ion-button>
+  </div>
+
+  <ion-modal 
+  trigger="open-filters" 
+  #filterModal 
+  class="custom-filter-modal"
+  [initialBreakpoint]="1" 
+  [breakpoints]="[0, 1]" 
+  handle="true">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar color="primary">
+        <ion-title>Filtros Avanzados</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="filterModal.dismiss()" style="font-weight: 700;">CERRAR</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+      <div class="modal-wrapper">
+        <div class="filter-section">
+          <ion-label class="section-label">Empleado</ion-label>
+          <ion-item lines="none" class="filter-input-container">
+            <ion-icon name="person-outline" color="primary" slot="start"></ion-icon>
+            <ion-select 
+              [(ngModel)]="filtros.id_usuario" 
+              placeholder="Todos los empleados" 
+              interface="action-sheet"
+              class="full-width-select">
+              <ion-select-option value="todos">Todos los empleados</ion-select-option>
+              <ion-select-option *ngFor="let user of listaUsuarios" [value]="user.id">
+                {{ user.nombre }} {{ user.apellido_paterno }} {{ user.apellido_materno }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
         </div>
 
-        <h2 class="client-name">{{ entrega.persona_recibe || 'Sin nombre' }}</h2>
-        
-        <div class="delivery-footer">
-          <span class="info-group">
-            <ion-icon name="calendar-outline"></ion-icon>
-            {{ entrega.createdAt | date:'shortDate' }}
-          </span>
-          <span class="info-group">
-            <ion-icon name="time-outline"></ion-icon>
-            {{ entrega.createdAt | date:'shortTime' }}
-          </span>
-          <span class="info-group repartidor">
-            <ion-icon name="person-outline"></ion-icon>
-            {{ entrega.nombre_repartidor?.split(' ')[0] }}
-          </span>
+        <div class="filter-section">
+          <ion-label class="section-label">Rango de Fechas</ion-label>
+          <div class="date-range-grid">
+            <ion-item lines="none" class="filter-input-container">
+              <ion-label position="stacked">Inicio</ion-label>
+              <div class="input-row">
+                <ion-icon name="calendar-outline"  class="custom-calendar-icon" color="primary"></ion-icon>
+                <ion-input type="date" class="custom-date-input" [(ngModel)]="filtros.inicio"></ion-input>
+              </div>
+            </ion-item>
+
+            <ion-item lines="none" class="filter-input-container">
+              <ion-label position="stacked">Fin</ion-label>
+              <div class="input-row">
+                <ion-icon name="calendar-outline" class="custom-calendar-icon" color="primary"></ion-icon>
+                <ion-input type="date" class="custom-date-input" [(ngModel)]="filtros.fin"></ion-input>
+              </div>
+            </ion-item>
+          </div>
         </div>
-      </ion-label>
-    </ion-item>
-    <ion-item *ngIf="reportEntregas.length === 0" lines="none">
-      <ion-label class="ion-text-center">
-        <p>No hay entregas registradas en este periodo.</p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
+      </div>
+    </ion-content>
+
+    <ion-footer class="ion-no-border ion-padding">
+      <ion-button 
+        expand="block" 
+        shape="round" 
+        color="primary" 
+        style="height: 56px; font-weight: 800; margin-bottom: 15px;"
+        (click)="aplicarFiltros(); filterModal.dismiss()">
+        APLICAR FILTROS
+      </ion-button>
+    </ion-footer>
+  </ng-template>
+</ion-modal>
+
+  <div class="section-title">Resultados del Periodo</div>
+
+  <ion-accordion-group [multiple]="true">
+    <ion-accordion [value]="emp.id_usuario" *ngFor="let emp of reportAgrupado" class="custom-accordion">
+      
+      <ion-item slot="header" lines="none">
+        <ion-avatar slot="start">
+          <div class="avatar-text">{{ emp.foto }}</div>
+        </ion-avatar>
+        <ion-label>
+          <h2>{{ emp.nombre }}</h2>
+          <p>
+            Total: {{ emp.total_horas }}h 
+            <span *ngIf="emp.extras > 0" class="text-success ion-margin-start">
+              <ion-icon name="arrow-up-circle-outline"></ion-icon>
+              +{{ emp.extras }}h Extras
+            </span>
+            
+            <span *ngIf="emp.faltantes > 0" class="text-danger ion-margin-start">
+              <ion-icon name="arrow-down-circle-outline"></ion-icon>
+              -{{ emp.faltantes }}h Faltantes
+            </span>
+          </p>
+        </ion-label>
+      </ion-item>
+
+      <div slot="content" class="accordion-detail-container">
+        <div class="day-attendance-row" *ngFor="let dia of emp.asistencias">
+          
+          <div class="date-badge-box">
+            <span class="num-day">{{ dia.fecha | date:'dd' }}</span>
+            <span class="text-month">{{ dia.fecha | date:'MMM' | uppercase }}</span>
+          </div>
+          
+          <div class="hours-summary-box">
+            <div class="main-shift-hours">
+              {{ dia.entrada }} a {{ dia.salida }}
+            </div>
+            
+            <div class="lunch-break-hours" *ngIf="dia.salida_comer || dia.regreso_comer">
+              {{ dia.salida_comer || '--:--' }} - {{ dia.regreso_comer || '--:--' }}
+            </div>
+            
+            <div class="calculated-total-hours">
+              {{ dia.total_efectivo }} hrs totales
+            </div>
+          </div>
+          
+          <div class="status-badge-box">
+            <span class="compact-status-tag" [ngClass]="dia.color">
+              {{ dia.estatus }}
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+    </ion-accordion>
+  </ion-accordion-group>
 </ion-content>
+
+<ion-fab slot="fixed" vertical="bottom" horizontal="end" class="ion-margin">
+  <ion-fab-button 
+    color="primary" 
+    (click)="exportarPDF()" 
+    [disabled]="!tieneDatosParaDescargar()">
+    <ion-icon name="document-text"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

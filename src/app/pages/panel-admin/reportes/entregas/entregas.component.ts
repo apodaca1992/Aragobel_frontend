@@ -1,9 +1,10 @@
+
 import { Component, OnInit } from "@angular/core";
 import { LoadingService } from "@services/loading.service";
 import { ToastService } from "@services/toast.service";
 import { PreferencesService } from '@services/preference.service';
-import { AsistenciaService } from '@services/asistencia.service';
-import { EntregaService } from '@services/entrega.service'; // Asegúrate de tener este import
+import { EntregaService } from '@services/entrega.service';
+import { UsuarioService } from "@services/usuario.service";
 
 @Component({
   selector: 'app-entregas',
@@ -11,118 +12,142 @@ import { EntregaService } from '@services/entrega.service'; // Asegúrate de ten
   styleUrls: ['./entregas.component.scss'],
 })
 export class EntregasComponent  implements OnInit {
-  segmento: string = 'entregas';
 
-  // Objeto para controlar la visibilidad
-  modulosConfig = {
-    checador: true,
-    entregas: true
+  // En tu componente de reporte
+  filtros = {
+    inicio: '',
+    fin: '',
+    id_usuario: 'todos',
+    id_tienda: ''
   };
 
-  estatusEntregas: { [key: number]: { texto: string, color: string } } = {
-    1: { texto: 'Creado', color: 'medium' },
-    2: { texto: 'En Ruta', color: 'warning' },
-    3: { texto: 'Finalizado', color: 'success' }
-  };
+  selectedFilterLabel = 'Hoy';
 
-  reportAsistencia: any[] = [];
-  reportEntregas: any[] = [];
-  mesReporteActual: string = new Date().toISOString().substring(0, 7);
+  reportAgrupado: any[] = [];
+  listaUsuarios: any[] = [];
 
   constructor(
     private loadingService: LoadingService,
     private toastService: ToastService,
     private _preferencesService: PreferencesService,
-    private _asistenciaService: AsistenciaService,
-    private _entregaService: EntregaService
+    private _entregaService: EntregaService,
+    private _usuarioService: UsuarioService
   ) {
 
   }
 
   async ngOnInit() {
-    //this.toastService.show('¡Guardado correctamente!', 'success', 'checkmark-circle-outline');
-    await this.cargarConfiguracionModulos();
-
-    this.definirSegmentoInicial(this.mesReporteActual);
+    this.setFechaActual();
+    await this.cargarListaUsuarios();
+    // Aquí puedes llamar a tu carga inicial si lo deseas
+    this.aplicarFiltros();
   }
 
-  async cargarConfiguracionModulos() {
-    const empresaStr = await this._preferencesService.getItem('empresa');
-    if (empresaStr) {
-      const empresaData = JSON.parse(empresaStr);
-      // Extraemos los módulos (si no existen, por defecto true)
-      this.modulosConfig = empresaData.modulos ?? { checador: true, entregas: true };
-    }
-  }
-
-  // Esto evita que el segmento quede vacío si 'asistencia' está desactivado
-  async definirSegmentoInicial(mes: string) {
-    if (!this.modulosConfig.checador && this.modulosConfig.entregas) {
-      this.segmento = 'entregas';
-      await this.obtenerEntregasPorMes(mes);
-    } else if (this.modulosConfig.checador) {
-      this.segmento = 'asistencia';
-      await this.obtenerMarcajesPorMes(mes);
-    }
-  }
-
-  onDateChange(event: any) {
-    const fecha = event.detail.value; // Formato "2026-05-24..."
-    this.mesReporteActual = fecha.substring(0, 7); // Extrae "2026-05"    
-   
-    // Cargamos los datos de la pestaña que esté viendo el usuario actualmente
-    this.cargarDatosSegunSegmento();
-  }
-
-  cargarDatosSegunSegmento() {
-    if (this.segmento === 'asistencia' && this.modulosConfig.checador) {
-      this.obtenerMarcajesPorMes(this.mesReporteActual);
-    } else if (this.segmento === 'entregas' && this.modulosConfig.entregas) {
-      this.obtenerEntregasPorMes(this.mesReporteActual);
-    }
-  }
-
-  async obtenerEntregasPorMes(mes: string) {
-    const user = JSON.parse(await this._preferencesService.getItem('user') ?? '{}');
+  setFechaActual() {
+    const hoy = new Date();
     
-    const datos = {         
-      id_tienda: user.id_tienda,
-      id_empresa: user.id_empresa,
-      fecha_venta_gte: `${mes}-01`,
-      fecha_venta_lte: `${mes}-31`,
+    // Convertimos a formato YYYY-MM-DD usando la zona horaria local
+    const offset = hoy.getTimezoneOffset();
+    const fechaLocal = new Date(hoy.getTime() - (offset * 60 * 1000));
+    const fechaFormateada = fechaLocal.toISOString().split('T')[0];
+
+    this.filtros.inicio = fechaFormateada;
+    this.filtros.fin = fechaFormateada;
+    
+    // Actualizamos el label para que el usuario vea que está filtrado por hoy
+    this.selectedFilterLabel = 'Hoy';
+  }
+
+  async cargarListaUsuarios() {
+    const user = JSON.parse(await this._preferencesService.getItem('user') ?? '{}');
+    const idTienda = user.id_tienda;
+
+    const datos:any = {         
+      tiendas_ids: "array-contains|"+idTienda,
       activo: 1
     };
-    console.log(datos)
-    this._entregaService.get(datos).subscribe({
+
+    // Ajusta según cómo obtengas los usuarios de tu tienda
+    this._usuarioService.get(datos).subscribe({
       next: (res: any) => {
-        if (res.data) {
-          this.reportEntregas = res.data;
-          console.log('Entregas cargadas:', this.reportEntregas);
-        }
+        console.log("onteniendo los empleados para el select")
+        console.log(res.data)
+        this.listaUsuarios = res.data;
       },
-      error: (err) => console.error('Error al cargar entregas:', err)
+      error: (err) => console.error('Error cargando usuarios', err)
     });
   }
 
-  async obtenerMarcajesPorMes(mes: string){
-    // Supongamos que ya tienes el id_tienda_activa en el objeto user
+  // 1. MÉTODO DE VALIDACIÓN: Controla si se permite o no accionar la descarga
+  tieneDatosParaDescargar(): boolean {
+    return this.reportAgrupado && this.reportAgrupado.length > 0;
+  }
+
+  // 2. LOGICA ACTUALIZADA PARA SOLICITAR EL PDF AL BACKEND
+  async exportarPDF() {
+    // Validación preventiva secundaria
+    if (!this.tieneDatosParaDescargar()) {
+      this.toastService.show('No hay datos en pantalla para exportar.', 'warning');
+      return;
+    }
+
+    const datos = await this.obtenerPayloadFiltros();
+
+    // Invocamos el método del servicio que retornará el binario del PDF
+    this._entregaService.obtenerPdfReporte(datos).subscribe({
+      next: (blob: Blob) => {
+        // Creamos la URL del archivo binario recibido
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        // Creamos un disparador de descarga invisible en el navegador
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `Reporte_Entregas_${this.filtros.inicio}_al_${this.filtros.fin}.pdf`;
+        
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpieza del árbol DOM y liberación de memoria intermedia
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+      },
+      error: (err) => {
+        this.toastService.show('Ocurrió un error al generar el archivo en el servidor.', 'danger');
+        console.error('Error al descargar el PDF:', err);
+      }
+    });
+  }
+
+  // Función centralizada para armar los parámetros de asistencia
+  async obtenerPayloadFiltros(): Promise<any> {
     const user = JSON.parse(await this._preferencesService.getItem('user') ?? '{}');
     const idTienda = user.id_tienda;
-    
-    const datos = {         
+
+    const datos: any = {         
       id_tienda: idTienda,
-      //id_usuario: user.id,
-      id_empresa: user.id_empresa,
-      fecha_gte: `${mes}-01`, // Mayor o igual que
-      fecha_lte: `${mes}-31`, // Menor o igual que
+      fecha_inicio: this.filtros.inicio,
+      fecha_fin: this.filtros.fin,
       activo: 1
     };
+
+    if (this.filtros.id_usuario !== 'todos') {
+      datos.id_usuario = this.filtros.id_usuario;
+    }
+
+    return datos;
+  }
+
+
+  async aplicarFiltros() {
+    const datos = await this.obtenerPayloadFiltros();
     console.log(datos)
-    this._asistenciaService.get(datos).subscribe({
+    this._entregaService.generarReporte(datos).subscribe({
       next: (res: any) => {
-        if (res.data) {
-          console.log(res.data);
-          this.reportAsistencia = res.data;
+        if (res && res.empleados) {
+          this.reportAgrupado = res.empleados;
+          this.actualizarLabel();
+        } else {
+          this.reportAgrupado = [];
         }
       },
       error: (err) => {
@@ -131,55 +156,26 @@ export class EntregasComponent  implements OnInit {
     });
   }
 
-  exportarPDF() {
-    /*const doc = new jsPDF();
-    const fechaDoc = new Date().toLocaleDateString();
+  actualizarLabel() {
+    const hoy = new Date().toISOString().split('T')[0];
+    let label = '';
 
-    // Obtener el nombre del mes seleccionado para el título
-    const mesReporte = "ABRIL 2026";
-
-    // 1. Encabezado Estilo "Aragobel"
-    doc.setFontSize(22);
-    doc.setTextColor(0, 82, 204); // El azul de tu marca
-    doc.text('ARAGOBEL', 14, 20);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text('SISTEMA DE GESTIÓN - REPORTE DE ' + this.segmento.toUpperCase(), 14, 28);
-    doc.text(`REPORTE MENSUAL: ${mesReporte}`, 14, 33);
-
-    // 2. Definir los datos según el segmento activo
-    let columnas = [];
-    let cuerpo = [];
-
-    if (this.segmento === 'asistencia') {
-      columnas = ['Empleado', 'Fecha', 'Entrada'];
-      cuerpo = this.reportAsistencia.map(item => [
-        item.nombre, 
-        new Date(item.fecha).toLocaleDateString(), 
-        item.entrada
-      ]);
+    if (this.filtros.inicio === hoy && this.filtros.fin === hoy) {
+      label = 'Hoy';
+    } else if (this.filtros.inicio === this.filtros.fin) {
+      label = this.filtros.inicio;
     } else {
-      columnas = ['Repartidor', 'Total Entregas'];
-      cuerpo = this.reportRepartidores.map(rep => [
-        rep.nombre, 
-        rep.entregas + ' servicios'
-      ]);
+      label = `${this.filtros.inicio} al ${this.filtros.fin}`;
     }
 
-    // 3. Crear la tabla
-    autoTable(doc, {
-      startY: 40,
-      head: [columnas],
-      body: cuerpo,
-      theme: 'striped',
-      headStyles: { fillColor: [0, 82, 204] }, // Azul institucional
-      styles: { fontSize: 10, cellPadding: 3 }
-    });
-
-    // 4. Descargar el archivo
-    doc.save(`Reporte_${this.segmento}_${fechaDoc}.pdf`);*/
+    // Si hay un usuario específico seleccionado, lo añadimos al label
+    if (this.filtros.id_usuario !== 'todos') {
+      const usuario = this.listaUsuarios.find(u => u.id === this.filtros.id_usuario);
+      this.selectedFilterLabel = usuario ? `${usuario.nombre} (${label})` : label;
+    } else {
+      this.selectedFilterLabel = label;
+    }
   }
 
-
 }
+
