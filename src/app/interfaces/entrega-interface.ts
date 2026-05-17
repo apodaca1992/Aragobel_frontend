@@ -8,7 +8,7 @@ export interface EntregaInterface {
   id_tienda: string | number | null;
   id_usuario_creador: string | number | null;
   fecha_venta: string;
-  
+  nombre_usuario_creador: string;
   // Estos campos se llenan en el backend, por eso son opcionales
   id_repartidor?: string | number | null;
   id_vehiculo?: string | number | null;

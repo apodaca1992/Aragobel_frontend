@@ -22,6 +22,7 @@ export class FormEntregasComponent  implements OnInit {
     activo: 1,
     id_tienda: null,
     id_usuario_creador: null,
+    nombre_usuario_creador: '',
     fecha_venta: ''
   };
 
@@ -43,12 +44,13 @@ export class FormEntregasComponent  implements OnInit {
     } else {
       // CASO NUEVA ENTREGA: Seteamos valores por defecto
       console.log('Modo creación');
-      this.entrega.id_usuario_creador = await this._preferencesService.getIdUser();
+      this.entrega.id_usuario_creador = await this._preferencesService.getIdUser();      
       
       const userStr = await this._preferencesService.getItem('user');
       if (userStr) {
           const user = JSON.parse(userStr);
           this.entrega.id_tienda = user.id_tienda;
+          this.entrega.nombre_usuario_creador = user.nombre + ' ' + user.apellido_paterno + ' ' + user.apellido_materno;
 
           // Generamos la fecha del día para el filtro rápido
           this.entrega.fecha_venta = `TODAY|${user.id_tienda}`;
