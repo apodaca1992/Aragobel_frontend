@@ -115,19 +115,34 @@
         </ion-label>
       </ion-item>
 
-      <div slot="content" class="accordion-detail">
-        <div class="day-row" *ngFor="let dia of emp.asistencias">
-          <div class="date-col">
-            <span class="day">{{ dia.fecha | date:'dd' }}</span>
-            <span class="month">{{ dia.fecha | date:'MMM' | uppercase }}</span>
+      <div slot="content" class="accordion-detail-container">
+        <div class="day-attendance-row" *ngFor="let dia of emp.asistencias">
+          
+          <div class="date-badge-box">
+            <span class="num-day">{{ dia.fecha | date:'dd' }}</span>
+            <span class="text-month">{{ dia.fecha | date:'MMM' | uppercase }}</span>
           </div>
-          <div class="info-col">
-            <span class="time">{{ dia.entrada }} - {{ dia.salida }}</span>
-            <span class="total">{{ dia.total_efectivo }} hrs totales</span>
+          
+          <div class="hours-summary-box">
+            <div class="main-shift-hours">
+              {{ dia.entrada }} a {{ dia.salida }}
+            </div>
+            
+            <div class="lunch-break-hours" *ngIf="dia.salida_comer || dia.regreso_comer">
+              {{ dia.salida_comer || '--:--' }} - {{ dia.regreso_comer || '--:--' }}
+            </div>
+            
+            <div class="calculated-total-hours">
+              {{ dia.total_efectivo }} hrs totales
+            </div>
           </div>
-          <div class="status-col">
-            <ion-badge [color]="dia.color">{{ dia.estatus }}</ion-badge>
+          
+          <div class="status-badge-box">
+            <span class="compact-status-tag" [ngClass]="dia.color">
+              {{ dia.estatus }}
+            </span>
           </div>
+
         </div>
       </div>
 

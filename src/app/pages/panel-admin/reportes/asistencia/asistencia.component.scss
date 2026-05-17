@@ -528,3 +528,109 @@ ion-input[type="date"] {
     pointer-events: none; /* Permite que el clic pase al input */
   }
 }
+
+
+.accordion-detail-container {
+  background-color: #ffffff;
+  padding: 0 12px;
+
+  .day-attendance-row {
+    display: grid !important;
+    // Ancho fijo fecha, el centro toma todo el espacio sobrante, ancho fijo badge
+    grid-template-columns: 45px 1fr 110px; 
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f4f8;
+    width: 100%;
+    gap: 8px;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  // 1. Bloque de Fecha
+  .date-badge-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    .num-day {
+      font-size: 16px;
+      font-weight: 800;
+      color: #2b303a;
+      line-height: 1.1;
+    }
+    
+    .text-month {
+      font-size: 10px;
+      font-weight: 700;
+      color: #a0aec0;
+    }
+  }
+
+  // 2. Bloque Central de Horarios
+  .hours-summary-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 12px;
+    overflow: hidden;
+
+    .main-shift-hours {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1c20;
+      white-space: nowrap;
+    }
+
+    // Estilo sutil y limpio para la hora del almuerzo
+    .lunch-break-hours {
+      font-size: 11.5px;
+      color: #718096; // Gris suave para diferenciarlo de la jornada principal
+      margin-top: 1px;
+      white-space: nowrap;
+    }
+
+    .calculated-total-hours {
+      font-size: 12px;
+      font-weight: 700;
+      color: #3182ce;
+      margin-top: 2px;
+    }
+  }
+
+  // 3. Bloque del Badge (Alineado a la derecha)
+  .status-badge-box {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    
+    .compact-status-tag {
+      display: block;
+      width: 100%;
+      padding: 4px 6px;
+      font-size: 9.5px;
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+      border-radius: 6px;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
+
+      &.danger {
+        background-color: #fff5f5;
+        color: #e53e3e;
+      }
+      &.success {
+        background-color: #f0fff4;
+        color: #38a169;
+      }
+      &.warning {
+        background-color: #fffaf0;
+        color: #dd6b20;
+      }
+    }
+  }
+}
