@@ -2,6 +2,7 @@ export interface EntregaInterface {
   id?: string | number;         // El signo ? significa opcional
   folio: string;
   persona_recibe: string;
+  id_colonia: string | number | null;
   colonia: string;
   estatus: number;
   activo: number;

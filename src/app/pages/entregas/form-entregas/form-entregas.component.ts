@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 import { EntregaService } from '@services/entrega.service';
 import { PreferencesService } from '@services/preference.service';
 import { EntregaInterface } from '@interfaces/entrega-interface';
-import { HttpHelper } from '../../../class/http-helper';
 import { ToastService } from '@services/toast.service'; // Tu servicio de toast
+import { ColoniaService } from '@services/colonia.service';
 
 @Component({
   selector: 'app-form-entregas',
@@ -17,6 +17,7 @@ export class FormEntregasComponent  implements OnInit {
   entrega: Partial<EntregaInterface> = {
     folio: '',
     persona_recibe: '',
+    id_colonia: '',
     colonia: '',
     estatus: 1,
     activo: 1,
@@ -26,14 +27,24 @@ export class FormEntregasComponent  implements OnInit {
     fecha_venta: ''
   };
 
+  // DATOS DUMMY: Catálogo maestro escalable (Aquí puedes inyectar datos de una API después)
+  listaColonias: any[] = [];
+
+  // Lista dinámica que se renderiza en el modal de búsqueda
+  filteredColonias: any[] = [];
+
   constructor(
     private _entregaService: EntregaService,
     private _preferencesService: PreferencesService,
     private router: Router,
-    private _toastService: ToastService
+    private _toastService: ToastService,
+    private _coloniaService: ColoniaService,
   ) { }
 
   async ngOnInit() {
+    // 1. Cargamos el catálogo de colonias desde el servidor backend
+    this.obtenerColonias();
+
     // 1. Primero capturamos si viene una entrega para edición
     const state = this.router.getCurrentNavigation()?.extras.state;
     
@@ -56,6 +67,62 @@ export class FormEntregasComponent  implements OnInit {
           this.entrega.fecha_venta = `TODAY|${user.id_tienda}`;
       }    
     }
+  }
+
+  // --- CONSUMO DEL SERVICIO REAL ---
+  async obtenerColonias() {
+    //this.cargandoColonias = true;
+    const userStr = await this._preferencesService.getItem('user');
+    if (!userStr) return;
+    const user = JSON.parse(userStr);
+    
+    const datos = {
+      activo: 1,          
+      id_tienda: user.id_tienda
+    };
+
+    this._coloniaService.get(datos).subscribe({
+      next: (res: any) => {
+        // Mapea la respuesta según como te la entregue tu backend (ej: res o res.data)
+        this.listaColonias = Array.isArray(res) ? res : (res.data || []);
+        
+        // Inicializamos el filtro con los datos reales recibidos
+        this.filteredColonias = [...this.listaColonias];
+        //this.cargandoColonias = false;
+      },
+      error: (err) => {
+        //this.cargandoColonias = false;
+        console.error('Error al cargar colonias:', err);
+        this._toastService.show('No se pudo cargar el catálogo de colonias', 'danger', 'alert-circle-outline');
+      }
+    });
+  }
+
+  // --- LÓGICA DEL BUSCADOR ESCALABLE ---
+  filtrarColonias(event: any) {
+    const busqueda = event.target.value ? event.target.value.toLowerCase().trim() : '';
+
+    if (busqueda === '') {
+      this.filteredColonias = [...this.listaColonias];
+      return;
+    }
+
+    // Filtra en tiempo real sin importar mayúsculas/minúsculas
+    this.filteredColonias = this.listaColonias.filter(col => 
+      col.nombre.toLowerCase().includes(busqueda)
+    );
+  }
+
+  seleccionarColonia(colonia: any, modal: any) {
+    // Guardamos la propiedad 'nombre' directamente en la propiedad del JSON que viaja a tu API
+    this.entrega.colonia = colonia.nombre;
+    this.entrega.id_colonia = colonia.id;
+    
+    // Cerramos el modal
+    modal.dismiss();
+
+    // Limpiamos la búsqueda para que la siguiente vez aparezca completa
+    this.filteredColonias = [...this.listaColonias];
   }
 
   async guardar() {

@@ -46,3 +46,50 @@
   border-radius: 20px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
+
+
+// Simulación del Input Floating nativo de Ionic para el botón modal
+.input-floating-mock {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  height: 48px;
+  padding-top: 10px;
+  position: relative;
+
+  .mock-label {
+    position: absolute;
+    left: 0;
+    top: 14px;
+    font-size: 15px;
+    color: #a0aec0;
+    transition: all 0.2s ease-out;
+    pointer-events: none;
+
+    // Si ya tiene un valor seleccionado, flota hacia arriba igual que el ion-input nativo
+    &.has-value {
+      top: 2px;
+      font-size: 11.5px;
+      color: var(--ion-color-primary);
+      font-weight: 600;
+    }
+  }
+
+  .mock-value {
+    font-size: 15px;
+    color: #1a1c20;
+    margin-top: 4px;
+  }
+}
+
+// Estilos limpios para el cuadro del buscador
+.custom-search-modal {
+  --background: #ffffff;
+  
+  ion-searchbar {
+    --background: #ffffff;
+    --box-shadow: none;
+    --border-radius: 10px;
+  }
+}
