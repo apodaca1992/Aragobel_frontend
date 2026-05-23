@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.disimovil"
+    namespace "com.aragobel.controlfacil"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.disimovil"
+        applicationId "com.aragobel.controlfacil"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

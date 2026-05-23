@@ -1,4 +1,4 @@
-package com.disimovil;
+package com.aragobel.controlfacil;
 
 import com.getcapacitor.BridgeActivity;
 
