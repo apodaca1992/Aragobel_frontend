@@ -13,7 +13,6 @@ import { errorInterceptor } from './interceptors/error.interceptor'; // Ajusta l
 import { loadingInterceptor } from './interceptors/loading.interceptor';
 import { tokenInterceptor } from './interceptors/token.interceptor'; // Tu nuevo interceptor
 import { environment } from '@env/environment';
-import { AndroidPermissions } from '@awesome-cordova-plugins/android-permissions/ngx';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -47,7 +46,6 @@ jeepSqlite(window);
       provide: RouteReuseStrategy,
       useClass: IonicRouteStrategy 
     },
-    AndroidPermissions,
     provideHttpClient(
       withInterceptors([
         loadingInterceptor, // Controla el spinner

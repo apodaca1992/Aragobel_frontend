@@ -1,6 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { Platform, MenuController, IonRouterOutlet, NavController } from "@ionic/angular";
-import { AndroidPermissions } from '@awesome-cordova-plugins/android-permissions/ngx';
+import { Platform, MenuController, IonRouterOutlet } from "@ionic/angular";
 import { DatabaseService } from '@services/database.service';
 import { DeviceService } from '@services/device.service';
 import { HardwareBackButtonService } from '@services/hardware-back-button.service';
@@ -17,10 +16,10 @@ export class AppComponent {
 
   constructor(
     private platform: Platform,
-    private androidPermissions: AndroidPermissions,
+    // SE ELIMINÓ: androidPermissions de aquí
     private databaseService: DatabaseService,
     private deviceService: DeviceService,
-		private menu: MenuController,
+    private menu: MenuController,
     private hardwareBackButtonService: HardwareBackButtonService,
     private _preferencesService: PreferencesService
   ) {
@@ -34,7 +33,6 @@ export class AppComponent {
   }
 
   async initializeApp() {
-    
     await this.platform.ready();
 
     // 1. Verificar sesión y cargar menú
@@ -54,23 +52,8 @@ export class AppComponent {
       console.error('Error inicializando base de datos:', error);
     }
 
-    // 3. Permisos Nativo
-    if (!this.isWeb) {
-      this.requestNativePermissions();
-    }
-  }
-
-  private requestNativePermissions() {
-    const permissions = [
-      this.androidPermissions.PERMISSION.INTERNET,
-      this.androidPermissions.PERMISSION.READ_EXTERNAL_STORAGE,
-      this.androidPermissions.PERMISSION.WRITE_EXTERNAL_STORAGE,
-      this.androidPermissions.PERMISSION.ACCESS_COARSE_LOCATION,
-      this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION,
-      // Nota: READ_MEDIA_IMAGES es para Android 13+, cuidado con versiones anteriores
-      this.androidPermissions.PERMISSION.READ_MEDIA_IMAGES 
-    ];
-
-    this.androidPermissions.requestPermissions(permissions);
+    // NOTA: Se removió la llamada masiva a requestNativePermissions().
+    // Ahora cada plugin de Capacitor (Cámara, GPS) pedirá su propio permiso 
+    // justamente cuando el usuario intente usar dicha función en la app.
   }
 }
