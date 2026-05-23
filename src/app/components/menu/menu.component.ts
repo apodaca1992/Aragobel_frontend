@@ -85,7 +85,7 @@ export class MenuComponent implements OnInit {
     });
   }
 
-  async cerrarSesion() {
+  /*async cerrarSesion() {
     await this._preferencesService.clearSession();
     this.isAdmin = false; // Resetear bandera
     this.appPages = from([]); // Limpiar menú visualmente
@@ -96,5 +96,5 @@ export class MenuComponent implements OnInit {
       animated: true,
       animationDirection: 'back'
     });
-  }
+  }*/
 }

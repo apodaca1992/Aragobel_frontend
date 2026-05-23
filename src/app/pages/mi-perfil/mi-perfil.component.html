@@ -1,4 +1,4 @@
-<app-header titulo="Mi Perfil" mode="menu"></app-header>
+<app-header titulo="Perfil" mode="menu"></app-header>
 
 <ion-content color="light">
   <div class="header-profile ion-text-center ion-padding">
@@ -52,4 +52,16 @@
       </ion-label>
     </ion-item>
   </ion-list>
+
+  <div class="logout-container">
+    <ion-button 
+      expand="block" 
+      fill="clear" 
+      color="danger" 
+      class="btn-logout-profile"
+      (click)="confirmarCerrarSesion()">
+      <ion-icon slot="start" name="log-out-outline"></ion-icon>
+      Cerrar Sesión
+    </ion-button>
+  </div>
 </ion-content>

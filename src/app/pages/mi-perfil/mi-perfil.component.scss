@@ -36,3 +36,18 @@
   font-size: 0.8em;
   color: #999;
 }
+
+.logout-container {
+  margin-top: 45px; // Lo separa elegantemente de tus tarjetas de datos anteriores
+  margin-bottom: 30px; // Espaciado de seguridad inferior
+  padding: 0 10px;
+}
+
+.btn-logout-profile {
+  --background: rgba(var(--ion-color-danger-rgb), 0.06); 
+  --border-radius: 12px;
+  height: 52px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.2px;
+}
