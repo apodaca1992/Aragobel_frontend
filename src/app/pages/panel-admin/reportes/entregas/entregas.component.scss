@@ -122,7 +122,7 @@ ion-fab-button {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-bottom: 30px; // Separa los inputs del botón
+  margin-bottom: 5px; // Separa los inputs del botón
 
   .filter-input {
     --background: #f8fafc;

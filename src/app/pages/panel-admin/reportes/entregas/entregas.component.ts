@@ -5,6 +5,7 @@ import { ToastService } from "@services/toast.service";
 import { PreferencesService } from '@services/preference.service';
 import { EntregaService } from '@services/entrega.service';
 import { UsuarioService } from "@services/usuario.service";
+import { ColoniaService } from "@services/colonia.service";
 
 @Component({
   selector: 'app-entregas',
@@ -18,6 +19,8 @@ export class EntregasComponent  implements OnInit {
     inicio: '',
     fin: '',
     id_usuario: 'todos',
+    id_colonia: 'todos', // Nuevo!
+    estatus: 'todos',
     id_tienda: ''
   };
 
@@ -25,13 +28,15 @@ export class EntregasComponent  implements OnInit {
 
   reportAgrupado: any[] = [];
   listaUsuarios: any[] = [];
+  listaColonias: any[] = [];
 
   constructor(
     private loadingService: LoadingService,
     private toastService: ToastService,
     private _preferencesService: PreferencesService,
     private _entregaService: EntregaService,
-    private _usuarioService: UsuarioService
+    private _usuarioService: UsuarioService,
+    private _coloniaService: ColoniaService
   ) {
 
   }
@@ -39,6 +44,7 @@ export class EntregasComponent  implements OnInit {
   async ngOnInit() {
     this.setFechaActual();
     await this.cargarListaUsuarios();
+    await this.cargarListaColonias();
     // Aquí puedes llamar a tu carga inicial si lo deseas
     this.aplicarFiltros();
   }
@@ -56,6 +62,24 @@ export class EntregasComponent  implements OnInit {
     
     // Actualizamos el label para que el usuario vea que está filtrado por hoy
     this.selectedFilterLabel = 'Hoy';
+  }
+
+  async cargarListaColonias() {
+    const user = JSON.parse(await this._preferencesService.getItem('user') ?? '{}');
+    const idTienda = user.id_tienda;
+
+    const datos:any = {         
+      id_tienda: idTienda,
+      activo: 1
+    };
+
+    this._coloniaService.get(datos).subscribe({
+      next: (res: any) => {
+        // Adaptamos la respuesta según la estructura de tu api (res o res.data)
+        this.listaColonias = Array.isArray(res) ? res : (res.data || []);
+      },
+      error: (err) => console.error('Error cargando catálogo de colonias en filtros', err)
+    });
   }
 
   async cargarListaUsuarios() {
@@ -127,11 +151,22 @@ export class EntregasComponent  implements OnInit {
       id_tienda: idTienda,
       fecha_inicio: this.filtros.inicio,
       fecha_fin: this.filtros.fin,
+      ignorarLimite: true,
       activo: 1
     };
 
     if (this.filtros.id_usuario !== 'todos') {
       datos.id_usuario = this.filtros.id_usuario;
+    }
+
+    // NUEVO!! Filtro condicional: Colonia
+    if (this.filtros.id_colonia !== 'todos') {
+      datos.id_colonia = this.filtros.id_colonia;
+    }
+
+    // NUEVO!! Filtro condicional: Estatus
+    if (this.filtros.estatus !== 'todos') {
+      datos.estatus = this.filtros.estatus;
     }
 
     return datos;
