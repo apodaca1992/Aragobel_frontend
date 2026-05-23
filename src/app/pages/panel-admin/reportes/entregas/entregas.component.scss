@@ -634,3 +634,199 @@ ion-input[type="date"] {
     }
   }
 }
+
+.delivery-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 4px;
+  border-bottom: 1px dashed #e2e8f0;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.folio-tag {
+  font-size: 10px;
+  background: #edf2f7;
+  color: #4a5568;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+  font-weight: bold;
+}
+
+.delivery-count-tag {
+  font-weight: bold;
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.delivery-client {
+  font-size: 13px;
+  color: #4a5568;
+  margin-top: 2px;
+}
+
+.delivery-meta-grid {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #718096;
+  margin-top: 4px;
+  
+  ion-icon {
+    vertical-align: middle;
+  }
+}
+
+.delivery-timings {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  
+  .timing-pill {
+    font-size: 10px;
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    color: #4a5568;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+}
+
+.inline-icon {
+  font-size: 14px;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
+.unassigned-avatar {
+  background: #e2e8f0 !important;
+  color: #718096 !important;
+}
+
+// Colores personalizados de los badges de estatus
+.status-entregado {
+  background-color: #c6f6d5 !important;
+  color: #22543d !important;
+}
+
+.status-ruta {
+  background-color: #feebc8 !important;
+  color: #744210 !important;
+}
+
+.status-registrado {
+  background-color: #e2e8f0 !important;
+  color: #2d3748 !important;
+}
+
+.status-cancelado {
+  background-color: #fed7d7 !important;
+  color: #742a2a !important;
+}
+
+.no-results-container {
+  text-align: center;
+  padding: 60px 20px;
+  color: #a0aec0;
+  
+  ion-icon {
+    font-size: 64px;
+    margin-bottom: 12px;
+  }
+}
+
+// Contenedor principal de la lista vertical
+.delivery-clean-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 16px;
+  text-align: left;
+}
+
+// Cada renglón individualizado
+.data-row-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f1f5f9; // Separador sutil entre renglones
+
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &.no-border {
+    border-bottom: none;
+  }
+
+  ion-icon {
+    font-size: 16px;
+    flex-shrink: 0; // El ícono nunca se deforma
+  }
+}
+
+// Contenedor del texto dentro del renglón
+.data-content {
+  display: flex;
+  flex-direction: row; // Mantiene etiqueta y valor en una línea fluida
+  flex-wrap: wrap;     // Si el nombre es súper largo, baja con espacio limpio
+  gap: 4px;
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.4;
+
+  .main-text {
+    font-size: 14.5px;
+    color: #0f172a;
+  }
+
+  .label-text {
+    color: #64748b;
+    font-size: 12.5px;
+  }
+
+  .value-text {
+    color: #1e293b;
+    font-weight: 500;
+    
+    &.font-bold {
+      font-weight: 700;
+    }
+  }
+}
+
+// Contenedor de las pastillas inferiores (Espera / Viaje)
+.delivery-timings-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+  width: 100%;
+
+  .timing-badge {
+    display: flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+
+    .label {
+      color: #64748b;
+      margin-right: 4px;
+    }
+
+    .value {
+      font-weight: 600;
+      color: #334155;
+    }
+  }
+}

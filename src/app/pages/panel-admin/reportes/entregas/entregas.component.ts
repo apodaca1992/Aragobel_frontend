@@ -178,8 +178,8 @@ export class EntregasComponent  implements OnInit {
     console.log(datos)
     this._entregaService.generarReporte(datos).subscribe({
       next: (res: any) => {
-        if (res && res.empleados) {
-          this.reportAgrupado = res.empleados;
+        if (res && res.entregas) {
+          this.reportAgrupado = res.entregas;
           this.actualizarLabel();
         } else {
           this.reportAgrupado = [];
@@ -189,6 +189,23 @@ export class EntregasComponent  implements OnInit {
         console.error('Error al cargar historial del día:', err);
       }
     });
+  }
+
+  // Método auxiliar para asignar estilos CSS condicionales a los estatus
+  getEstatusClass(estatus: string): string {
+    if (!estatus) return 'status-registrado';
+    
+    switch (estatus.toLowerCase()) {
+      case 'entregado':
+        return 'status-entregado';
+      case 'en ruta':
+      case 'en_ruta':
+        return 'status-ruta';
+      case 'cancelado':
+        return 'status-cancelado';
+      default:
+        return 'status-registrado'; // Para "Registrado" o cualquier otro
+    }
   }
 
   actualizarLabel() {

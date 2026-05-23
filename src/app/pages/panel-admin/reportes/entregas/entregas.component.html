@@ -128,7 +128,94 @@
   <div class="section-title">Resultados del Periodo</div>
 
   <ion-accordion-group [multiple]="true">
-    <ion-accordion [value]="emp.id_usuario" *ngFor="let emp of reportAgrupado" class="custom-accordion">
-      </ion-accordion>
+    <ion-accordion [value]="rep.repartidor" *ngFor="let rep of reportAgrupado" class="custom-accordion">
+      
+      <ion-item slot="header" lines="none">
+        <ion-avatar slot="start">
+          <div class="avatar-text" [ngClass]="{'unassigned-avatar': rep.repartidor === 'Sin Asignar'}">
+            {{ rep.repartidor === 'Sin Asignar' ? '?' : rep.repartidor.toString().substring(0, 2).toUpperCase() }}
+          </div>
+        </ion-avatar>
+        <ion-label>
+          <h2>{{ rep.repartidor }}</h2>
+          <p>
+            Total del periodo: 
+            <span class="delivery-count-tag">{{ rep.total_entregas }} {{ rep.total_entregas === 1 ? 'entrega' : 'entregas' }}</span>
+          </p>
+        </ion-label>
+      </ion-item>
+
+      <div slot="content" class="accordion-detail-container">
+        <div class="delivery-row" *ngFor="let entrega of rep.lista_entregas">
+          
+          <div class="date-badge-box">
+            <span class="num-day">{{ entrega.fecha | date:'dd' }}</span>
+            <span class="text-month">{{ entrega.fecha | date:'MMM' | uppercase }}</span>
+            <span class="folio-tag">Folio: {{ entrega.folio }}</span>
+          </div>
+          
+          <div class="hours-summary-box delivery-clean-list">
+          
+          <div class="data-row-item">
+            <ion-icon name="location" color="primary"></ion-icon>
+            <div class="data-content">
+              <span class="main-text"><strong>{{ entrega.colonia }}</strong></span>
+            </div>
+          </div>
+          
+          <div class="data-row-item">
+            <ion-icon name="person-outline" color="medium"></ion-icon>
+            <div class="data-content">
+              <span class="label-text">Recibe:</span>
+              <span class="value-text">{{ entrega.cliente }}</span>
+            </div>
+          </div>
+
+          <div class="data-row-item" *ngIf="entrega.vehiculo !== 'Pendiente'">
+            <ion-icon name="car-outline" color="medium"></ion-icon>
+            <div class="data-content">
+              <span class="label-text">Vehículo:</span>
+              <span class="value-text">{{ entrega.vehiculo }}</span>
+            </div>
+          </div>
+
+          <div class="data-row-item" *ngIf="entrega.total !== 'N/A'">
+            <ion-icon name="time-outline" color="warning"></ion-icon>
+            <div class="data-content">
+              <span class="label-text">Tiempo total:</span>
+              <span class="value-text font-bold">{{ entrega.total }}</span>
+            </div>
+          </div>
+
+          <div class="data-row-item no-border" *ngIf="entrega.espera !== 'N/A' || entrega.viaje !== 'N/A'">
+            <div class="delivery-timings-container">
+              <div class="timing-badge">
+                <span class="label">Espera:</span>
+                <span class="value">{{ entrega.espera }}</span>
+              </div>
+              <div class="timing-badge">
+                <span class="label">Viaje:</span>
+                <span class="value">{{ entrega.viaje }}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+          
+          <div class="status-badge-box">
+            <span class="compact-status-tag" [ngClass]="getEstatusClass(entrega.estatusText)">
+              {{ entrega.estatusText }}
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+    </ion-accordion>
   </ion-accordion-group>
+
+  <div class="no-results-container" *ngIf="reportAgrupado.length === 0">
+    <ion-icon name="document-text-outline"></ion-icon>
+    <p>No se encontraron entregas con los filtros seleccionados.</p>
+  </div>
 </ion-content>
