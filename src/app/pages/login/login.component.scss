@@ -54,3 +54,32 @@
   letter-spacing: 1px;
 }
 
+.brand-section {
+  padding: 25px 0 15px 0;
+  text-align: center;
+
+  .brand-title {
+    font-size: 1.7rem;          // Tamaño ideal para que resalte sin romper renglón
+    font-weight: 800;           // Negrita fuerte para identidad de marca
+    letter-spacing: 1px;        // Espaciado sutil para que sea fácil de leer
+    color: #0f172a;             // Un tono casi negro muy elegante (Slate 900)
+    margin: 0;
+    text-transform: none;       // Mantiene las mayúsculas y minúsculas naturales "ControlFácil"
+  }
+
+  .brand-subtitle {
+    font-size: 0.7rem;          // Texto secundario pequeño
+    letter-spacing: 1.5px;      // Letras extendidas tipo tracking moderno
+    color: var(--ion-color-medium);
+    margin: 6px 0 0 0;
+    font-weight: 600;
+  }
+
+  .brand-divider {
+    width: 35px;                // Reducimos un poco el ancho para que sea proporcional al texto
+    height: 3px;
+    background: var(--ion-color-primary); // Tu azul característico
+    margin: 12px auto 0;
+    border-radius: 10px;
+  }
+}
