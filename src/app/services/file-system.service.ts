@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { Directory, Filesystem, WriteFileResult, Encoding } from '@capacitor/filesystem';
 import { environment } from '@env/environment';
 import { ToastService } from '@services/toast.service';
+import { FileOpener } from '@capawesome-team/capacitor-file-opener'; // 👈 Movemos la importación aquí
+import { Capacitor } from '@capacitor/core';
 
 @Injectable({
   providedIn: 'root'
@@ -82,6 +84,65 @@ export class FileSystemService {
     await Filesystem.deleteFile({
       path: `${this.prefijo}/${path}`,
       directory: this.directory
+    });
+  }
+
+  /**
+   * NUEVO MÉTODO CENTRALIZADO: Guarda un Blob (PDF, Excel, etc.) 
+   * y lo descarga en Web o lo abre nativamente en Celular.
+   */
+  async guardarYAbrirBlob(blob: Blob, nombreArchivo: string, mimeType: string = 'application/pdf'): Promise<void> {
+    
+    // 🌐 CASO WEB: Descarga tradicional invisible
+    if (!Capacitor.isNativePlatform()) {
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = nombreArchivo;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      return;
+    }
+
+    // 📱 CASO NATIVO: Guardado en aragobel_prod y apertura instantánea
+    try {
+      this.toast.show('Generando y abriendo archivo...', 'success');
+
+      // 1. Convertimos el Blob a Base64 usando el helper privado de abajo
+      const base64Data = await this.convertBlobToBase64(blob);
+
+      // 2. Escribimos el archivo usando el método existente de la clase
+      const resultado = await this.writeFile(nombreArchivo, base64Data);
+
+      if (resultado && resultado.uri) {
+        // 3. Abrimos el archivo usando su URI nativa
+        await FileOpener.openFile({
+          path: resultado.uri,
+          mimeType: mimeType
+        });
+      } else {
+        this.toast.show('No se pudo guardar el archivo en el dispositivo.', 'danger');
+      }
+    } catch (error) {
+      console.error('Error en la gestión nativa del archivo:', error);
+      this.toast.show('No se pudo abrir el archivo en este dispositivo.', 'danger');
+    }
+  }
+
+  /**
+   * Helper privado para transformar el Binario puro a Base64 nativo
+   */
+  private convertBlobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        const base64String = (reader.result as string).split(',')[1];
+        resolve(base64String);
+      };
+      reader.readAsDataURL(blob);
     });
   }
 }

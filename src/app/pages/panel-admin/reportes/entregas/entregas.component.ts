@@ -6,6 +6,7 @@ import { PreferencesService } from '@services/preference.service';
 import { EntregaService } from '@services/entrega.service';
 import { UsuarioService } from "@services/usuario.service";
 import { ColoniaService } from "@services/colonia.service";
+import { FileSystemService } from "@services/file-system.service";
 
 @Component({
   selector: 'app-entregas',
@@ -36,7 +37,8 @@ export class EntregasComponent  implements OnInit {
     private _preferencesService: PreferencesService,
     private _entregaService: EntregaService,
     private _usuarioService: UsuarioService,
-    private _coloniaService: ColoniaService
+    private _coloniaService: ColoniaService,
+    private _fileSystemService: FileSystemService
   ) {
 
   }
@@ -116,24 +118,12 @@ export class EntregasComponent  implements OnInit {
     }
 
     const datos = await this.obtenerPayloadFiltros();
+    const nombreArchivo = `Reporte_Entregas_${this.filtros.inicio}_al_${this.filtros.fin}.pdf`;
 
     // Invocamos el método del servicio que retornará el binario del PDF
     this._entregaService.obtenerPdfReporte(datos).subscribe({
-      next: (blob: Blob) => {
-        // Creamos la URL del archivo binario recibido
-        const blobUrl = window.URL.createObjectURL(blob);
-        
-        // Creamos un disparador de descarga invisible en el navegador
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = `Reporte_Entregas_${this.filtros.inicio}_al_${this.filtros.fin}.pdf`;
-        
-        document.body.appendChild(link);
-        link.click();
-        
-        // Limpieza del árbol DOM y liberación de memoria intermedia
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl);
+      next: async (blob: Blob) => {
+        await this._fileSystemService.guardarYAbrirBlob(blob, nombreArchivo, 'application/pdf');
       },
       error: (err) => {
         this.toastService.show('Ocurrió un error al generar el archivo en el servidor.', 'danger');

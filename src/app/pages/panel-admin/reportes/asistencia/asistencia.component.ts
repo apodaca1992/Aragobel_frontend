@@ -5,6 +5,7 @@ import { ToastService } from "@services/toast.service";
 import { PreferencesService } from '@services/preference.service';
 import { AsistenciaService } from '@services/asistencia.service';
 import { UsuarioService } from "@services/usuario.service";
+import { FileSystemService } from "@services/file-system.service"; // 👈 Tu servicio inyectado
 
 @Component({
   selector: 'app-asistencia',
@@ -33,7 +34,8 @@ export class AsistenciaComponent  implements OnInit {
     private toastService: ToastService,
     private _preferencesService: PreferencesService,
     private _asistenciaService: AsistenciaService,
-    private _usuarioService: UsuarioService
+    private _usuarioService: UsuarioService,
+    private _fileSystemService: FileSystemService
   ) {
 
   }
@@ -94,29 +96,33 @@ export class AsistenciaComponent  implements OnInit {
     }
 
     const datos = await this.obtenerPayloadFiltros();
+    const nombreArchivo = `Reporte_Asistencia_${this.filtros.inicio}_al_${this.filtros.fin}.pdf`;
 
     // Invocamos el método del servicio que retornará el binario del PDF
     this._asistenciaService.obtenerPdfReporte(datos).subscribe({
-      next: (blob: Blob) => {
-        // Creamos la URL del archivo binario recibido
-        const blobUrl = window.URL.createObjectURL(blob);
-        
-        // Creamos un disparador de descarga invisible en el navegador
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = `Reporte_Asistencia_${this.filtros.inicio}_al_${this.filtros.fin}.pdf`;
-        
-        document.body.appendChild(link);
-        link.click();
-        
-        // Limpieza del árbol DOM y liberación de memoria intermedia
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl);
+      next: async (blob: Blob) => {
+        await this._fileSystemService.guardarYAbrirBlob(blob, nombreArchivo, 'application/pdf');
       },
       error: (err) => {
         this.toastService.show('Ocurrió un error al generar el archivo en el servidor.', 'danger');
         console.error('Error al descargar el PDF:', err);
       }
+    });
+  }
+
+  /**
+   * Helper asíncrono para transformar el Binario (Blob) a un string Base64 puro
+   */
+  private convertBlobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        // Obtenemos la url del stream y eliminamos el prefijo 'data:*/*;base64,' sobrante
+        const base64String = (reader.result as string).split(',')[1];
+        resolve(base64String);
+      };
+      reader.readAsDataURL(blob);
     });
   }
 

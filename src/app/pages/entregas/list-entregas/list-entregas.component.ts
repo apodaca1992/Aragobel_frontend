@@ -53,16 +53,31 @@ export class ListEntregasComponent  implements OnInit {
       this.esCajero = false;
       this.segmentoActual = 'disponibles';
     }
-    this.cargarDatos();
+    //this.cargarDatos();
   }
 
   // Se dispara cada vez que entras a la vista, incluso al regresar del formulario
   async ionViewWillEnter() {
     console.log('La vista va a entrar, refrescando datos...');
+    // Pequeño seguro: si por velocidad de Ionic el ngOnInit no ha terminado, 
+    // re-intentamos leer la tienda para que el filtro nunca falle
+    if (!this.idTiendaUsuarioActual) {
+      const userStr = await this._preferencesService.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        this.idTiendaUsuarioActual = user.id_tienda;
+      }
+    }
+
     this.cargarDatos();
   }
 
   async cargarDatos() {
+    // Si aún no tenemos el id de la tienda, evitamos hacer un disparo erróneo a la API
+    if (!this.idTiendaUsuarioActual) {
+      console.warn('Esperando id_tienda válido...');
+      return;
+    }
     // Aquí llamarías a tu servicio: this.entregaService.getEntregas().subscribe(...)
     // Ejemplo de datos basado en tu tabla SQL:
     const filtros = {
