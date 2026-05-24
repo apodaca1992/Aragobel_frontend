@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Geolocation, PositionOptions } from '@capacitor/geolocation';
 import { ToastService } from '@services/toast.service';
+import { Capacitor } from '@capacitor/core'; // 👈 1. Importamos Capacitor para detectar la plataforma
 
 @Injectable({
   providedIn: 'root'
@@ -38,6 +39,13 @@ export class GeolocationService {
   }
 
   private async requestPermissions(): Promise<boolean> {
+    // 🛡️ 2. Si estamos en entorno WEB, saltamos la petición de permisos nativos.
+    // Los navegadores web manejan el permiso automáticamente al ejecutar 'getCurrentPosition'.
+    if (!Capacitor.isNativePlatform()) {
+      return true; 
+    }
+
+    // 📱 Lógica nativa (Solo se ejecuta en celulares Android / iOS)
     const status = await Geolocation.checkPermissions();
     
     if (status.location === 'denied') {
@@ -56,9 +64,11 @@ export class GeolocationService {
   private handleError(error: any) {
     let msg = 'Error al obtener la ubicación';
     
-    if (error.code === 1) msg = 'Permiso de ubicación denegado';
+    // En la web, el error a veces viene estructurado diferente o como string.
+    // Aseguramos capturar el código numérico o el mensaje de tiempo de espera.
+    if (error.code === 1 || error.message?.includes('denied')) msg = 'Permiso de ubicación denegado';
     if (error.code === 2) msg = 'Ubicación no disponible (¿GPS apagado?)';
-    if (error.code === 3) msg = 'Tiempo de espera agotado';
+    if (error.code === 3 || error.message?.includes('Timeout')) msg = 'Tiempo de espera agotado';
 
     console.error('Geolocation Error:', error);
     this.toast.show(msg, 'danger');
