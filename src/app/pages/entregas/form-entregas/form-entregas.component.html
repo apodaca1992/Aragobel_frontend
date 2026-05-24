@@ -10,7 +10,7 @@
         <div class="input-group">
           <ion-item lines="none" class="custom-item">
             <ion-icon slot="start" name="document-text-outline" color="primary"></ion-icon>
-            <ion-input label="Folio" labelPlacement="floating" [(ngModel)]="entrega.folio" placeholder=""></ion-input>
+            <ion-input type="number" label="Folio" labelPlacement="floating" [(ngModel)]="entrega.folio" placeholder=""></ion-input>
           </ion-item>
 
           <ion-item lines="none" class="custom-item">
@@ -20,10 +20,14 @@
 
           <ion-item lines="none" class="custom-item" id="open-colonia-modal" button="true" detail="false">
             <ion-icon slot="start" name="map-outline" color="primary"></ion-icon>
+            
             <div class="input-floating-mock">
-              <span class="mock-label" [class.has-value]="entrega.colonia">Colonia</span>
-              <span class="mock-value">{{ entrega.colonia || 'Selecciona una colonia...' }}</span>
+              <span class="mock-label">Colonia</span>
+              <span [class.is-placeholder]="!entrega.colonia" class="mock-value">
+                {{ entrega.colonia || 'Selecciona una colonia...' }}
+              </span>
             </div>
+            
             <ion-icon name="chevron-forward-outline" slot="end" color="medium" style="font-size: 14px; margin: 0;"></ion-icon>
           </ion-item>
         </div>        

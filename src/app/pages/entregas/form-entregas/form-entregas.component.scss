@@ -1,95 +1,29 @@
-.form-card {
-  border-radius: 20px;
-  width: 100%;
-  max-width: 500px;
-  margin: auto;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-}
-
-.section-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--ion-color-step-600);
-  letter-spacing: 1px;
-  margin: 15px 0 10px 5px;
-}
-
-.custom-item {
-  --background: #f8f9fa;
-  --border-radius: 12px;
-  margin-bottom: 12px;
-  --padding-start: 15px;
-
-  ion-icon {
-    font-size: 1.3rem;
-    margin-right: 10px;
-  }
-}
-
-.main-button {
-  height: 50px;
-  font-weight: 700;
-  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
-}
-
-.flex-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100%;
-}
-
-.form-card {
-  width: 100%;
-  max-width: 500px;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-
-// Simulación del Input Floating nativo de Ionic para el botón modal
+// Simulación estructural exacta del Input Floating nativo de Ionic 7+
 .input-floating-mock {
   display: flex;
   flex-direction: column;
   justify-content: center;
   flex: 1;
-  height: 48px;
-  padding-top: 10px;
-  position: relative;
+  min-height: 52px; // Alineado a la altura del ion-input nativo
+  padding: 4px 0;
 
   .mock-label {
-    position: absolute;
-    left: 0;
-    top: 14px;
-    font-size: 15px;
-    color: #a0aec0;
-    transition: all 0.2s ease-out;
+    font-size: 14px;            // Ajuste sutil de tamaño para que encaje perfecto
+    color: #4d4d4d;             // 🎨 Cambiado a un gris mucho más oscuro/intenso
+    font-weight: 600;           // 💪 Se añade el grosor (negrita) igual al nativo
+    transform: translateY(2px); 
     pointer-events: none;
-
-    // Si ya tiene un valor seleccionado, flota hacia arriba igual que el ion-input nativo
-    &.has-value {
-      top: 2px;
-      font-size: 11.5px;
-      color: var(--ion-color-primary);
-      font-weight: 600;
-    }
   }
 
   .mock-value {
     font-size: 15px;
-    color: #1a1c20;
-    margin-top: 4px;
-  }
-}
-
-// Estilos limpios para el cuadro del buscador
-.custom-search-modal {
-  --background: #ffffff;
-  
-  ion-searchbar {
-    --background: #ffffff;
-    --box-shadow: none;
-    --border-radius: 10px;
+    color: #1a1c20;             // Color del texto de la colonia elegida
+    margin-top: 1px;
+    
+    // Si todavía es el placeholder, le damos el tono gris tenue correcto de Ionic
+    &.is-placeholder {
+      color: #a0aec0;
+      font-size: 14.5px;
+    }
   }
 }
