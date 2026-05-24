@@ -93,7 +93,7 @@ export class FormEntregasComponent  implements OnInit {
       error: (err) => {
         //this.cargandoColonias = false;
         console.error('Error al cargar colonias:', err);
-        this._toastService.show('No se pudo cargar el catálogo de colonias', 'danger', 'alert-circle-outline');
+        //this._toastService.show('No se pudo cargar el catálogo de colonias', 'danger', 'alert-circle-outline');
       }
     });
   }
@@ -143,7 +143,7 @@ export class FormEntregasComponent  implements OnInit {
         this.router.navigate(['/entregas'], { replaceUrl: true }); // Regresamos a la lista
       },
       error: (err) => {
-        // --- MANEJO DE ERRORES DINÁMICO ---
+        /*// --- MANEJO DE ERRORES DINÁMICO ---
         let mensajeError = 'Error al conectar con el servidor';
 
         // Si el servidor mandó un error 400 o similar con un mensaje
@@ -154,7 +154,7 @@ export class FormEntregasComponent  implements OnInit {
         }
 
         // Mostramos el mensaje real que viene del Backend
-        this._toastService.show(mensajeError, 'danger', 'alert-circle-outline');
+        this._toastService.show(mensajeError, 'danger', 'alert-circle-outline');*/
         console.error('Error detallado:', err);
       }
     });

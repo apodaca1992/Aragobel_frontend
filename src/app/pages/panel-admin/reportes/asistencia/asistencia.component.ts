@@ -104,7 +104,7 @@ export class AsistenciaComponent  implements OnInit {
         await this._fileSystemService.guardarYAbrirBlob(blob, nombreArchivo, 'application/pdf');
       },
       error: (err) => {
-        this.toastService.show('Ocurrió un error al generar el archivo en el servidor.', 'danger');
+        //this.toastService.show('Ocurrió un error al generar el archivo en el servidor.', 'danger');
         console.error('Error al descargar el PDF:', err);
       }
     });

@@ -415,16 +415,6 @@ export class FormChecadorComponent  implements OnInit {
       error: (err) => {
         console.error('Error al registrar asistencia:', err);
         this.bloqueoBoton = false; // Desbloqueamos al terminar
-        if (err.status === 400) {
-          // Aquí es donde capturas el "Ya existe un registro"
-          this._toastService.show(
-            err.error.message, 
-            'warning', // Color naranja para advertir
-            'alert-circle-outline'
-          ); 
-        }else{         
-          this._toastService.show('Error al conectar con el servidor', 'danger');
-        }
       }
     });
     
