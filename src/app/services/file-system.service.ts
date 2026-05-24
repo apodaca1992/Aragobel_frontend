@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Directory, Filesystem, WriteFileResult, Encoding } from '@capacitor/filesystem';
+import { Directory, Filesystem, WriteFileResult, Encoding, WriteFileOptions } from '@capacitor/filesystem';
 import { environment } from '@env/environment';
 import { ToastService } from '@services/toast.service';
-import { FileOpener } from '@capawesome-team/capacitor-file-opener'; // 👈 Movemos la importación aquí
+import { FileOpener } from '@capawesome-team/capacitor-file-opener';
 import { Capacitor } from '@capacitor/core';
 
 @Injectable({
@@ -10,54 +10,44 @@ import { Capacitor } from '@capacitor/core';
 })
 export class FileSystemService {
   
-  private prefijo: string = environment.prefijoLocalStorage;
-  private directory: Directory = Directory.Documents; 
+  private readonly prefijo: string = environment.prefijoLocalStorage;
+  private readonly directory: Directory = Directory.Cache; 
 
   constructor(private toast: ToastService) {
-    // No bloqueamos el constructor, pero inicializamos la carpeta base
-    this.initStorage();
-  }
-
-  private async initStorage() {
-    try {
-      const status = await Filesystem.checkPermissions();
-      if (status.publicStorage !== 'granted') {
-        await Filesystem.requestPermissions();
-      }
-      await this.mkdir(''); // Crea la carpeta raíz de la app
-    } catch (e) {
-      console.error('Error inicializando FileSystem', e);
-    }
+    // Inicialización limpia y silenciosa sin bloquear hilos ni pedir permisos innecesarios
+    this.mkdir('').catch(err => console.error('Error al verificar directorio raíz:', err));
   }
 
   /**
-   * Escribe un archivo. 
-   * Tip Senior: En Capacitor, para archivos binarios (fotos), 
-   * es mejor manejar Base64 para evitar problemas de encoding.
+   * Escribe un archivo asegurando preventivamente la existencia de su estructura.
    */
   async writeFile(path: string, data: string, esBinario: boolean = false): Promise<WriteFileResult | null> {
     try {
-      // Configuramos las opciones dinámicamente
-      const opciones: any = {
+      // Reutiliza de forma limpia el método de la clase
+      await this.mkdir('');
+
+      const opciones: WriteFileOptions = {
         path: `${this.prefijo}/${path}`,
         data,
         directory: this.directory,
       };
 
-      // SI NO es binario (es texto plano), le dejamos el UTF8.
-      // SI SÍ es binario (nuestros PDFs en Base64), NO le ponemos encoding.
       if (!esBinario) {
         opciones.encoding = Encoding.UTF8;
       }
 
       return await Filesystem.writeFile(opciones);
-    } catch (e) {
-      this.toast.show('Error al escribir archivo', 'danger');
+    } catch (e: any) {
+      console.error('Error crítico en writeFile:', e);
+      this.toast.show(`Error de escritura: ${e?.message || 'Formato inválido'}`, 'danger');
       return null;
     }
   }
 
-  async readFile(path: string) {    
+  /**
+   * Lee el contenido de un archivo de texto.
+   */
+  async readFile(path: string): Promise<string | Blob | null> {    
     try {
       const result = await Filesystem.readFile({      
         path: `${this.prefijo}/${path}`,
@@ -71,7 +61,10 @@ export class FileSystemService {
     }
   }
 
-  async mkdir(path: string) {
+  /**
+   * Crea un directorio de forma segura controlando excepciones nativas conocidas.
+   */
+  async mkdir(path: string): Promise<void> {
     try {
       const folderPath = path ? `${this.prefijo}/${path}` : this.prefijo;
       await Filesystem.mkdir({        
@@ -79,29 +72,35 @@ export class FileSystemService {
         directory: this.directory,
         recursive: true,
       });
-    } catch (error) {
-      // Si el error es que ya existe, no hacemos nada
-      console.warn('El directorio ya podría existir');
+    } catch (error: any) {
+      // Si el sistema operativo responde que ya existe, avanzamos con confianza
+      if (error?.message?.includes('exists') || error?.code === 'DIR_EXISTS') {
+        return;
+      }
+      console.warn('Nota de infraestructura en directorio:', error);
     }
   }
 
   /**
-   * Útil para limpiar archivos temporales o caché
+   * Elimina un archivo específico (Útil para control de caché)
    */
-  async deleteFile(path: string) {
-    await Filesystem.deleteFile({
-      path: `${this.prefijo}/${path}`,
-      directory: this.directory
-    });
+  async deleteFile(path: string): Promise<void> {
+    try {
+      await Filesystem.deleteFile({
+        path: `${this.prefijo}/${path}`,
+        directory: this.directory
+      });
+    } catch (e) {
+      // Silencioso si el archivo a borrar no existía previamente
+      console.log(`No se requería limpieza previa para: ${path}`);
+    }
   }
 
   /**
-   * NUEVO MÉTODO CENTRALIZADO: Guarda un Blob (PDF, Excel, etc.) 
-   * y lo descarga en Web o lo abre nativamente en Celular.
+   * Guarda un Blob y lo expone al sistema nativo o al navegador de manera óptima.
    */
   async guardarYAbrirBlob(blob: Blob, nombreArchivo: string, mimeType: string = 'application/pdf'): Promise<void> {
     
-    // 🌐 CASO WEB: Descarga tradicional invisible
     if (!Capacitor.isNativePlatform()) {
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -114,24 +113,27 @@ export class FileSystemService {
       return;
     }
 
-    // 📱 CASO NATIVO: Guardado en aragobel_prod y apertura instantánea
     try {
       this.toast.show('Generando y abriendo archivo...', 'success');
 
-      // 1. Convertimos el Blob a Base64 usando el helper privado de abajo
+      // 🧼 TIP SENIOR: Limpieza preventiva de caché. 
+      // Si existía un reporte viejo con el mismo nombre, lo borramos para liberar almacenamiento.
+      await this.deleteFile(nombreArchivo);
+
       const base64Data = await this.convertBlobToBase64(blob);
 
-      // 2. Escribimos el archivo usando el método existente de la clase
+      if (!base64Data) {
+        this.toast.show('Error al procesar la conversión del reporte.', 'danger');
+        return;
+      }
+
       const resultado = await this.writeFile(nombreArchivo, base64Data, true);
 
-      if (resultado && resultado.uri) {
-        // 3. Abrimos el archivo usando su URI nativa
+      if (resultado?.uri) {
         await FileOpener.openFile({
           path: resultado.uri,
           mimeType: mimeType
         });
-      } else {
-        this.toast.show('No se pudo guardar el archivo en el dispositivo.', 'danger');
       }
     } catch (error) {
       console.error('Error en la gestión nativa del archivo:', error);
@@ -140,15 +142,17 @@ export class FileSystemService {
   }
 
   /**
-   * Helper privado para transformar el Binario puro a Base64 nativo
+   * Transforma de manera quirúrgica un Blob binario a cadena Base64 pura.
    */
   private convertBlobToBase64(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onerror = reject;
       reader.onload = () => {
-        const base64String = (reader.result as string).split(',')[1];
-        resolve(base64String);
+        const resultString = reader.result as string;
+        const commaIndex = resultString.indexOf(',');
+        
+        resolve(commaIndex !== -1 ? resultString.substring(commaIndex + 1) : resultString);
       };
       reader.readAsDataURL(blob);
     });
