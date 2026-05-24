@@ -1,43 +1,46 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { PreferencesService } from '@services/preference.service';
+import { AuthService } from '@services/auth.service';
 
 export const authGuard: CanActivateFn = async (route, state) => {
   const router = inject(Router);
   const preferenceService = inject(PreferencesService);
+  const authService = inject(AuthService);
 
-  // 1. Intentamos obtener el token guardado
+  // 1. Solo necesitamos el token para validar la caducidad
   const token = await preferenceService.getItem('token');
 
   if (token && token !== null) {
     try {
-      // 2. Decodificamos el payload del JWT (la parte central del token)
+      // 2. Validamos la expiración del JWT (15 horas)
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const payload = JSON.parse(window.atob(base64));
 
-      // 3. Obtenemos la expiración del token ('exp' viene en segundos)
       const expirationTimeInSeconds = payload.exp;
       const currentTimeInSeconds = Math.floor(Date.now() / 1000);
 
-      // 4. Validamos si el token aún no ha expirado
       if (currentTimeInSeconds < expirationTimeInSeconds) {
-        // ¡El token es válido! Permitimos el acceso a la ruta 🎉
-        return true;
+        
+        // 3. Si el usuario abre la app desde la raíz ('') o intenta ir al login estando logueado:
+        if (state.url === '/' || state.url.includes('/login')) {
+          // El servicio se encarga de revisar la tienda, roles, permisos y mandarlo a donde debe 🚀
+          await authService.redireccionarSegunPerfil();
+          return false; // Cancelamos la ruta raíz o login original
+        }
+        
+        return true; // Permitimos continuar si ya va a una ruta interna válida (ej: /checador)
       }
       
-      // Si el tiempo actual superó al de expiración, el token ya no sirve.
-      // Limpiamos el almacenamiento para no dejar basura.
+      // Si el token expiró, limpiamos el almacenamiento
       await preferenceService.removeItem('token');
-
     } catch (error) {
-      // Si el token está corrupto, alterado o da error al decodificar,
-      // lo borramos por seguridad.
       await preferenceService.removeItem('token');
     }
   }
 
-  // 5. Si no hay token o ya expiró, redirigimos al login y bloqueamos el paso
+  // 4. Si no hay token o expiró, va directo al login
   router.navigateByUrl('/login', { replaceUrl: true });
   return false;
 };

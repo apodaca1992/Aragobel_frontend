@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { PreferencesService } from '@services/preference.service';
 import { MenuController } from '@ionic/angular';
 import { TiendaService } from '@services/tienda.service';
+import { AuthService } from '@services/auth.service';
 
 
 @Component({
@@ -18,7 +19,8 @@ export class SeleccionarTiendaComponent implements OnInit {
 		private _preferencesService: PreferencesService,
     	private _router: Router,
   		private menu: MenuController,
-		private _tiendaService  : TiendaService
+		private _tiendaService  : TiendaService,
+		private _authService  : AuthService
 	) {}
 
 	async ngOnInit() {
@@ -36,13 +38,8 @@ export class SeleccionarTiendaComponent implements OnInit {
 
                     // 2. Recuperamos los datos de sesión actuales
                     const userStr = await this._preferencesService.getItem('user');
-                    const permisosStr = await this._preferencesService.getItem('permisos');
-                    const empresaStr = await this._preferencesService.getItem('empresa');
 
                     const user = JSON.parse(userStr ?? '{}');
-                    const permisos = JSON.parse(permisosStr ?? '{}');
-                    const empresaData = JSON.parse(empresaStr ?? '{}');
-                    const modulosEmpresa = empresaData.modulos ?? { checador: true, entregas: true };
 
                     // 3. Armamos el objeto usuario con la tienda y sus horarios
                     user.id_tienda = tienda.id_tienda;
@@ -61,7 +58,7 @@ export class SeleccionarTiendaComponent implements OnInit {
                     await this.menu.enable(true, 'MenuPrincipal');
 
                     // 5. Redireccionamos
-                    this.redireccionarUsuario(user.roles || [], permisos, modulosEmpresa);
+                    this._authService.redireccionarSegunPerfil();
                 }
             },
             error: (err) => {
@@ -69,28 +66,5 @@ export class SeleccionarTiendaComponent implements OnInit {
                 // Aquí podrías mostrar un toast de error si la red falla
             }
         });
-	}
-
-	private redireccionarUsuario(roles: string[], permisos: any, configEmpresa: any) {
-		// 1. Prioridad: ADMINISTRADOR
-		if (roles.includes('ADMINISTRADOR')) {
-		this._router.navigate(['/panel-admin']);
-		return;
-		}
-
-		// 2. Operación: Checador
-		if (configEmpresa.checador !== false && permisos['CHECADOR']) {
-		this._router.navigate(['/checador']);
-		return;
-		}
-
-		// 3. Operación: Mis Entregas
-		if (configEmpresa.entregas !== false && permisos['ENTREGAS']) {
-		this._router.navigate(['/entregas']);
-		return;
-		}
-
-		// 4. Comodín
-		this._router.navigate(['/perfil']);
-	}
+	}	
 }

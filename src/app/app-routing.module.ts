@@ -5,8 +5,9 @@ import { authGuard } from './guards/auth.guard';
 const routes: Routes = [  
   {
     path: '',
-    redirectTo: 'login',
-    pathMatch: 'full'
+    pathMatch: 'full',
+    canActivate: [authGuard], // 👈 El guard decidirá si mandarlo a seleccionar-tienda o login
+    children: [] // Se deja vacío porque el guard redirige internamente
   },
   {
     path: 'login',
@@ -42,8 +43,10 @@ const routes: Routes = [
     loadChildren: () => import('./pages/panel-admin/panel-admin.module').then(m => m.PanelAdminPageModule),
     canActivate: [authGuard]
   },
-  { path: '**',
-    redirectTo: 'login'
+  { 
+    path: '**',
+    canActivate: [authGuard], // 👈 Protege también rutas inexistentes
+    children: []
   }
 ];
 

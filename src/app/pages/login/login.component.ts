@@ -92,12 +92,9 @@ export class LoginComponent extends FormClass implements OnInit {
 									tolerancia: config.tolerancia_minutos,
 									timezone: config.time_zone
 								};
-								await this._preferencesService.setItem('user', JSON.stringify(user));
+								await this._preferencesService.setItem('user', JSON.stringify(user));						
 								
-								const roles = res.user.roles || [];
-								const permisos = res.permisos || {};
-								const configEmpresa = res.empresa || {};
-								this.redireccionarUsuario(roles, permisos, configEmpresa.modulos);
+								this._authService.redireccionarSegunPerfil();
 							}							
 						},
 						error: (err) => {							
@@ -110,30 +107,6 @@ export class LoginComponent extends FormClass implements OnInit {
 				}
 			}
 		});	 
-	}
-
-	private redireccionarUsuario(roles: string[], permisos: any, configEmpresa: any) {	
-		// 1. Prioridad: ADMINISTRADOR
-		if (roles.includes('ADMINISTRADOR')) {
-			this._router.navigate(['/panel-admin']);
-			return;
-		}
-
-		// 2. Operación: Checador (Si la empresa lo tiene activo Y el usuario tiene permiso)
-		// Nota: Usamos !== false por si el campo es undefined (asumimos true)
-		if (configEmpresa.checador !== false && permisos['CHECADOR']) {
-			this._router.navigate(['/checador']);
-			return;
-		}
-
-		// 3. Operación: Mis Entregas (Si el checador está apagado pero entregas no)
-		if (configEmpresa.entregas !== false && permisos['ENTREGAS']) {
-			this._router.navigate(['/entregas']);
-			return;
-		}
-
-		// 4. Comodín: Si no tiene nada de lo anterior, mándalo al Perfil o Home
-		this._router.navigate(['/perfil']); 
 	}
 
 	private async saveSession(res: any) {
