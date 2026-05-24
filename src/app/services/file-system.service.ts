@@ -35,14 +35,22 @@ export class FileSystemService {
    * Tip Senior: En Capacitor, para archivos binarios (fotos), 
    * es mejor manejar Base64 para evitar problemas de encoding.
    */
-  async writeFile(path: string, data: string): Promise<WriteFileResult | null> {
+  async writeFile(path: string, data: string, esBinario: boolean = false): Promise<WriteFileResult | null> {
     try {
-      return await Filesystem.writeFile({
+      // Configuramos las opciones dinámicamente
+      const opciones: any = {
         path: `${this.prefijo}/${path}`,
         data,
         directory: this.directory,
-        encoding: Encoding.UTF8, // Usar UTF8 para texto/base64
-      });
+      };
+
+      // SI NO es binario (es texto plano), le dejamos el UTF8.
+      // SI SÍ es binario (nuestros PDFs en Base64), NO le ponemos encoding.
+      if (!esBinario) {
+        opciones.encoding = Encoding.UTF8;
+      }
+
+      return await Filesystem.writeFile(opciones);
     } catch (e) {
       this.toast.show('Error al escribir archivo', 'danger');
       return null;
@@ -114,7 +122,7 @@ export class FileSystemService {
       const base64Data = await this.convertBlobToBase64(blob);
 
       // 2. Escribimos el archivo usando el método existente de la clase
-      const resultado = await this.writeFile(nombreArchivo, base64Data);
+      const resultado = await this.writeFile(nombreArchivo, base64Data, true);
 
       if (resultado && resultado.uri) {
         // 3. Abrimos el archivo usando su URI nativa
