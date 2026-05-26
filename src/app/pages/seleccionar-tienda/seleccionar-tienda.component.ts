@@ -44,8 +44,36 @@ export class SeleccionarTiendaComponent implements OnInit {
                     // 3. Armamos el objeto usuario con la tienda y sus horarios
                     user.id_tienda = tienda.id_tienda;
 					user.nombre_tienda = tienda.nombre; 
-					user.jornada_efectiva = tienda.jornada_efectiva;
-					user.tiempo_comida_max = tienda.tiempo_comida_max;
+                    user.tipo_esquema = tienda.tipo_esquema || 'LIBRE';
+
+                    // 🕒 Condicionales estrictas de cada esquema
+                    if (user.tipo_esquema === 'FIJO') {
+                        // 🏢 Datos exclusivos para FIJO
+                        user.hora_entrada = tienda.hora_entrada;
+                        user.hora_salida_comer = tienda.hora_salida_comer;
+                        user.hora_regreso_comer = tienda.hora_regreso_comer;
+                        user.hora_salida = tienda.hora_salida;
+                        user.tolerancia_minutos = tienda.tolerancia_minutos;
+                        
+                        // Limpiamos los campos que pertenecen a LIBRE
+                        user.jornada_efectiva = undefined;
+                        user.tiempo_comida_max = undefined; 
+                    } else {
+                        // ⏳ Datos exclusivos para LIBRE
+                        user.jornada_efectiva = tienda.jornada_efectiva;
+                        user.tiempo_comida_max = tienda.tiempo_comida_max; // 🎯 Solo para libre
+                        
+                        // Limpiamos los campos que pertenecen a FIJO
+                        user.hora_entrada = undefined;
+                        user.hora_salida = undefined;
+                        user.hora_salida_comer = undefined;
+                        user.hora_regreso_comer = undefined;
+                        user.tolerancia_minutos = undefined;
+                    }
+
+
+
+
                     user.tienda_activa_config = {
                         apertura: config.hora_apertura,
                         cierre: config.hora_cierre,

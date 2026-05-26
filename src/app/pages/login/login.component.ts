@@ -84,8 +84,33 @@ export class LoginComponent extends FormClass implements OnInit {
 								const user = res.user;
 								user.id_tienda = tiendas[0].id_tienda;
 								user.nombre_tienda = tiendas[0].nombre;
-								user.jornada_efectiva = tiendas[0].jornada_efectiva;
-								user.tiempo_comida_max = tiendas[0].tiempo_comida_max;
+								user.tipo_esquema = tiendas[0].tipo_esquema || 'LIBRE';
+
+								// 🕒 Condicionales estrictas de cada esquema
+								if (user.tipo_esquema === 'FIJO') {
+									// 🏢 Datos exclusivos para FIJO
+									user.hora_entrada = tiendas[0].hora_entrada;
+									user.hora_salida_comer = tiendas[0].hora_salida_comer;
+									user.hora_regreso_comer = tiendas[0].hora_regreso_comer;
+									user.hora_salida = tiendas[0].hora_salida;
+									user.tolerancia_minutos = tiendas[0].tolerancia_minutos || 0;
+									
+									// Limpiamos los campos que pertenecen a LIBRE
+									user.jornada_efectiva = undefined;
+									user.tiempo_comida_max = undefined; 
+								} else {
+									// ⏳ Datos exclusivos para LIBRE
+									user.jornada_efectiva = tiendas[0].jornada_efectiva;
+									user.tiempo_comida_max = tiendas[0].tiempo_comida_max || 0; // 🎯 Solo para libre
+									
+									// Limpiamos los campos que pertenecen a FIJO
+									user.hora_entrada = undefined;
+									user.hora_salida = undefined;
+									user.hora_salida_comer = undefined;
+									user.hora_regreso_comer = undefined;
+									user.tolerancia_minutos = undefined;
+								}
+
 								user.tienda_activa_config = {
 									apertura: config.hora_apertura,
 									cierre: config.hora_cierre,

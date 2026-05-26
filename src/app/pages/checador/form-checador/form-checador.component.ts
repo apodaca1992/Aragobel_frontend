@@ -14,29 +14,35 @@ import { GeolocationService } from '@services/geolocation.service';
 export class FormChecadorComponent  implements OnInit {
   hoy: Date = new Date();
   horaActual: string = '...';
-  // Cambia tu variable hoy por esta lógica
   fechaLegible: string = '';
-  // 1. Declaras la variable al inicio de la clase
   bloqueoBoton: boolean = false;
 
   private timer: any;
   private offsetMs: number = 0;
-  cargandoHistorial: boolean = true; // Empieza en true
+  cargandoHistorial: boolean = true;
   
   // Objeto de registro
   registro: any = {
-    entrada: null, //new Date()
+    entrada: null,
     comida_inicio: null,
     comida_fin: null,
     salida: null
   };
 
-  // Añadimos esta para tener la zona horaria a la mano
   private timeZoneActiva: string = 'America/Mazatlan';
 
-  // NUEVAS VARIABLES PARA CÁLCULO
-  jornadaEf: number = 9.5;    // Valor por defecto
-  comidaMax: number = 1.5;    // Valor por defecto
+  // VARIABLES PARA CÁLCULO
+  tipoEsquema: 'FIJO' | 'LIBRE' = 'LIBRE';
+  jornadaEf: number = 9.5;    
+  comidaMax: number = 1.5;    
+
+  // Horarios exclusivos del esquema FIJO
+  horaEntradaFija: string = '';
+  horaSalidaFija: string = '';
+  horaSalidaComerFija: string = '';
+  horaRegresoComerFija: string = '';
+
+  // VARIABLES DE CONTROL DE VISTA
   salidaTentativa: string = '';
   horasCumplidas: string = '00:00';
   progresoJornada: number = 0;
@@ -52,49 +58,65 @@ export class FormChecadorComponent  implements OnInit {
     ) { }
 
   async ngOnInit() {
-    // 1. Cargamos la configuración de la zona horaria antes que nada
     await this.cargarConfiguracionTienda();
-
-    // Cargamos también la configuración del usuario (Jornada)
     await this.cargarConfiguracionUsuario();
-
-    // 1. Iniciamos el reloj de inmediato con la hora local
     this.iniciarReloj();
-
     this.sincronizarReloj();
-    this.cargarAsistenciasDia(); // <--- Paso 1
+    this.cargarAsistenciasDia(); 
   }
 
   async cargarConfiguracionUsuario() {
     const userStr = await this._preferencesService.getItem('user');
     if (userStr) {
       const user = JSON.parse(userStr);
-      // Extraemos los valores que mostraste en la captura
-      this.jornadaEf = parseFloat(user.jornada_efectiva) || 9.5;
-      this.comidaMax = parseFloat(user.tiempo_comida_max) || 1.5;
+      this.tipoEsquema = user.tipo_esquema || 'LIBRE';
+
+      if (this.tipoEsquema === 'FIJO') {
+        this.horaEntradaFija = user.hora_entrada; 
+        this.horaSalidaFija = user.hora_salida;   
+        this.horaSalidaComerFija = user.hora_salida_comer;
+        this.horaRegresoComerFija = user.hora_regreso_comer;
+
+        if (this.horaSalidaComerFija && this.horaRegresoComerFija) {
+          const [h1, m1] = this.horaSalidaComerFija.split(':').map(Number);
+          const [h2, m2] = this.horaRegresoComerFija.split(':').map(Number);
+          this.comidaMax = (h2 + m2/60) - (h1 + m1/60); 
+        } else {
+          this.comidaMax = 0; 
+        }
+
+        if (this.horaEntradaFija && this.horaSalidaFija) {
+          const [hEntrada, mEntrada] = this.horaEntradaFija.split(':').map(Number);
+          const [hSalida, mSalida] = this.horaSalidaFija.split(':').map(Number);
+          
+          const horasTotalesTurno = (hSalida + mSalida/60) - (hEntrada + mEntrada/60);
+          this.jornadaEf = horasTotalesTurno - this.comidaMax; 
+        } else {
+          this.jornadaEf = 9.5; 
+        }
+       
+      } else {
+        this.jornadaEf = parseFloat(user.jornada_efectiva) || 9.5;
+        this.comidaMax = parseFloat(user.tiempo_comida_max) || 1.5;
+      }
     }
   }
 
-  // NUEVO MÉTODO: Carga la zona horaria del objeto tienda_activa_config
   async cargarConfiguracionTienda() {
     const userStr = await this._preferencesService.getItem('user');
     if (userStr) {
       const user = JSON.parse(userStr);
-      // Extraemos del nuevo objeto que creamos en el login/selección
       this.timeZoneActiva = user.tienda_activa_config?.timezone || 'America/Mazatlan';
       console.log('Zona horaria activa:', this.timeZoneActiva);
     }
   }
 
   async cargarAsistenciasDia() {
-    this.cargandoHistorial = true; // Por si se llama manualmente después
-    // 1. Obtenemos el usuario para saber su ID o tienda si es necesario
+    this.cargandoHistorial = true; 
     const userStr = await this._preferencesService.getItem('user');
     if (!userStr) return;
     const user = JSON.parse(userStr);
 
-    // 2. Consultamos las asistencias del día actual
-    // Nota: El backend debería filtrar por la fecha de hoy
     const datos = {         
       id_tienda: user.id_tienda,
       id_usuario: user.id,
@@ -108,17 +130,16 @@ export class FormChecadorComponent  implements OnInit {
           console.log(res.data);
           this.mapearRegistros(res.data);
         }
-        this.cargandoHistorial = false; // Finaliza la carga
+        this.cargandoHistorial = false; 
       },
       error: (err) => {
-        this.cargandoHistorial = false; // Finaliza la carga
+        this.cargandoHistorial = false; 
         console.error('Error al cargar historial del día:', err);
       }
     });
   }
 
   private mapearRegistros(asistencias: any[]) {
-    // Reiniciamos el objeto por si acaso
     this.registro = {
       entrada: null,
       comida_inicio: null,
@@ -131,42 +152,18 @@ export class FormChecadorComponent  implements OnInit {
     const data = asistencias[0];
     const ev = data.eventos;
 
-    // Mapeamos cada evento si existe en el objeto retornado por el servidor
-    // Usamos el campo 'fecha' y 'hora' que vienen dentro de cada tipo de evento
     if (ev.ENTRADA) {
       this.registro.entrada = new Date(`${data.fecha}T${ev.ENTRADA.hora}`);
     }
-    
     if (ev.COMIDA_INICIO) {
       this.registro.comida_inicio = new Date(`${data.fecha}T${ev.COMIDA_INICIO.hora}`);
     }
-    
     if (ev.COMIDA_FIN) {
       this.registro.comida_fin = new Date(`${data.fecha}T${ev.COMIDA_FIN.hora}`);
     }
-    
     if (ev.SALIDA) {
       this.registro.salida = new Date(`${data.fecha}T${ev.SALIDA.hora}`);
     }
-
-
-
-    /*asistencias.forEach(reg => {
-      // Usamos el campo 'tipo' que viene en tu JSON (ENTRADA, etc)
-      // Lo convertimos a minúsculas para que coincida con tus llaves del objeto registro
-      const campo = reg.tipo.toLowerCase();
-
-      // Creamos la fecha combinando el string 'fecha' y 'hora' que vienen en el objeto
-      // Ejemplo: "2026-05-02" + "T" + "14:24:15"
-      if (this.registro.hasOwnProperty(campo)) {
-        this.registro[campo] = new Date(`${reg.fecha}T${reg.hora}`);
-      } 
-      // Si tu backend usa snake_case para comida inicio/fin, 
-      // podrías necesitar un pequeño mapeo extra:
-      else if (reg.tipo === 'COMIDA_INICIO') this.registro.comida_inicio = new Date(`${reg.fecha}T${reg.hora}`);
-      else if (reg.tipo === 'COMIDA_FIN') this.registro.comida_fin = new Date(`${reg.fecha}T${reg.hora}`);
-      else if (reg.tipo === 'SALIDA') this.registro.salida = new Date(`${reg.fecha}T${reg.hora}`);
-    });*/
 
     if (this.registro.entrada) {
       this.calcularMetricas();
@@ -177,59 +174,94 @@ export class FormChecadorComponent  implements OnInit {
   calcularMetricas() {
     if (!this.registro.entrada) return;
     const fechaEntrada = new Date(this.registro.entrada);
-    const msPorHora = 60 * 60 * 1000;
     const ahora = new Date(new Date().getTime() + this.offsetMs);
 
-    // --- 1. SALIDA ESTIMADA DINÁMICA ---
-    // Iniciamos solo con la jornada efectiva (9.5h)
-    let tiempoAdicional = this.jornadaEf; 
+    if (this.tipoEsquema === 'FIJO') {
+      // ----------------------------------------------------
+      // 🏢 ESQUEMA FIJO (Formato 24 Horas Homologado)
+      // ----------------------------------------------------
+      if (this.horaSalidaFija) {
+        // 🎯 CORRECCIÓN UX: Asignamos directamente la hora fija recortando segundos, sin AM/PM
+        this.salidaTentativa = this.horaSalidaFija.slice(0, 5);
 
-    // SI YA SALIÓ A COMER, sumamos el tiempo de comida al cálculo
-    if (this.registro.comida_inicio) {
-      if (this.registro.comida_fin) {
-        // REGRESÓ: Sumamos solo lo que tardó
-        const diffMs = new Date(this.registro.comida_fin).getTime() - new Date(this.registro.comida_inicio).getTime();
-        tiempoAdicional += (diffMs / (1000 * 60 * 60));
-      } else {
-        // ESTÁ COMIENDO: Proyectamos que usará sus 1.5h completas
-        tiempoAdicional += this.comidaMax;
+        const [h, m] = this.horaSalidaFija.split(':').map(Number);
+        const fechaSalidaFija = new Date(fechaEntrada);
+        fechaSalidaFija.setHours(h, m, 0, 0);
+
+        let tiempoTotalTrabajoMs = (this.registro.salida ? new Date(this.registro.salida).getTime() : ahora.getTime()) - fechaEntrada.getTime();
+        if (tiempoTotalTrabajoMs < 0) tiempoTotalTrabajoMs = 0;
+
+        if (this.registro.comida_inicio) {
+          const finComida = this.registro.comida_fin ? new Date(this.registro.comida_fin) : ahora;
+          tiempoTotalTrabajoMs -= (finComida.getTime() - new Date(this.registro.comida_inicio).getTime());
+        }
+
+        const minutosTotales = Math.floor(tiempoTotalTrabajoMs / (1000 * 60));
+        const hrs = Math.floor(minutosTotales / 60);
+        const mins = minutosTotales % 60;
+        this.horasCumplidas = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+
+        const tiempoTotalTurnoMs = fechaSalidaFija.getTime() - fechaEntrada.getTime();
+        if (tiempoTotalTurnoMs > 0) {
+          const progreso = tiempoTotalTrabajoMs / tiempoTotalTurnoMs;
+          this.progresoJornada = progreso > 1 ? 1 : (progreso < 0 ? 0 : progreso);
+        } else {
+          this.progresoJornada = 0;
+        }
+
+        if (ahora > fechaSalidaFija && fechaEntrada < fechaSalidaFija) {
+          const diffExtrasMs = ahora.getTime() - fechaSalidaFija.getTime();
+          const minExtras = Math.floor(diffExtrasMs / (1000 * 60));
+          this.horasExtras = `${Math.floor(minExtras/60).toString().padStart(2,'0')}:${(minExtras%60).toString().padStart(2,'0')}`;
+        } else {
+          this.horasExtras = '00:00';
+        }
       }
-    }
 
-    const fechaSalidaEstimada = new Date(fechaEntrada.getTime() + (tiempoAdicional * msPorHora));
-
-    this.salidaTentativa = fechaSalidaEstimada.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-
-    // --- 2. TIEMPO EFECTIVO (Solo lo trabajado) ---
-    let tiempoTrabajadoMs = ahora.getTime() - fechaEntrada.getTime();
-
-    if (this.registro.comida_inicio) {
-      const finComidaRelativo = this.registro.comida_fin ? new Date(this.registro.comida_fin) : ahora;
-      const tiempoEnComidaMs = finComidaRelativo.getTime() - new Date(this.registro.comida_inicio).getTime();
-      // Restamos el tiempo de comida para que el contador de "Efectivo" se detenga mientras come
-      tiempoTrabajadoMs -= tiempoEnComidaMs;
-    }
-
-    const totalMinutosEfectivos = Math.floor(tiempoTrabajadoMs / (1000 * 60));
-    const hrs = Math.floor(totalMinutosEfectivos / 60);
-    const mins = totalMinutosEfectivos % 60;
-    this.horasCumplidas = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-
-    // --- 3. HORAS EXTRAS ---
-    // Solo se generan si el tiempo trabajado real supera la jornada efectiva (9.5h)
-    if (totalMinutosEfectivos > (this.jornadaEf * 60)) {
-      const minExtras = totalMinutosEfectivos - (this.jornadaEf * 60);
-      this.horasExtras = `${Math.floor(minExtras/60).toString().padStart(2,'0')}:${(minExtras%60).toString().padStart(2,'0')}`;
     } else {
-      this.horasExtras = '00:00';
-    }
+      // ----------------------------------------------------
+      // ⏳ ESQUEMA LIBRE (Corregido a estricto 24h)
+      // ----------------------------------------------------
+      const msPorHora = 60 * 60 * 1000;
+      let tiempoAdicional = this.jornadaEf; 
 
-    const progreso = totalMinutosEfectivos / (this.jornadaEf * 60);
-    this.progresoJornada = progreso > 1 ? 1 : progreso;
+      if (this.registro.comida_inicio) {
+        if (this.registro.comida_fin) {
+          const diffMs = new Date(this.registro.comida_fin).getTime() - new Date(this.registro.comida_inicio).getTime();
+          tiempoAdicional += (diffMs / (1000 * 60 * 60));
+        } else {
+          tiempoAdicional += this.comidaMax;
+        }
+      }
+
+      const fechaSalidaEstimada = new Date(fechaEntrada.getTime() + (tiempoAdicional * msPorHora));
+      
+      // 🎯 CORRECCIÓN SENIOR: Extraemos horas militares directamente para romper el filtro AM/PM
+      const horas24 = fechaSalidaEstimada.getHours().toString().padStart(2, '0');
+      const minutos24 = fechaSalidaEstimada.getMinutes().toString().padStart(2, '0');
+      this.salidaTentativa = `${horas24}:${minutos24}`;
+
+      let tiempoTrabajadoMs = ahora.getTime() - fechaEntrada.getTime();
+      if (this.registro.comida_inicio) {
+        const finComidaRelativo = this.registro.comida_fin ? new Date(this.registro.comida_fin) : ahora;
+        tiempoTrabajadoMs -= (finComidaRelativo.getTime() - new Date(this.registro.comida_inicio).getTime());
+      }
+
+      const totalMinutosEfectivos = Math.floor(tiempoTrabajadoMs / (1000 * 60));
+      const hrs = Math.floor(totalMinutosEfectivos / 60);
+      const mins = totalMinutosEfectivos % 60;
+      this.horasCumplidas = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+
+      if (totalMinutosEfectivos > (this.jornadaEf * 60)) {
+        const minExtras = totalMinutosEfectivos - (this.jornadaEf * 60);
+        this.horasExtras = `${Math.floor(minExtras/60).toString().padStart(2,'0')}:${(minExtras%60).toString().padStart(2,'0')}`;
+      } else {
+        this.horasExtras = '00:00';
+      }
+
+      const progreso = totalMinutosEfectivos / (this.jornadaEf * 60);
+      this.progresoJornada = progreso > 1 ? 1 : progreso;
+    }
   }
 
   ngOnDestroy() {
@@ -242,40 +274,28 @@ export class FormChecadorComponent  implements OnInit {
     };
     this._asistenciaService.getTime(datos).subscribe({
       next: (res: any) => {
-        // Validamos que la respuesta sea exitosa según tu JSON
         if (res.success && res.data) {
-          const serverTime = res.data.serverTime; // Accedemos a data.serverTime
+          const serverTime = res.data.serverTime; 
           const localTime = new Date().getTime();
-
-          // Calculamos el desfase real
           this.offsetMs = serverTime - localTime;
           console.log('Sincronización con servidor OK');
-          //this.iniciarReloj();
         }
       },
       error: (err) => {
         console.warn('Usando hora local (Fallo de red):', err);
-        // Fallback: Si falla el internet, iniciamos con la hora local para no dejar la pantalla en blanco
-        //this.iniciarReloj();
       }
     });    
   }
 
   iniciarReloj() {
     if (this.timer) clearInterval(this.timer);
-
-    // Ejecutamos una vez de inmediato para evitar el segundo de espera del setInterval
     this.refrescarHora();
-
     this.timer = setInterval(() => {
       this.refrescarHora();
     }, 1000);
   }
 
-  // Función privada para centralizar el cálculo de la hora
   private refrescarHora() {
-    // Si offsetMs es 0 (porque no ha terminado sincronizarReloj), usará la hora local.
-    // En cuanto llegue la respuesta del servidor, offsetMs cambiará y el reloj se ajustará solo.
     const ahoraReal = new Date(new Date().getTime() + this.offsetMs);
     
     this.horaActual = ahoraReal.toLocaleTimeString('es-MX', {
@@ -286,16 +306,13 @@ export class FormChecadorComponent  implements OnInit {
       hour12: false
     });
 
-    // Solo actualizamos la fecha legible la primera vez o si cambia el día
     if (!this.fechaLegible) {
       this.actualizarFechaLegible(ahoraReal);
     }
 
-    // Si ya inició jornada, actualizamos progreso y horas cumplidas
     if (this.registro.entrada && !this.registro.salida) {
       this.calcularMetricas();
 
-      // NUEVO: Lógica para el contador de comida si está fuera
       if (this.registro.comida_inicio && !this.registro.comida_fin) {
         const inicio = new Date(this.registro.comida_inicio);
         const diffMs = ahoraReal.getTime() - inicio.getTime();
@@ -306,11 +323,9 @@ export class FormChecadorComponent  implements OnInit {
         
         this.tiempoComidaTranscurrido = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 
-        // Calculamos el progreso (0 a 1) basado en el límite de 1.5h
         const limiteMinutos = this.comidaMax * 60;
         this.progresoComida = totalMinutos / limiteMinutos;
         
-        // Si se pasa del límite, la barra se mantiene llena
         if (this.progresoComida > 1) this.progresoComida = 1;
       }
     }
@@ -335,43 +350,62 @@ export class FormChecadorComponent  implements OnInit {
   }
 
   async registrar(tipo: string) {
-    // 2. Si ya hay un proceso en curso o ya existe el registro, cancelamos
     if (this.bloqueoBoton || this.registro[tipo]) return;
-
-    // 3. Activamos el bloqueo
     this.bloqueoBoton = true;
 
-    // 1. VALIDACIÓN PREVENTIVA
+    if (tipo === 'entrada' && this.tipoEsquema === 'FIJO' && this.horaEntradaFija) {
+      const ahoraReal = new Date(new Date().getTime() + this.offsetMs);
+      const [hEntrada, mEntrada] = this.horaEntradaFija.split(':').map(Number);
+      
+      const limiteEntrada = new Date(ahoraReal);
+      limiteEntrada.setHours(hEntrada + 2, mEntrada, 0, 0);
+
+      if (ahoraReal > limiteEntrada) {
+        const horaFormateada = this.horaEntradaFija.slice(0, 5); 
+        this._toastService.show(
+          `Límite de tolerancia excedido. Tu entrada era a las ${horaFormateada} y el límite eran 2 horas tarde.`, 
+          'danger', 
+          'hand-left-outline'
+        );
+        this.bloqueoBoton = false;
+        return;
+      }
+    }
+
     if (this.registro[tipo]) {
         this._toastService.show(
           `Ya has registrado tu ${tipo.replace('_', ' ')} anteriormente.`, 
-          'warning', // Color naranja para advertir
+          'warning', 
           'alert-circle-outline'
         );  
         return;
     }
 
-    // Validación de orden lógico (Ejemplo: No salir si no ha regresado de comer)
     if (tipo === 'salida' && (this.registro.comida_inicio && !this.registro.comida_fin)) {
         this._toastService.show(
           `No puedes finalizar la jornada si aún estás en tiempo de comida.`, 
-          'danger', // Color rojo para error de flujo
+          'danger', 
           'hand-left-outline'
         );  
         return;
     }
 
-    // 2. Obtener ubicación desde tu servicio
-    // Tu servicio ya maneja los Toasts de error internamente
-    const coords = await this._geoService.getPosition();
+    if (tipo === 'salida' && this.tipoEsquema === 'FIJO' && this.horaSalidaComerFija && (!this.registro.comida_inicio || !this.registro.comida_fin)) {
+        this._toastService.show(
+          `Operación denegada. Es obligatorio registrar tu salida y regreso de comida antes de finalizar el turno.`, 
+          'danger', 
+          'restaurant-outline'
+        );  
+        this.bloqueoBoton = false;
+        return;
+    }
 
-    // Si coords es null, el servicio ya mostró un Toast informando el porqué
+    const coords = await this._geoService.getPosition();
     if (!coords) {
       this.bloqueoBoton = false;
       return;
     }
 
-    // 1. Calculamos la hora real para mostrarla en la UI de inmediato
     const ahoraReal = new Date(new Date().getTime() + this.offsetMs);
     var tiendaUsuario = '';
     var nombreUsuario = '';
@@ -383,9 +417,8 @@ export class FormChecadorComponent  implements OnInit {
         nombreUsuario = user.nombre + ' ' + user.apellido_paterno + ' ' + user.apellido_materno;
     }
     
-    // 3. Preparamos el cuerpo del registro
     const datosRegistro = {
-      tipo: tipo,           // 'entrada', 'comida_inicio', etc.
+      tipo: tipo,           
       id_tienda: tiendaUsuario,
       nombre_usuario: nombreUsuario,
       ubicacion: {
@@ -394,13 +427,10 @@ export class FormChecadorComponent  implements OnInit {
       }
     };
 
-    // 4. Llamamos al servicio de asistencia
     this._asistenciaService.post(datosRegistro).subscribe({
       next: (res: any) => {
-        // Actualizamos el estado visual del botón
         this.registro[tipo] = ahoraReal; 
 
-        // 2. NUEVO: Si lo que se registró fue la ENTRADA, activamos los cálculos
         if (tipo === 'entrada') {
           this.calcularMetricas();
         }       
@@ -410,14 +440,12 @@ export class FormChecadorComponent  implements OnInit {
           'success', 
           'time-outline'
         );      
-        this.bloqueoBoton = false; // Desbloqueamos al terminar 
+        this.bloqueoBoton = false; 
       },
       error: (err) => {
         console.error('Error al registrar asistencia:', err);
-        this.bloqueoBoton = false; // Desbloqueamos al terminar
+        this.bloqueoBoton = false; 
       }
     });
-    
   }
-
 }
