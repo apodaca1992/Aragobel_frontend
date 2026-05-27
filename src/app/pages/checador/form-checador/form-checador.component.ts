@@ -41,6 +41,8 @@ export class FormChecadorComponent  implements OnInit {
   horaSalidaFija: string = '';
   horaSalidaComerFija: string = '';
   horaRegresoComerFija: string = '';
+  tolerancia_minutos: number = 0;
+  
 
   // VARIABLES DE CONTROL DE VISTA
   salidaTentativa: string = '';
@@ -76,6 +78,7 @@ export class FormChecadorComponent  implements OnInit {
         this.horaSalidaFija = user.hora_salida;   
         this.horaSalidaComerFija = user.hora_salida_comer;
         this.horaRegresoComerFija = user.hora_regreso_comer;
+        this.tolerancia_minutos = user.tolerancia_minutos;
 
         if (this.horaSalidaComerFija && this.horaRegresoComerFija) {
           const [h1, m1] = this.horaSalidaComerFija.split(':').map(Number);
@@ -366,6 +369,21 @@ export class FormChecadorComponent  implements OnInit {
           `Límite de tolerancia excedido. Tu entrada era a las ${horaFormateada} y el límite eran 2 horas tarde.`, 
           'danger', 
           'hand-left-outline'
+        );
+        this.bloqueoBoton = false;
+        return;
+      }
+
+      // 2. ⏳ VALIDACIÓN: Anticipación Excesiva (No menor a la tolerancia permitida)
+      const limiteEntradaMin = new Date(ahoraReal);
+      limiteEntradaMin.setHours(hEntrada, mEntrada, 0, 0);
+
+      if (ahoraReal < limiteEntradaMin) {
+        const horaFormateada = this.horaEntradaFija.slice(0, 5);
+        this._toastService.show(
+          `No puedes iniciar jornada todavía. Tu horario de entrada comienza a las ${horaFormateada}.`, 
+          'warning', 
+          'time-outline'
         );
         this.bloqueoBoton = false;
         return;
