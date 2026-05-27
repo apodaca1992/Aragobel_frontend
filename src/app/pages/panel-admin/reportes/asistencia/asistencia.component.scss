@@ -608,16 +608,20 @@ ion-input[type="date"] {
     justify-content: flex-end;
     
     .compact-status-tag {
-      display: block;
+      display: inline-block;             // 🎯 Cambiado de block a inline-block para que se ajuste mejor al contenido
       width: 100%;
-      padding: 4px 6px;
-      font-size: 9.5px;
+      padding: 6px 4px;                  // 🎯 Aumentamos un poco el padding vertical para cuando rompa en dos líneas
+      font-size: 9px;                    // Un toque sutil más pequeño para dar margen al texto largo
       font-weight: 800;
       text-align: center;
       text-transform: uppercase;
       border-radius: 6px;
-      white-space: nowrap;
       letter-spacing: 0.2px;
+      line-height: 1.2;                  // 🎯 Controla la separación entre renglones si salta de línea
+
+      // 🎯 CORRECCIÓN CLAVE: Eliminamos el corte rígido
+      white-space: normal !important;    // Permite romper la línea en palabras largas de forma automática
+      word-break: break-word;            // Asegura romper cadenas complejas de texto de forma segura
 
       &.danger {
         background-color: #fff5f5;
