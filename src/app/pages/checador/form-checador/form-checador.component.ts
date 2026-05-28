@@ -390,6 +390,27 @@ export class FormChecadorComponent  implements OnInit {
       }
     }
 
+    // 2. 🍔 NUEVA RESTRICCIÓN PARA SALIDA A COMER (ESQUEMA FIJO)
+    if (tipo === 'comida_inicio' && this.tipoEsquema === 'FIJO' && this.horaSalidaComerFija) {
+      const ahoraReal = new Date(new Date().getTime() + this.offsetMs);
+      const [hComida, mComida] = this.horaSalidaComerFija.split(':').map(Number);
+      
+      const limiteComidaMin = new Date(ahoraReal);
+      limiteComidaMin.setHours(hComida, mComida, 0, 0);
+
+      // Si el usuario intenta salir a comer antes de su hora asignada
+      if (ahoraReal < limiteComidaMin) {
+        const horaFormateada = this.horaSalidaComerFija.slice(0, 5);
+        this._toastService.show(
+          `Tu horario para salir a comer comienza a las ${horaFormateada}.`, 
+          'warning', 
+          'restaurant-outline'
+        );
+        this.bloqueoBoton = false;
+        return;
+      }
+    }
+
     if (this.registro[tipo]) {
         this._toastService.show(
           `Ya has registrado tu ${tipo.replace('_', ' ')} anteriormente.`, 
@@ -410,7 +431,7 @@ export class FormChecadorComponent  implements OnInit {
 
     if (tipo === 'salida' && this.tipoEsquema === 'FIJO' && this.horaSalidaComerFija && (!this.registro.comida_inicio || !this.registro.comida_fin)) {
         this._toastService.show(
-          `Operación denegada. Es obligatorio registrar tu salida y regreso de comida antes de finalizar el turno.`, 
+          `Es obligatorio registrar tu salida y regreso de comida antes de finalizar el turno.`, 
           'danger', 
           'restaurant-outline'
         );  
@@ -423,7 +444,6 @@ export class FormChecadorComponent  implements OnInit {
       this.bloqueoBoton = false;
       return;
     }
-
     const ahoraReal = new Date(new Date().getTime() + this.offsetMs);
     var tiendaUsuario = '';
     var nombreUsuario = '';
