@@ -55,6 +55,10 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
   tiempoComidaTranscurrido: string = '00:00';
   progresoComida: number = 0;
 
+  // Almacenes de objetos fecha nativos para cálculos exactos de turnos FIJOS
+  public entradaFijaDate: Date | null = null;
+  public salidaFijaDate: Date | null = null;
+
   constructor(
     private _asistenciaService: AsistenciaService,
     private _preferencesService: PreferencesService,
@@ -131,8 +135,24 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
     this.configComidasJornada = data.config_comidas || [];
     this.jornadaEf = data.jornada_efectiva !== undefined ? data.jornada_efectiva : 15;
 
-    this.horaEntradaFija = data.hora_entrada ? new Date(data.hora_entrada).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
-    this.horaSalidaFija = data.hora_salida ? new Date(data.hora_salida).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+    // --- CORRECCIÓN CRÍTICA PARA TURNOS CRUZADOS (MEDIANOCHE) ---
+    if (data.hora_entrada) {
+      this.entradaFijaDate = new Date(data.hora_entrada);
+      this.horaEntradaFija = this.entradaFijaDate.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    
+    if (data.hora_salida && this.entradaFijaDate) {
+      this.salidaFijaDate = new Date(data.hora_salida);
+      
+      // Si la hora de salida es menor que la de entrada (ej: 05:30 < 21:00), avanza un día automáticamente
+      if (this.salidaFijaDate.getTime() < this.entradaFijaDate.getTime()) {
+        this.salidaFijaDate.setDate(this.salidaFijaDate.getDate() + 1);
+        console.log('🌙 Turno nocturno detectado. Salida ajustada al día siguiente:', this.salidaFijaDate);
+      }
+      
+      this.horaSalidaFija = this.salidaFijaDate.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    // -------------------------------------------------------------
 
     const ev = data.eventos;
     this.nodoComidasBackend = ev?.comidas || null;
@@ -157,8 +177,22 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
     let minutosComidaMax = 0;
     this.configComidasJornada.forEach((config, index) => {
       let limiteHoras = 1.5; 
-      if (config.hora_salida_comer && config.hora_regreso_comer) {
-        const ms = new Date(config.hora_regreso_comer).getTime() - new Date(config.hora_salida_comer).getTime();
+      
+      let salidaComerDate = config.hora_salida_comer ? new Date(config.hora_salida_comer) : null;
+      let regresoComerDate = config.hora_regreso_comer ? new Date(config.hora_regreso_comer) : null;
+
+      // Ajuste de desfase para los horarios fijos de comida si cruzan la medianoche respecto a la entrada
+      if (this.entradaFijaDate) {
+        if (salidaComerDate && salidaComerDate.getTime() < this.entradaFijaDate.getTime()) {
+          salidaComerDate.setDate(salidaComerDate.getDate() + 1);
+        }
+        if (regresoComerDate && regresoComerDate.getTime() < this.entradaFijaDate.getTime()) {
+          regresoComerDate.setDate(regresoComerDate.getDate() + 1);
+        }
+      }
+
+      if (salidaComerDate && regresoComerDate) {
+        const ms = regresoComerDate.getTime() - salidaComerDate.getTime();
         limiteHoras = ms / (1000 * 60 * 60);
         minutosComidaMax += Math.floor(ms / (1000 * 60));
       } else if (config.tiempo_comida_max) {
@@ -173,8 +207,8 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
         llave: llaveComidaBackend,
         nombre: config.nombre || `Comida ${index + 1}`,
         limiteHoras: limiteHoras,
-        hora_salida_comer: config.hora_salida_comer,
-        hora_regreso_comer: config.hora_regreso_comer,
+        hora_salida_comer: salidaComerDate,
+        hora_regreso_comer: regresoComerDate,
         inicio: nodoComida?.COMIDA_INICIO ? parseTimestamp(nodoComida.COMIDA_INICIO) : null,
         fin: nodoComida?.COMIDA_FIN ? parseTimestamp(nodoComida.COMIDA_FIN) : null
       });
@@ -195,7 +229,6 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
     const ahora = new Date(new Date().getTime() + this.offsetMs);
 
     let tiempoComidaTotalMs = 0;
-
     this.listaComidasUI.forEach(c => {
       if (c.inicio) {
         const fin = c.fin ? c.fin.getTime() : ahora.getTime();
@@ -203,14 +236,38 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
       }
     });
 
-    if (this.tipoEsquema === 'FIJO' && this.horaSalidaFija) {
-      let tiempoTrabajoMs = (this.registro.salida ? new Date(this.registro.salida).getTime() : ahora.getTime()) - fechaEntrada.getTime();
+    if (this.tipoEsquema === 'FIJO' && this.salidaFijaDate && this.entradaFijaDate) {
+      // 1. Mostrar la hora exacta de salida fija asignada
+      this.salidaTentativa = this.horaSalidaFija;
+
+      // 2. Calcular tiempo trabajado hasta el momento (descontando comidas)
+      const finDeCalculo = this.registro.salida ? new Date(this.registro.salida).getTime() : ahora.getTime();
+      let tiempoTrabajoMs = finDeCalculo - fechaEntrada.getTime();
       tiempoTrabajoMs -= tiempoComidaTotalMs;
       if (tiempoTrabajoMs < 0) tiempoTrabajoMs = 0;
 
       const minsTotales = Math.floor(tiempoTrabajoMs / (1000 * 60));
       this.horasCumplidas = `${Math.floor(minsTotales / 60).toString().padStart(2, '0')}:${(minsTotales % 60).toString().padStart(2, '0')}`;
+
+      // 3. Progreso de barra basado en la duración total esperada del turno asignado
+      const duracionTurnoTeoricoMs = this.salidaFijaDate.getTime() - this.entradaFijaDate.getTime();
+      if (duracionTurnoTeoricoMs > 0) {
+        let progreso = (finDeCalculo - fechaEntrada.getTime()) / duracionTurnoTeoricoMs;
+        this.progresoJornada = progreso > 1 ? 1 : (progreso < 0 ? 0 : progreso);
+      } else {
+        this.progresoJornada = 0;
+      }
+
+      // 4. Cálculo de horas extras en turnos fijos (si se pasa de la hora de salida oficial)
+      if (finDeCalculo > this.salidaFijaDate.getTime()) {
+        const minExtras = Math.floor((finDeCalculo - this.salidaFijaDate.getTime()) / (1000 * 60));
+        this.horasExtras = `${Math.floor(minExtras / 60).toString().padStart(2, '0')}:${(minExtras % 60).toString().padStart(2, '0')}`;
+      } else {
+        this.horasExtras = '00:00';
+      }
+
     } else {
+      // --- MÓDULO PARA ESQUEMAS LIBRES ---
       const msPorHora = 60 * 60 * 1000;
       const fechaSalidaEstimada = new Date(fechaEntrada.getTime() + ((this.jornadaEf + this.comidaMax) * msPorHora));
       
@@ -291,7 +348,6 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
     return { texto: 'Sin iniciar turno', color: 'medium' };
   }
 
-  // Retorna el total numérico de comidas que ya tienen fecha de finalización
   obtenerComidasCompletadas(): number {
     return this.listaComidasUI.filter(c => c.inicio && c.fin).length;
   }

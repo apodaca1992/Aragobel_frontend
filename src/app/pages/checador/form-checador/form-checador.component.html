@@ -16,7 +16,12 @@
     <div class="flexible-stats">
       <div class="stat-item">
         <ion-note>{{ tipoEsquema === 'FIJO' ? 'FIN DE TURNO' : 'SALIDA ESTIMADA' }}</ion-note>
-        <div class="value success">{{ salidaTentativa }}</div>
+        <div class="value success">
+          {{ salidaTentativa }}
+          <span *ngIf="tipoEsquema === 'FIJO' && salidaFijaDate" style="font-size: 0.65rem; font-weight: 600; color: var(--ion-color-medium); display: block; margin-top: 1px; letter-spacing: 0.5px;">
+            {{ salidaFijaDate.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric' }) | uppercase }}
+          </span>
+        </div>
       </div>
       
       <div class="stat-item" [class.extra-active]="horasExtras !== '00:00'">
@@ -40,7 +45,8 @@
             <span class="label">{{ tipoEsquema === 'FIJO' ? 'HORARIO' : 'LÍMITE' }}</span>
             <span class="value" *ngIf="tipoEsquema === 'LIBRE'">{{ comidaActivaEnProgreso.limiteHoras }}h</span>
             <span class="value" *ngIf="tipoEsquema === 'FIJO'">
-              {{ comidaActivaEnProgreso.hora_salida_comer | date:'HH:mm' }} - {{ comidaActivaEnProgreso.hora_regreso_comer | date:'HH:mm' }}
+              <span style="display: block;">{{ comidaActivaEnProgreso.hora_salida_comer | date:'HH:mm' }} <small style="font-size: 0.65rem; color: var(--ion-color-medium);">({{ comidaActivaEnProgreso.hora_salida_comer?.toLocaleDateString('es-MX', { weekday: 'short' }) | uppercase }})</small></span>
+              <span style="display: block; font-size: 0.75rem; color: var(--ion-color-medium); font-weight: normal;">a {{ comidaActivaEnProgreso.hora_regreso_comer | date:'HH:mm' }} <small style="font-size: 0.65rem; color: var(--ion-color-medium);">({{ comidaActivaEnProgreso.hora_regreso_comer?.toLocaleDateString('es-MX', { weekday: 'short' }) | uppercase }})</small></span>
             </span>
           </div>
         </div>
@@ -56,12 +62,13 @@
           <span>{{ (progresoJornada * 100) | number:'1.0-0' }}%</span>
         </div>
         <ion-progress-bar [value]="progresoJornada" [color]="horasExtras !== '00:00' ? 'success' : 'primary'"></ion-progress-bar>
+        
         <div class="footer-stats">
           <p>Hrs Cumplidas: <strong>{{ horasCumplidas }}</strong></p>
           <p *ngIf="tipoEsquema === 'LIBRE'">Meta: <strong>{{ jornadaEf }}h</strong></p>
           
-          <p *ngIf="tipoEsquema === 'FIJO'">
-            Horario: <strong>{{ horaEntradaFija }} - {{ horaSalidaFija }}</strong>
+          <p *ngIf="tipoEsquema === 'FIJO'" style="font-size: 0.75rem;">
+            Horario: <strong>{{ horaEntradaFija }}</strong> <span style="font-size:0.65rem; color: var(--ion-color-medium);">({{ entradaFijaDate?.toLocaleDateString('es-MX', { weekday: 'short' }) | uppercase }})</span> - <strong>{{ horaSalidaFija }}</strong> <span style="font-size:0.65rem; color: var(--ion-color-medium);">({{ salidaFijaDate?.toLocaleDateString('es-MX', { weekday: 'short' }) | uppercase }})</span>
           </p>
         </div>
       </ion-card-content>
@@ -77,7 +84,12 @@
       <ion-button slot="end" (click)="registrar('entrada')" *ngIf="!registro.entrada" [disabled]="bloqueoBoton">
         {{ bloqueoBoton ? 'ESPERE...' : 'CHECAR' }}
       </ion-button>
-      <ion-note slot="end" class="hora-registro" *ngIf="registro.entrada">{{ registro.entrada | date:'HH:mm' }}</ion-note>
+      <ion-note slot="end" class="hora-registro">
+        <span *ngIf="registro.entrada">
+          {{ registro.entrada | date:'HH:mm' }}
+          <span style="display: block; font-size: 0.6rem; text-align: right; color: var(--ion-color-medium); font-weight: 600;">{{ registro.entrada.toLocaleDateString('es-MX', { weekday: 'short' }) | uppercase }}</span>
+        </span>
+      </ion-note>
     </ion-item>
 
     <ng-container *ngIf="registro.entrada && !registro.salida && listaComidasUI.length > 0">
@@ -104,8 +116,8 @@
                 
                 <ion-label>
                   <div>Salida a {{ comida.nombre }}</div>
-                  <p *ngIf="tipoEsquema === 'FIJO' && !comida.inicio && comida.hora_salida_comer" style="margin: 2px 0 0 0; font-size: 0.8rem;">
-                    Horario: {{ comida.hora_salida_comer | date:'HH:mm' }}
+                  <p *ngIf="tipoEsquema === 'FIJO' && !comida.inicio && comida.hora_salida_comer" style="margin: 2px 0 0 0; font-size: 0.75rem; color: var(--ion-color-medium);">
+                    Horario: <strong>{{ comida.hora_salida_comer | date:'HH:mm' }}</strong> <span style="font-size: 0.65rem;">({{ comida.hora_salida_comer.toLocaleDateString('es-MX', { weekday: 'short' }) | uppercase }})</span>
                   </p>
                 </ion-label>
 
@@ -113,7 +125,12 @@
                             *ngIf="!comida.inicio" [disabled]="bloqueoBoton || algunaSalaDeComidaActiva()">
                   {{ bloqueoBoton ? '...' : 'SALIR' }}
                 </ion-button>
-                <ion-note slot="end" class="hora-registro" *ngIf="comida.inicio">{{ comida.inicio | date:'HH:mm' }}</ion-note>
+                <ion-note slot="end" class="hora-registro">
+                  <span *ngIf="comida.inicio">
+                    {{ comida.inicio | date:'HH:mm' }}
+                    <span style="display: block; font-size: 0.6 /rem; text-align: right; color: var(--ion-color-medium); font-weight: 600;">{{ comida.inicio.toLocaleDateString('es-MX', { weekday: 'short' }) | uppercase }}</span>
+                  </span>
+                </ion-note>
               </ion-item>
 
               <ion-item class="checador-item" lines="full" *ngIf="comida.inicio">
@@ -122,8 +139,8 @@
                 
                 <ion-label>
                   <div>Regreso de {{ comida.nombre }}</div>
-                  <p *ngIf="tipoEsquema === 'FIJO' && !comida.fin && comida.hora_regreso_comer" style="margin: 2px 0 0 0; font-size: 0.8rem;">
-                    Horario: {{ comida.hora_regreso_comer | date:'HH:mm' }}
+                  <p *ngIf="tipoEsquema === 'FIJO' && !comida.fin && comida.hora_regreso_comer" style="margin: 2px 0 0 0; font-size: 0.75rem; color: var(--ion-color-medium);">
+                    Horario: <strong>{{ comida.hora_regreso_comer | date:'HH:mm' }}</strong> <span style="font-size: 0.65rem;">({{ comida.hora_regreso_comer.toLocaleDateString('es-MX', { weekday: 'short' }) | uppercase }})</span>
                   </p>
                 </ion-label>
 
@@ -131,7 +148,12 @@
                             *ngIf="!comida.fin" [disabled]="bloqueoBoton">
                   {{ bloqueoBoton ? '...' : 'REGRESAR' }}
                 </ion-button>
-                <ion-note slot="end" class="hora-registro" *ngIf="comida.fin">{{ comida.fin | date:'HH:mm' }}</ion-note>
+                <ion-note slot="end" class="hora-registro">
+                  <span *ngIf="comida.fin">
+                    {{ comida.fin | date:'HH:mm' }}
+                    <span style="display: block; font-size: 0.6rem; text-align: right; color: var(--ion-color-medium); font-weight: 600;">{{ comida.fin.toLocaleDateString('es-MX', { weekday: 'short' }) | uppercase }}</span>
+                  </span>
+                </ion-note>
               </ion-item>
 
             </div>
@@ -150,18 +172,23 @@
                   [disabled]="bloqueoBoton || algunaSalaDeComidaActiva() || !todasLasComidasObligatoriasListas()">
         {{ bloqueoBoton ? 'ESPERE...' : 'FINALIZAR' }}
       </ion-button>
-      <ion-note slot="end" class="hora-registro" *ngIf="registro.salida">{{ registro.salida | date:'HH:mm' }}</ion-note>
+      <ion-note slot="end" class="hora-registro">
+        <span *ngIf="registro.salida">
+          {{ registro.salida | date:'HH:mm' }}
+          <span style="display: block; font-size: 0.6rem; text-align: right; color: var(--ion-color-medium); font-weight: 600;">{{ registro.salida.toLocaleDateString('es-MX', { weekday: 'short' }) | uppercase }}</span>
+        </span>
+      </ion-note>
     </ion-item>
 
   </ion-list>
 
   <ion-list lines="none" class="ion-padding-horizontal" *ngIf="cargandoHistorial">
-    <ion-item *ngFor="let i of [1,2,3]">
+    <ion-item *ngFor="let i of [1,2,3]" style="border-radius: 12px; margin-bottom: 10px; border: 1px solid #f0f0f0;">
       <ion-thumbnail slot="start" style="width: 24px; height: 24px;">
-        <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="border-radius: 50%;"></ion-skeleton-text>
       </ion-thumbnail>
       <ion-label>
-        <ion-skeleton-text [animated]="true" style="width: 50%"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 60%; height: 16px; border-radius: 4px;"></ion-skeleton-text>
       </ion-label>
     </ion-item>
   </ion-list>
