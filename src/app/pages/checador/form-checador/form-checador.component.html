@@ -25,22 +25,22 @@
       </div>
     </div>
 
-    <ion-card class="comida-active-card ion-no-margin ion-margin-bottom" *ngIf="registro.comida_inicio && !registro.comida_fin">
+    <ion-card class="comida-active-card ion-no-margin ion-margin-bottom" *ngIf="comidaActivaEnProgreso">
       <ion-card-content>
         <div class="comida-container">
           <div class="comida-main">
             <ion-icon name="restaurant" color="warning"></ion-icon>
             <div class="comida-text">
-              <span class="label">TIEMPO DE COMIDA</span>
+              <span class="label">EN TIEMPO DE {{ comidaActivaEnProgreso.nombre | uppercase }}</span>
               <span class="timer">{{ tiempoComidaTranscurrido }}</span>
             </div>
           </div>
           
           <div class="comida-limit">
             <span class="label">{{ tipoEsquema === 'FIJO' ? 'HORARIO' : 'LÍMITE' }}</span>
-            <span class="value" *ngIf="tipoEsquema === 'LIBRE'">{{ comidaMax }}h</span>
+            <span class="value" *ngIf="tipoEsquema === 'LIBRE'">{{ comidaActivaEnProgreso.limiteHoras }}h</span>
             <span class="value" *ngIf="tipoEsquema === 'FIJO'">
-              {{ horaSalidaComerFija.slice(0,5) }} - {{ horaRegresoComerFija.slice(0,5) }}
+              {{ comidaActivaEnProgreso.hora_salida_comer | date:'HH:mm' }} - {{ comidaActivaEnProgreso.hora_regreso_comer | date:'HH:mm' }}
             </span>
           </div>
         </div>
@@ -61,7 +61,7 @@
           <p *ngIf="tipoEsquema === 'LIBRE'">Meta: <strong>{{ jornadaEf }}h</strong></p>
           
           <p *ngIf="tipoEsquema === 'FIJO'">
-            Horario: <strong>{{ horaEntradaFija.slice(0,5) }} - {{ horaSalidaFija.slice(0,5) }}</strong>
+            Horario: <strong>{{ horaEntradaFija }} - {{ horaSalidaFija }}</strong>
           </p>
         </div>
       </ion-card-content>
@@ -70,7 +70,7 @@
 
   <ion-list lines="none" class="ion-padding-horizontal" *ngIf="!cargandoHistorial">
     
-    <ion-item class="checador-item">
+    <ion-item class="checador-item ion-margin-bottom" style="border-radius: 12px; border: 1px solid #e0e0e0;">
       <ion-icon slot="start" [name]="registro.entrada ? 'checkmark-circle' : 'log-in-outline'" 
                 [color]="registro.entrada ? 'success' : 'primary'"></ion-icon>
       <ion-label>Entrada</ion-label>
@@ -80,59 +80,74 @@
       <ion-note slot="end" class="hora-registro" *ngIf="registro.entrada">{{ registro.entrada | date:'HH:mm' }}</ion-note>
     </ion-item>
 
-    <ng-container *ngIf="registro.entrada && !registro.salida">
-      
-      <ng-container *ngIf="tipoEsquema === 'LIBRE' || (tipoEsquema === 'FIJO' && horaSalidaComerFija)">
-        
-        <ion-item class="checador-item">
-          <ion-icon slot="start" [name]="registro.comida_inicio ? 'checkmark-circle' : 'restaurant-outline'" 
-                    [color]="registro.comida_inicio ? 'success' : 'warning'"></ion-icon>
+    <ng-container *ngIf="registro.entrada && !registro.salida && listaComidasUI.length > 0">
+      <ion-accordion-group class="ion-margin-bottom" style="border-radius: 12px; overflow: hidden; border: 1px solid #e0e0e0;">
+        <ion-accordion value="comidas" toggleIconAsSlot>
           
-          <ion-label>
-            <div>Salida a Comer</div>
-            <p *ngIf="tipoEsquema === 'FIJO' && !registro.comida_inicio && horaSalidaComerFija" style="margin: 2px 0 0 0; font-size: 0.8rem;">
-              Horario asignado: {{ horaSalidaComerFija.slice(0,5) }}
-            </p>
-          </ion-label>
+          <ion-item slot="header" color="light">
+            <ion-icon slot="start" name="restaurant-outline" color="warning"></ion-icon>
+            <ion-label>
+              <h2>Tiempos de Comida</h2>
+              <p>Gestionar descansos asignados</p>
+            </ion-label>
+            <ion-badge slot="end" color="warning" style="font-weight: bold; font-size: 0.75rem;">
+              {{ obtenerComidasCompletadas() }} / {{ listaComidasUI.length }}
+            </ion-badge>
+          </ion-item>
 
-          <ion-button slot="end" color="warning" (click)="registrar('comida_inicio')" 
-                      *ngIf="!registro.comida_inicio" [disabled]="bloqueoBoton">
-            {{ bloqueoBoton ? 'ESPERE...' : 'SALIR' }}
-          </ion-button>
-          <ion-note slot="end" class="hora-registro" *ngIf="registro.comida_inicio">{{ registro.comida_inicio | date:'HH:mm' }}</ion-note>
-        </ion-item>
+          <div slot="content" style="background-color: var(--ion-color-step-50, #fafafa); padding: 4px 8px;">
+            <div *ngFor="let comida of listaComidasUI; let i = index">
+              
+              <ion-item class="checador-item" lines="full" *ngIf="esComidaHabilitada(i)">
+                <ion-icon slot="start" [name]="comida.inicio ? 'checkmark-circle' : 'restaurant-outline'" 
+                          [color]="comida.inicio ? 'success' : 'warning'"></ion-icon>
+                
+                <ion-label>
+                  <div>Salida a {{ comida.nombre }}</div>
+                  <p *ngIf="tipoEsquema === 'FIJO' && !comida.inicio && comida.hora_salida_comer" style="margin: 2px 0 0 0; font-size: 0.8rem;">
+                    Horario: {{ comida.hora_salida_comer | date:'HH:mm' }}
+                  </p>
+                </ion-label>
 
-        <ion-item class="checador-item" *ngIf="registro.comida_inicio">
-          <ion-icon slot="start" [name]="registro.comida_fin ? 'checkmark-circle' : 'cafe-outline'" 
-                    [color]="registro.comida_fin ? 'success' : 'warning'"></ion-icon>
-          
-          <ion-label>
-            <div>Regreso de Comida</div>
-            <p *ngIf="tipoEsquema === 'FIJO' && !registro.comida_fin && horaRegresoComerFija" style="margin: 2px 0 0 0; font-size: 0.8rem;">
-              Horario asignado: {{ horaRegresoComerFija.slice(0,5) }}
-            </p>
-          </ion-label>
+                <ion-button slot="end" color="warning" size="small" (click)="registrar('COMIDA_INICIO')" 
+                            *ngIf="!comida.inicio" [disabled]="bloqueoBoton || algunaSalaDeComidaActiva()">
+                  {{ bloqueoBoton ? '...' : 'SALIR' }}
+                </ion-button>
+                <ion-note slot="end" class="hora-registro" *ngIf="comida.inicio">{{ comida.inicio | date:'HH:mm' }}</ion-note>
+              </ion-item>
 
-          <ion-button slot="end" color="warning" (click)="registrar('comida_fin')" 
-                      *ngIf="!registro.comida_fin" [disabled]="bloqueoBoton">
-            {{ bloqueoBoton ? 'ESPERE...' : 'REGRESAR' }}
-          </ion-button>
-          <ion-note slot="end" class="hora-registro" *ngIf="registro.comida_fin">{{ registro.comida_fin | date:'HH:mm' }}</ion-note>
-        </ion-item>
+              <ion-item class="checador-item" lines="full" *ngIf="comida.inicio">
+                <ion-icon slot="start" [name]="comida.fin ? 'checkmark-done-circle' : 'cafe-outline'" 
+                          [color]="comida.fin ? 'success' : 'warning'"></ion-icon>
+                
+                <ion-label>
+                  <div>Regreso de {{ comida.nombre }}</div>
+                  <p *ngIf="tipoEsquema === 'FIJO' && !comida.fin && comida.hora_regreso_comer" style="margin: 2px 0 0 0; font-size: 0.8rem;">
+                    Horario: {{ comida.hora_regreso_comer | date:'HH:mm' }}
+                  </p>
+                </ion-label>
 
-      </ng-container>
+                <ion-button slot="end" color="warning" size="small" (click)="registrar('COMIDA_FIN')" 
+                            *ngIf="!comida.fin" [disabled]="bloqueoBoton">
+                  {{ bloqueoBoton ? '...' : 'REGRESAR' }}
+                </ion-button>
+                <ion-note slot="end" class="hora-registro" *ngIf="comida.fin">{{ comida.fin | date:'HH:mm' }}</ion-note>
+              </ion-item>
+
+            </div>
+          </div>
+        </ion-accordion>
+      </ion-accordion-group>
     </ng-container>
 
-    <ion-item class="checador-item" *ngIf="registro.entrada">
+    <ion-item class="checador-item" *ngIf="registro.entrada" style="border-radius: 12px; border: 1px solid #e0e0e0;">
       <ion-icon slot="start" [name]="registro.salida ? 'checkmark-done-circle' : 'log-out-outline'" 
                 [color]="registro.salida ? 'success' : 'danger'"></ion-icon>
       <ion-label>Salida Final</ion-label>
       
       <ion-button slot="end" color="danger" (click)="registrar('salida')" 
                   *ngIf="!registro.salida"
-                  [disabled]="bloqueoBoton || 
-                             (registro.comida_inicio && !registro.comida_fin) || 
-                             (tipoEsquema === 'FIJO' && horaSalidaComerFija && (!registro.comida_inicio || !registro.comida_fin))">
+                  [disabled]="bloqueoBoton || algunaSalaDeComidaActiva() || !todasLasComidasObligatoriasListas()">
         {{ bloqueoBoton ? 'ESPERE...' : 'FINALIZAR' }}
       </ion-button>
       <ion-note slot="end" class="hora-registro" *ngIf="registro.salida">{{ registro.salida | date:'HH:mm' }}</ion-note>

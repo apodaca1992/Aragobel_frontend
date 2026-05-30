@@ -4,14 +4,14 @@
     "redirectTo": "/checador",
     "icon": "time-outline",
     "section": "OPERACION",
-    "permisoRequerido": "checador"
+    "permisoRequerido": "CHECADOR"
   },
   {
     "name": "Mis Entregas",
     "redirectTo": "/entregas",
     "icon": "bicycle-outline",
     "section": "OPERACION",
-    "permisoRequerido": "entregas"
+    "permisoRequerido": "ENTREGAS"
   },
   {
     "name": "Gestión",
