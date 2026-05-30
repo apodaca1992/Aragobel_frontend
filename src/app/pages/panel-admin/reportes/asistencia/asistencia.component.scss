@@ -1,3 +1,44 @@
+// ==========================================================================
+// 1. ESTRUCTURA GENERAL Y AUXILIARES
+// ==========================================================================
+span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.text-success { 
+  color: var(--ion-color-success); 
+  font-weight: 600; 
+}
+
+.text-danger { 
+  color: var(--ion-color-danger); 
+  font-weight: 600; 
+}
+
+.text-muted { 
+  color: #888; 
+  font-size: 0.8rem; 
+}
+
+.ion-margin-start {
+  margin-inline-start: 8px;
+}
+
+ion-fab-button {
+  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.4);
+  --border-radius: 16px;
+  transition: transform 0.2s ease-in-out;
+
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
+// ==========================================================================
+// 2. CABECERA DE FILTROS (PANTALLA PRINCIPAL)
+// ==========================================================================
 .filter-header {
   display: flex;
   justify-content: space-between;
@@ -6,40 +47,19 @@
   padding: 8px 16px;
   border-radius: 12px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
 
   .summary {
     display: flex;
     align-items: center;
     gap: 10px;
-    p { margin: 0; font-size: 0.9rem; color: #666; }
-  }
-}
-
-.filter-section {
-  margin-bottom: 20px;
-  ion-label { margin-bottom: 8px; display: block; color: #222; }
-}
-
-.filter-input {
-  --background: #f4f5f8;
-  --border-radius: 10px;
-  margin-top: 5px;
-}
-
-.date-range-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-ion-fab-button {
-  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.4);
-  --border-radius: 16px; // Un toque cuadrado-redondeado como tus cards
-  transition: transform 0.2s ease-in-out;
-
-  &:active {
-    transform: scale(0.9);
+    
+    p { 
+      margin: 0; 
+      font-size: 0.9rem; 
+      color: #666; 
+    }
   }
 }
 
@@ -50,7 +70,7 @@ ion-fab-button {
   margin-left: 8px;
 
   .date-pill {
-    background: #eef2ff; // Azul muy claro
+    background: #eef2ff;
     color: var(--ion-color-primary);
     padding: 4px 12px;
     border-radius: 20px;
@@ -66,17 +86,22 @@ ion-fab-button {
   }
 }
 
-// Estilo extra para el contenedor de filtros para que se vea más como el de tu imagen 11
-.filter-header {
-  border: 1px solid #f0f0f0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 16px 4px 12px 4px;
 }
 
+// ==========================================================================
+// 3. MODAL DE FILTROS AVANZADOS
+// ==========================================================================
 .custom-filter-modal {
-  --border-radius: 28px 28px 0 0;
+  --height: 100%;
+  --border-radius: 0px;
   
   &::part(content) {
-    background: #ffffff; // Asegura fondo blanco total
+    background: #ffffff;
   }
 
   ion-header {
@@ -100,174 +125,93 @@ ion-fab-button {
 
   ion-content {
     --background: #ffffff;
-    
-    .modal-body-wrapper {
-      padding: 20px 16px 60px 16px; // El 60px evita que el botón choque abajo
-      display: flex;
-      flex-direction: column;
-      height: 100%; // Fuerza a ocupar todo el alto del breakpoint
-    }
+  }
+
+  .modal-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 20px 16px 60px 16px;
   }
 
   .section-label {
     display: block;
-    margin: 10px 0 15px 5px;
-    font-weight: 800;
-    color: #1a1a1a;
-  }
-}
-
-// Estilo de los inputs tipo Card
-.date-range-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 30px; // Separa los inputs del botón
-
-  .filter-input {
-    --background: #f8fafc;
-    --border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    height: 80px;
-
-    ion-label {
-      color: #0061ff !important;
-      font-weight: 800 !important;
-      font-size: 0.85rem !important;
-    }
-  }
-}
-
-.filter-input {
-  --background: #f8fafc;
-  --border-radius: 14px;
-  --padding-start: 12px;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 5px;
-  
-  // Cambiamos height por min-height para evitar cortes
-  min-height: 70px !important; 
-
-  ion-label {
-    color: #0061ff !important;
-    font-weight: 700 !important;
-    font-size: 0.8rem !important;
-    margin-bottom: 8px !important;
-    transform: translateY(5px); // Ajuste fino de posición
-  }
-
-  .custom-date-input {
-    font-size: 1rem;
-    font-weight: 500;
+    font-weight: 700;
     color: #333;
-    --padding-top: 10px;
-    --padding-bottom: 10px;
-    
-    // Esto asegura que el icono nativo del calendario sea visible y clickeable
-    &::-webkit-calendar-picker-indicator {
-      background: transparent;
-      bottom: 0;
-      color: transparent;
-      cursor: pointer;
-      height: auto;
-      left: 0;
-      position: absolute;
-      right: 0;
-      top: 0;
-      width: auto;
-    }
-  }
-}
-
-.filter-input {
-  --background: #f8fafc;
-  --border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  min-height: 90px !important; // Un poco más de altura para que el icono no se corte
-
-  ion-label {
-    color: #0061ff !important;
-    font-weight: 800 !important;
-    font-size: 0.85rem !important;
-    margin-bottom: 12px !important;
-  }
-
-  .custom-date-input {
     font-size: 1.1rem;
-    font-weight: 600;
-    color: #333;
+    margin-bottom: 10px;
+  }
+
+  .filter-input-container {
+    --background: #f4f7fa;
+    --border-radius: 12px;
+    --padding-start: 12px;
+    border: 1px solid #eef2f6;
+    margin-top: 8px;
+    margin-bottom: 20px;
     
-    // ESTO HACE QUE EL ICONO SEA VISIBLE EN CHROME
-    &::-webkit-calendar-picker-indicator {
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%230061ff" d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>');
-      background-position: center;
-      background-size: contain;
-      background-repeat: no-repeat;
-      width: 22px;
-      height: 22px;
-      opacity: 1; // Forzamos visibilidad total
-      cursor: pointer;
+    ion-icon {
+      font-size: 20px;
+      margin-right: 8px;
     }
   }
-}
 
-.filter-input {
-  --background: #f8fafc;
-  --border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  min-height: 90px !important;
+  .full-width-select {
+    width: 100%;
+    max-width: 100%;
+    font-size: 0.95rem;
+    --placeholder-color: #666;
+  }
+
+  .date-range-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 30px;
+  }
 
   .input-row {
-    position: relative; // Necesario para las capas
     display: flex;
     align-items: center;
+    position: relative;
     width: 100%;
-    height: 40px;
-    margin-top: 5px;
-  }
 
-  .calendar-icon {
-    position: absolute; // Lo fijamos a la derecha
-    right: 5px;
-    font-size: 22px;
-    color: #0061ff;
-    z-index: 1; // Capa de abajo
+    .custom-calendar-icon {
+      font-size: 18px;
+      color: var(--ion-color-primary);
+      z-index: 1;
+      pointer-events: none;
+    }
   }
 
   .custom-date-input {
-    --padding-top: 0;
-    --padding-bottom: 0;
+    --padding-start: 8px;
     font-size: 1.05rem;
     font-weight: 600;
     color: #333;
     position: relative;
-    z-index: 2; // Capa de arriba (recibe el click)
-    width: 100%;
 
-    // Forzamos a Chrome a que el área de click sea TODA la caja
-    &::-webkit-calendar-picker-indicator {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0; // Invisible en Chrome pero clickeable
-      cursor: pointer;
+    &::part(native) {
+      &::-webkit-calendar-picker-indicator {
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        cursor: pointer;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+        z-index: 2;
+      }
     }
   }
 }
 
-// Estilo extra para Firefox (donde sí se ve)
-@-moz-document url-prefix() {
-  .calendar-icon {
-    display: none; // Si Firefox ya muestra uno, ocultamos el nuestro para no duplicar
-  }
-}
-
-
-/* Estilos para el Acordeón */
+// ==========================================================================
+// 4. ACORDEÓN PRINCIPAL DE EMPLEADOS
+// ==========================================================================
 .custom-accordion {
   background: #ffffff;
   border-radius: 16px;
@@ -291,350 +235,238 @@ ion-fab-button {
     }
   }
 
-  /* Contenedor del detalle */
-  .accordion-detail {
-    background: #fcfdfe;
-    padding: 0 16px 10px 16px;
-    border-top: 1px solid #f0f0f0;
-
-    .day-row {
-      display: flex;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px dashed #e0e0e0;
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .date-col {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 40px;
-        .day { font-weight: 800; font-size: 1.1rem; color: #333; line-height: 1; }
-        .month { font-size: 0.6rem; color: #999; font-weight: 700; }
-      }
-
-      .info-col {
-        flex: 1;
-        padding-left: 15px;
-        .time { display: block; font-size: 0.8rem; color: #666; }
-        .total { display: block; font-size: 0.85rem; font-weight: 700; color: #0061ff; }
-      }
-
-      .status-col {
-        ion-badge {
-          font-size: 0.65rem;
-          --padding-start: 6px;
-          --padding-end: 6px;
-          text-transform: uppercase;
-        }
-      }
-    }
-  }
-}
-
-/* Colores de texto auxiliares */
-.text-success { color: #2dd36f; font-weight: 700; }
-.text-danger { color: #eb445a; font-weight: 700; }
-
-
-.text-success { color: var(--ion-color-success); font-weight: 600; }
-.text-danger { color: var(--ion-color-danger); font-weight: 600; }
-.text-muted { color: #888; font-size: 0.8rem; }
-
-.ion-margin-start {
-  margin-inline-start: 8px;
-}
-
-// Para alinear el icono con el texto
-span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-
-.custom-select {
-  width: 100%;
-  --placeholder-color: #999;
-  --placeholder-opacity: 1;
-  font-size: 0.95rem;
-}
-
-// Para asegurar que el icono y el select estén alineados
-.input-row {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  
-  ion-select {
-    flex: 1;
-  }
-}
-
-.modal-wrapper {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-
-  .section-label {
-    font-weight: 700;
-    color: #333;
-    font-size: 1rem;
-    margin-bottom: 8px;
-    display: block;
-  }
-
-  .filter-input-container {
-    --background: #f4f7fa; // Gris muy suave
-    --border-radius: 12px;
-    --padding-start: 12px;
-    margin-top: 5px;
-    border: 1px solid #e0e6ed;
-    
-    ion-icon {
-      font-size: 20px;
-      margin-right: 8px;
-    }
-  }
-
-  .full-width-select {
-    width: 100%;
-    max-width: 100%;
-    font-size: 0.95rem;
-    --placeholder-color: #666;
-  }
-
-  .date-range-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .input-row {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    ion-input {
-      --padding-start: 8px;
-    }
-  }
-
-  .spacer {
-    height: 20px;
-  }
-
-  .apply-btn {
-    margin-top: auto;
-    margin-bottom: 20px;
-    height: 56px;
-    --border-radius: 16px;
-    font-weight: 800;
-    font-size: 1rem;
-    letter-spacing: 0.5px;
-  }
-}
-
-// Estilo para el input de fecha nativo
-ion-input[type="date"] {
-  font-family: inherit;
-}
-
-.filter-input-container {
-  --background: #f4f7fa;
-  --border-radius: 12px;
-  --padding-start: 12px;
-  margin-top: 8px;
-  border: 1px solid #eef2f6;
-
-  .input-row {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    ion-icon { margin-right: 10px; font-size: 20px; }
-    ion-input { --padding-start: 0; }
-  }
-}
-
-.date-range-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.section-label {
-  font-weight: 700;
-  color: #333;
-}
-
-.custom-filter-modal {
-  --height: 100%; // Forzamos altura completa
-  --border-radius: 0px; // Quitamos bordes redondeados para modo full-screen
-  
-  ion-toolbar {
-    --background: var(--ion-color-primary);
-    --color: white;
-  }
-
-  .section-label {
-    font-weight: 700;
-    color: #333;
-    font-size: 1.1rem;
-    margin-bottom: 10px;
-    display: block;
-  }
-
-  .filter-input-container {
-    --background: #f4f7fa;
-    --border-radius: 12px;
-    --padding-start: 12px;
-    border: 1px solid #eef2f6;
-  }
-}
-
-.custom-date-input {
-  --padding-start: 8px;
-  position: relative;
-
-  /* Ocultar el icono nativo de calendario en Chrome/Safari/Edge */
-  &::part(native) {
-    &::-webkit-calendar-picker-indicator {
-      background: transparent;
-      bottom: 0;
-      color: transparent;
-      cursor: pointer;
-      height: auto;
-      left: 0;
-      position: absolute;
-      right: 0;
-      top: 0;
-      width: auto;
-      z-index: 2; /* Esto hace que al dar clic en tu icono también abra el calendario */
-    }
-  }
-}
-
-.input-row {
-  display: flex;
-  align-items: center;
-  position: relative;
-
-  .custom-calendar-icon {
-    font-size: 18px;
+  .avatar-text {
+    background: #eef2ff;
     color: var(--ion-color-primary);
-    z-index: 1; /* Queda visible detrás de la capa transparente de clic */
-    pointer-events: none; /* Permite que el clic pase al input */
+    font-weight: 700;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    border-radius: 50%;
   }
 }
 
-
+// ==========================================================================
+// 5. DISEÑO DE FILA EJECUTIVA PREMIUM PERFECCIONADO
+// ==========================================================================
 .accordion-detail-container {
   background-color: #ffffff;
   padding: 0 12px;
 
-  .day-attendance-row {
-    display: grid !important;
-    // Ancho fijo fecha, el centro toma todo el espacio sobrante, ancho fijo badge
-    grid-template-columns: 45px 1fr 110px; 
-    align-items: center;
-    padding: 12px 0;
+  .day-attendance-card {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 4px;
     border-bottom: 1px solid #f0f4f8;
     width: 100%;
-    gap: 8px;
+    gap: 12px;
 
     &:last-child {
       border-bottom: none;
     }
   }
 
-  // 1. Bloque de Fecha
-  .date-badge-box {
+  .card-top-row {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
+    width: 100%;
+  }
+
+  .date-inline-box {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    min-width: fit-content;
     
     .num-day {
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 800;
-      color: #2b303a;
-      line-height: 1.1;
+      color: #1a1c20;
     }
     
     .text-month {
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
+      color: #718096;
+    }
+  }
+
+  .status-tags-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  
+  .compact-status-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    border-radius: 6px;
+    letter-spacing: 0.2px;
+    line-height: 1.1;
+    white-space: nowrap;
+
+    &.danger {
+      background-color: #fff5f5;
+      color: #e53e3e;
+      border: 1px solid rgba(#e53e3e, 0.1);
+    }
+    &.success {
+      background-color: #f0fff4;
+      color: #38a169;
+      border: 1px solid rgba(#38a169, 0.1);
+    }
+    &.warning, &.light {
+      background-color: #f7fafc;
+      color: #4a5568;
+      border: 1px solid #e2e8f0;
+    }
+  }
+
+  .main-shift-hours {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    background: #f8fafc;
+    padding: 10px 14px;
+    border-radius: 10px;
+
+    .time-block {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1c20;
+
+      ion-icon {
+        font-size: 16px;
+        margin-right: 6px;
+        color: var(--ion-color-primary);
+      }
+
+      .time-separator {
+        margin: 0 8px;
+        color: #a0aec0;
+        font-weight: 400;
+      }
+    }
+
+    .calculated-total-hours {
+      font-size: 12.5px;
+      color: #4a5568;
+      
+      strong {
+        color: var(--ion-color-primary);
+        font-weight: 800;
+        font-size: 13.5px;
+      }
+    }
+  }
+
+  .lunch-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 2px 4px;
+
+    .lunch-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #4a5568;
+      border-left: 2px solid #cbd5e1;
+      padding-left: 10px;
+
+      .lunch-left {
+        display: flex;
+        align-items: center;
+
+        .lunch-icon {
+          font-size: 13px;
+          color: #dd6b20;
+          margin-right: 6px;
+        }
+
+        .lunch-label {
+          font-weight: 500;
+          color: #718096;
+          margin-right: 5px;
+        }
+
+        .lunch-times {
+          font-weight: 600;
+          color: #2d3748;
+        }
+      }
+
+      .lunch-right {
+        .lunch-duration {
+          font-weight: 700;
+          color: #4a5568;
+          background: #edf2f7;
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-size: 10px;
+        }
+      }
+    }
+  }
+}
+
+// ==========================================================================
+// 6. ESTADO VACÍO ILUSTRATIVO (EMPTY STATE OBSOLETO SIN BOTÓN)
+// ==========================================================================
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+  margin-top: 40px;
+  background: transparent;
+
+  .icon-bubble {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+    margin-bottom: 20px;
+    border: 1px solid #f0f4f8;
+
+    ion-icon {
+      font-size: 36px;
       color: #a0aec0;
     }
   }
 
-  // 2. Bloque Central de Horarios
-  .hours-summary-box {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding-left: 12px;
-    overflow: hidden;
-
-    .main-shift-hours {
-      font-size: 14px;
-      font-weight: 600;
-      color: #1a1c20;
-      white-space: nowrap;
-    }
-
-    // Estilo sutil y limpio para la hora del almuerzo
-    .lunch-break-hours {
-      font-size: 11.5px;
-      color: #718096; // Gris suave para diferenciarlo de la jornada principal
-      margin-top: 1px;
-      white-space: nowrap;
-    }
-
-    .calculated-total-hours {
-      font-size: 12px;
-      font-weight: 700;
-      color: #3182ce;
-      margin-top: 2px;
-    }
+  h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0 0 10px 0;
   }
 
-  // 3. Bloque del Badge (Alineado a la derecha)
-  .status-badge-box {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    
-    .compact-status-tag {
-      display: inline-block;             // 🎯 Cambiado de block a inline-block para que se ajuste mejor al contenido
-      width: 100%;
-      padding: 6px 4px;                  // 🎯 Aumentamos un poco el padding vertical para cuando rompa en dos líneas
-      font-size: 9px;                    // Un toque sutil más pequeño para dar margen al texto largo
-      font-weight: 800;
-      text-align: center;
-      text-transform: uppercase;
-      border-radius: 6px;
-      letter-spacing: 0.2px;
-      line-height: 1.2;                  // 🎯 Controla la separación entre renglones si salta de línea
-
-      // 🎯 CORRECCIÓN CLAVE: Eliminamos el corte rígido
-      white-space: normal !important;    // Permite romper la línea en palabras largas de forma automática
-      word-break: break-word;            // Asegura romper cadenas complejas de texto de forma segura
-
-      &.danger {
-        background-color: #fff5f5;
-        color: #e53e3e;
-      }
-      &.success {
-        background-color: #f0fff4;
-        color: #38a169;
-      }
-      &.warning {
-        background-color: #fffaf0;
-        color: #dd6b20;
-      }
-    }
+  p {
+    font-size: 0.9rem;
+    color: #718096;
+    line-height: 1.5;
+    max-width: 280px;
+    margin: 0;
   }
 }

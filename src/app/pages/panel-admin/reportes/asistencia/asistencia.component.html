@@ -18,143 +18,171 @@
   </div>
 
   <ion-modal 
-  trigger="open-filters" 
-  #filterModal 
-  class="custom-filter-modal"
-  [initialBreakpoint]="1" 
-  [breakpoints]="[0, 1]" 
-  handle="true">
-  <ng-template>
-    <ion-header class="ion-no-border">
-      <ion-toolbar color="primary">
-        <ion-title>Filtros Avanzados</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="filterModal.dismiss()" style="font-weight: 700;">CERRAR</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
+    trigger="open-filters" 
+    #filterModal 
+    class="custom-filter-modal"
+    [initialBreakpoint]="1" 
+    [breakpoints]="[0, 1]" 
+    handle="true">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar color="primary">
+          <ion-title>Filtros Avanzados</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="filterModal.dismiss()" style="font-weight: 700;">CERRAR</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
 
-    <ion-content class="ion-padding">
-      <div class="modal-wrapper">
-        <div class="filter-section">
-          <ion-label class="section-label">Empleado</ion-label>
-          <ion-item lines="none" class="filter-input-container">
-            <ion-icon name="person-outline" color="primary" slot="start"></ion-icon>
-            <ion-select 
-              [(ngModel)]="filtros.id_usuario" 
-              placeholder="Todos los empleados" 
-              interface="action-sheet"
-              class="full-width-select">
-              <ion-select-option value="todos">Todos los empleados</ion-select-option>
-              <ion-select-option *ngFor="let user of listaUsuarios" [value]="user.id">
-                {{ user.nombre }} {{ user.apellido_paterno }} {{ user.apellido_materno }}
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
-        </div>
-
-        <div class="filter-section">
-          <ion-label class="section-label">Rango de Fechas</ion-label>
-          <div class="date-range-grid">
+      <ion-content class="ion-padding">
+        <div class="modal-wrapper">
+          <div class="filter-section">
+            <ion-label class="section-label">Empleado</ion-label>
             <ion-item lines="none" class="filter-input-container">
-              <ion-label position="stacked">Inicio</ion-label>
-              <div class="input-row">
-                <ion-icon name="calendar-outline"  class="custom-calendar-icon" color="primary"></ion-icon>
-                <ion-input type="date" class="custom-date-input" [(ngModel)]="filtros.inicio"></ion-input>
-              </div>
-            </ion-item>
-
-            <ion-item lines="none" class="filter-input-container">
-              <ion-label position="stacked">Fin</ion-label>
-              <div class="input-row">
-                <ion-icon name="calendar-outline" class="custom-calendar-icon" color="primary"></ion-icon>
-                <ion-input type="date" class="custom-date-input" [(ngModel)]="filtros.fin"></ion-input>
-              </div>
+              <ion-icon name="person-outline" color="primary" slot="start"></ion-icon>
+              <ion-select 
+                [(ngModel)]="filtros.id_usuario" 
+                placeholder="Todos los empleados" 
+                interface="action-sheet"
+                class="full-width-select">
+                <ion-select-option value="todos">Todos los empleados</ion-select-option>
+                <ion-select-option *ngFor="let user of listaUsuarios" [value]="user.id">
+                  {{ user.nombre }} {{ user.apellido_paterno }}
+                </ion-select-option>
+              </ion-select>
             </ion-item>
           </div>
-        </div>
-      </div>
-    </ion-content>
 
-    <ion-footer class="ion-no-border ion-padding">
-      <ion-button 
-        expand="block" 
-        shape="round" 
-        color="primary" 
-        style="height: 56px; font-weight: 800; margin-bottom: 15px;"
-        (click)="aplicarFiltros(); filterModal.dismiss()">
-        APLICAR FILTROS
-      </ion-button>
-    </ion-footer>
-  </ng-template>
-</ion-modal>
+          <div class="filter-section">
+            <ion-label class="section-label">Rango de Fechas</ion-label>
+            <div class="date-range-grid">
+              <ion-item lines="none" class="filter-input-container">
+                <ion-label position="stacked">Inicio</ion-label>
+                <div class="input-row">
+                  <ion-icon name="calendar-outline" class="custom-calendar-icon" color="primary"></ion-icon>
+                  <ion-input type="date" class="custom-date-input" [(ngModel)]="filtros.inicio"></ion-input>
+                </div>
+              </ion-item>
+
+              <ion-item lines="none" class="filter-input-container">
+                <ion-label position="stacked">Fin</ion-label>
+                <div class="input-row">
+                  <ion-icon name="calendar-outline" class="custom-calendar-icon" color="primary"></ion-icon>
+                  <ion-input type="date" class="custom-date-input" [(ngModel)]="filtros.fin"></ion-input>
+                </div>
+              </ion-item>
+            </div>
+          </div>
+        </div>
+      </ion-content>
+
+      <ion-footer class="ion-no-border ion-padding">
+        <ion-button 
+          expand="block" 
+          shape="round" 
+          color="primary" 
+          style="height: 56px; font-weight: 800; margin-bottom: 15px;"
+          (click)="aplicarFiltros(); filterModal.dismiss()">
+          APLICAR FILTROS
+        </ion-button>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
 
   <div class="section-title">Resultados del Periodo</div>
 
-  <ion-accordion-group [multiple]="true">
-    <ion-accordion [value]="emp.id_usuario" *ngFor="let emp of reportAsistenciaAgrupado" class="custom-accordion">
-      
-      <ion-item slot="header" lines="none">
-        <ion-avatar slot="start">
-          <div class="avatar-text">{{ emp.foto }}</div>
-        </ion-avatar>
-        <ion-label>
-          <h2>{{ emp.nombre }}</h2>
-          <p>
-            Total: {{ emp.total_horas }}h 
-            <span *ngIf="emp.extras > 0" class="text-success ion-margin-start">
-              <ion-icon name="arrow-up-circle-outline"></ion-icon>
-              +{{ emp.extras }}h Extras
-            </span>
-            
-            <span *ngIf="emp.faltantes > 0" class="text-danger ion-margin-start">
-              <ion-icon name="arrow-down-circle-outline"></ion-icon>
-              -{{ emp.faltantes }}h Faltantes
-            </span>
-          </p>
-        </ion-label>
-      </ion-item>
+  <ng-container *ngIf="tieneDatosParaDescargar(); else emptyStateTemplate">
+    <ion-accordion-group [multiple]="true">
+      <ion-accordion [value]="emp.id_usuario" *ngFor="let emp of reportAsistenciaAgrupado" class="custom-accordion">
+        
+        <ion-item slot="header" lines="none">
+          <ion-avatar slot="start">
+            <div class="avatar-text">{{ emp.foto }}</div>
+          </ion-avatar>
+          <ion-label>
+            <h2>{{ emp.nombre }}</h2>
+            <p>
+              Total: <strong>{{ emp.total_horas }}h</strong> 
+              <span *ngIf="emp.extras > 0" class="text-success ion-margin-start">
+                <ion-icon name="arrow-up-circle-outline"></ion-icon>
+                +{{ emp.extras }}h
+              </span>
+              
+              <span *ngIf="emp.faltantes > 0" class="text-danger ion-margin-start">
+                <ion-icon name="arrow-down-circle-outline"></ion-icon>
+                -{{ emp.faltantes }}h
+              </span>
+            </p>
+          </ion-label>
+        </ion-item>
 
-      <div slot="content" class="accordion-detail-container">
-        <div class="day-attendance-row" *ngFor="let dia of emp.asistencias">
-          
-          <div class="date-badge-box">
-            <span class="num-day">{{ dia.fecha | date:'dd' }}</span>
-            <span class="text-month">{{ dia.fecha | date:'MMM' | uppercase }}</span>
-          </div>
-          
-          <div class="hours-summary-box">
+        <div slot="content" class="accordion-detail-container">
+          <div class="day-attendance-card" *ngFor="let dia of emp.asistencias">
+            
+            <div class="card-top-row">
+              <div class="date-inline-box">
+                <span class="num-day">{{ dia.fecha_registro | date:'dd' }}</span>
+                <span class="text-month">{{ dia.fecha_registro | date:'MMM' | uppercase }}</span>
+              </div>
+              
+              <div class="status-tags-container">
+                <span 
+                  *ngFor="let badge of (dia.estatus ? dia.estatus.split(' | ') : ['A tiempo'])" 
+                  class="compact-status-tag" 
+                  [ngClass]="dia.color || 'light'">
+                  {{ badge }}
+                </span>
+              </div>
+            </div>
+            
             <div class="main-shift-hours">
-              {{ dia.entrada }} a {{ dia.salida }}
+              <div class="time-block">
+                <ion-icon name="time-outline" color="primary"></ion-icon>
+                <span class="time-value">{{ dia.entrada?.hora ? dia.entrada.hora.slice(0,5) : '--:--' }}</span>
+                <span class="time-separator">→</span>
+                <span class="time-value">{{ dia.salida?.hora ? dia.salida.hora.slice(0,5) : '--:--' }}</span>
+              </div>
+              <div class="calculated-total-hours">
+                <span>Efectivo: <strong>{{ dia.total_efectivo }}</strong></span>
+              </div>
             </div>
             
-            <div class="lunch-break-hours" *ngIf="dia.salida_comer || dia.regreso_comer">
-              {{ dia.salida_comer || '--:--' }} - {{ dia.regreso_comer || '--:--' }}
+            <div class="lunch-section" *ngIf="dia.comidas_registradas && dia.comidas_registradas.length > 0">
+              <div class="lunch-item" *ngFor="let comida of dia.comidas_registradas">
+                <div class="lunch-left">
+                  <ion-icon name="restaurant-outline" class="lunch-icon"></ion-icon>
+                  <span class="lunch-label">Comida:</span>
+                  <span class="lunch-times">
+                    {{ comida.salida_comer?.hora ? comida.salida_comer.hora.slice(0,5) : '--:--' }} - {{ comida.regreso_comer?.hora ? comida.regreso_comer.hora.slice(0,5) : '--:--' }}
+                  </span>
+                </div>
+                <div class="lunch-right">
+                  <span class="lunch-duration">{{ comida.duracion_horas || '0' }}h</span>
+                </div>
+              </div>
             </div>
-            
-            <div class="calculated-total-hours">
-              {{ dia.total_efectivo }} hrs totales
-            </div>
-          </div>
-          
-          <div class="status-badge-box">
-            <span class="compact-status-tag" [ngClass]="dia.color">
-              {{ dia.estatus }}
-            </span>
-          </div>
 
+          </div>
         </div>
-      </div>
 
-    </ion-accordion>
-  </ion-accordion-group>
+      </ion-accordion>
+    </ion-accordion-group>
+  </ng-container>
+
+  <ng-template #emptyStateTemplate>
+    <div class="empty-state-container">
+      <div class="icon-bubble">
+        <ion-icon name="clipboard-outline"></ion-icon>
+      </div>
+      <h3>Sin registros de asistencia</h3>
+      <p>No encontramos ninguna actividad cargada para los filtros e intervalos de tiempo seleccionados actualmente.</p>
+    </div>
+  </ng-template>
+
 </ion-content>
 
 <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="ion-margin">
-  <ion-fab-button 
-    color="primary" 
-    (click)="exportarPDF()" 
-    [disabled]="!tieneDatosParaDescargar()">
+  <ion-fab-button color="primary" (click)="exportarPDF()" [disabled]="!tieneDatosParaDescargar()">
     <ion-icon name="document-text"></ion-icon>
   </ion-fab-button>
 </ion-fab>
