@@ -3,7 +3,7 @@ import { ComponenteInterface } from '@interfaces/componente-interface';
 import { MenuController, NavController } from '@ionic/angular';
 import { MenuService } from '@services/menu.service';
 import { Observable, from, forkJoin } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators'; // Añadimos operadores
+import { map, switchMap } from 'rxjs/operators';
 import { PreferencesService } from '@services/preference.service';
 import { AuthService } from '@services/auth.service';
 
@@ -14,7 +14,6 @@ import { AuthService } from '@services/auth.service';
 })
 export class MenuComponent implements OnInit {
 
-  // Ya no necesitamos selectedIndex
   appPages!: Observable<ComponenteInterface[]>;
   public isAdmin: boolean = false;
   public nombreEmpresa: string = '';
@@ -50,7 +49,7 @@ export class MenuComponent implements OnInit {
         const roles = rolesStr ? JSON.parse(rolesStr as string) : [];
         const empresaData = empresaStr ? JSON.parse(empresaStr as string) : null;
 
-        // 3. Asignamos el nombre de la empresa (con un fallback por si no existe)
+        // Asignamos el nombre de la empresa (con un fallback por si no existe)
         this.nombreEmpresa = empresaData?.nombre ?? '';
 
         const configModulos = empresaData?.modulos ?? { checador: true, entregas: true };
@@ -68,28 +67,39 @@ export class MenuComponent implements OnInit {
     return items.filter(item => {
       console.log(`Evaluando ${item.name}: requiere ${item.permisoRequerido}`);
 
+      // 1. Si no requiere permiso específico (ej: Inicio, Mi Perfil), se muestra siempre
+      if (!item.permisoRequerido) return true;
+
+      // Una vez pasada la validación de arriba, TypeScript sabe con certeza que es un string.
+      const moduloKey = item.permisoRequerido.toUpperCase();
+
       // --- VALIDACIÓN DE MÓDULOS DE EMPRESA ---
-      if (item.permisoRequerido && moduloEmpresa && moduloEmpresa[item.permisoRequerido] === false) {
+      // Usamos el string original en minúsculas/camelCase para el objeto de configuración de la empresa
+      if (moduloEmpresa && moduloEmpresa[item.permisoRequerido] === false) {
         return false;
       }
 
-      // 1. Si es ADMINISTRADOR, tiene permiso total
+      // 2. Si es ADMINISTRADOR, tiene permiso total
       if (roles.includes('ADMINISTRADOR')) return true;
 
-      // 2. Si no requiere permiso específico (ej: Inicio, Mi Perfil), se muestra
-      if (!item.permisoRequerido) return true;
+      // --- VALIDACIÓN DE LA NUEVA ESTRUCTURA DE PERMISOS ---
+      // Buscamos en el mapa usando la llave formateada en mayúsculas (ej: 'CHECADOR')
+      const pModulo = permisos[moduloKey];
+      
+      // Validamos que el nodo exista y contenga el arreglo 'acciones_modulo'
+      if (pModulo && pModulo.acciones_modulo) {
+        return pModulo.acciones_modulo.includes('LISTAR') || pModulo.acciones_modulo.includes('VER');
+      }
 
-      // 3. Verificar si el módulo existe en sus permisos y tiene nivel "LISTAR" o "VER"
-      const pModulo = permisos[item.permisoRequerido];
-      return pModulo && (pModulo.includes('LISTAR') || pModulo.includes('VER'));
+      return false;
     });
   }
 
   /*async cerrarSesion() {
     await this._preferencesService.clearSession();
-    this.isAdmin = false; // Resetear bandera
-    this.appPages = from([]); // Limpiar menú visualmente
-    await this.menu.enable(false, 'MenuPrincipal'); // Deshabilitar específicamente este menú
+    this.isAdmin = false; 
+    this.appPages = from([]); 
+    await this.menu.enable(false, 'MenuPrincipal'); 
     await this.menu.close('MenuPrincipal');
     
     this.navCtrl.navigateRoot('/login', {
