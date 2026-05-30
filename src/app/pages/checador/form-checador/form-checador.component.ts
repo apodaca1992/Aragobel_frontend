@@ -115,8 +115,40 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
 
           this.mapearRegistros(jornada);
         } else {
+          // ===================================================================
+          // TRATAMIENTO PARA CUANDO NO HAY JORNADA EN EL SERVIDOR (SIN ENTRADA)
+          // ===================================================================
           await this._preferencesService.removeItem('id_jornada_activa');
+          
+          // Rescatamos los datos del contrato/perfil directo del usuario logueado
+          this.tipoEsquema = user.tipo_esquema || 'FIJO'; 
+          
+          if (this.tipoEsquema === 'FIJO') {
+            // Buscamos sus valores predeterminados asignados
+            this.horaEntradaFija = user.hora_entrada || '21:00'; 
+            this.horaSalidaFija = user.hora_salida || '05:30';
+
+            // Armamos instancias de objetos Date síncronos para que el HTML renderice el día de inmediato
+            const hoyEntrada = new Date();
+            const [hE, mE] = this.horaEntradaFija.split(':');
+            hoyEntrada.setHours(parseInt(hE), parseInt(mE), 0, 0);
+            this.entradaFijaDate = hoyEntrada;
+
+            const hoySalida = new Date();
+            const [hS, mS] = this.horaSalidaFija.split(':');
+            hoySalida.setHours(parseInt(hS), parseInt(mS), 0, 0);
+            
+            // Verificación del cruce de medianoche en turno nocturno estándar
+            if (hoySalida.getTime() < hoyEntrada.getTime()) {
+              hoySalida.setDate(hoySalida.getDate() + 1);
+            }
+            this.salidaFijaDate = hoySalida;
+          }
+
+          this.registro = { entrada: null, salida: null };
+          this.listaComidasUI = [];
           this.cargandoHistorial = false;
+          // ===================================================================
         }
       },
       error: (err) => {
@@ -237,10 +269,8 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
     });
 
     if (this.tipoEsquema === 'FIJO' && this.salidaFijaDate && this.entradaFijaDate) {
-      // 1. Mostrar la hora exacta de salida fija asignada
       this.salidaTentativa = this.horaSalidaFija;
 
-      // 2. Calcular tiempo trabajado hasta el momento (descontando comidas)
       const finDeCalculo = this.registro.salida ? new Date(this.registro.salida).getTime() : ahora.getTime();
       let tiempoTrabajoMs = finDeCalculo - fechaEntrada.getTime();
       tiempoTrabajoMs -= tiempoComidaTotalMs;
@@ -249,7 +279,6 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
       const minsTotales = Math.floor(tiempoTrabajoMs / (1000 * 60));
       this.horasCumplidas = `${Math.floor(minsTotales / 60).toString().padStart(2, '0')}:${(minsTotales % 60).toString().padStart(2, '0')}`;
 
-      // 3. Progreso de barra basado en la duración total esperada del turno asignado
       const duracionTurnoTeoricoMs = this.salidaFijaDate.getTime() - this.entradaFijaDate.getTime();
       if (duracionTurnoTeoricoMs > 0) {
         let progreso = (finDeCalculo - fechaEntrada.getTime()) / duracionTurnoTeoricoMs;
@@ -258,7 +287,6 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
         this.progresoJornada = 0;
       }
 
-      // 4. Cálculo de horas extras en turnos fijos (si se pasa de la hora de salida oficial)
       if (finDeCalculo > this.salidaFijaDate.getTime()) {
         const minExtras = Math.floor((finDeCalculo - this.salidaFijaDate.getTime()) / (1000 * 60));
         this.horasExtras = `${Math.floor(minExtras / 60).toString().padStart(2, '0')}:${(minExtras % 60).toString().padStart(2, '0')}`;
@@ -267,7 +295,6 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
       }
 
     } else {
-      // --- MÓDULO PARA ESQUEMAS LIBRES ---
       const msPorHora = 60 * 60 * 1000;
       const fechaSalidaEstimada = new Date(fechaEntrada.getTime() + ((this.jornadaEf + this.comidaMax) * msPorHora));
       
