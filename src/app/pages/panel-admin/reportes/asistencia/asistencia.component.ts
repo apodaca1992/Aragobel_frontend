@@ -58,6 +58,7 @@ export class AsistenciaComponent implements OnInit {
 
     const datos: any = {         
       tiendas_ids: "array-contains|" + idTienda,
+      ignorarLimite: true,
       activo: 1
     };
 

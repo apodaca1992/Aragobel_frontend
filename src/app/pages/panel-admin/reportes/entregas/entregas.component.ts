@@ -72,6 +72,7 @@ export class EntregasComponent  implements OnInit {
 
     const datos:any = {         
       id_tienda: idTienda,
+      ignorarLimite: true,
       activo: 1
     };
 
@@ -90,6 +91,7 @@ export class EntregasComponent  implements OnInit {
 
     const datos:any = {         
       tiendas_ids: "array-contains|"+idTienda,
+      ignorarLimite: true,
       activo: 1
     };
 

@@ -84,6 +84,7 @@ export class ListEntregasComponent  implements OnInit {
       activo: 1,
       id_tienda: this.idTiendaUsuarioActual,
       fecha_venta: 'TODAY',
+      ignorarLimite: true,
       estatus: '!=|3'
     };
 

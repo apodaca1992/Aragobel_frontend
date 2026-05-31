@@ -77,7 +77,8 @@ export class FormEntregasComponent  implements OnInit {
     const user = JSON.parse(userStr);
     
     const datos = {
-      activo: 1,          
+      activo: 1, 
+      ignorarLimite: true,         
       id_tienda: user.id_tienda
     };
 
