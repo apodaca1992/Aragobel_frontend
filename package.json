@@ -5,8 +5,12 @@
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
+    "start": "ng serve --configuration development",
+    "start:qa": "ng serve --configuration qa",
+    "start:prod": "ng serve --configuration production",
+    "build:dev": "ng build --configuration development",
+    "build:qa": "ng build --configuration qa",
+    "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint"

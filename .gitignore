@@ -19,3 +19,8 @@ yarn-error.log*
 # Carpetas de plataforma (Opcional, pero recomendado si no hay cambios manuales)
 # android/
 # ios/
+
+# Archivos del sistema operativo (macOS)
+.DS_Store
+src/.DS_Store
+**/.DS_Store
