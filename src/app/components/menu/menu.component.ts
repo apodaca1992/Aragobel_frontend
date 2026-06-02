@@ -6,6 +6,8 @@ import { Observable, from, forkJoin } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { PreferencesService } from '@services/preference.service';
 import { AuthService } from '@services/auth.service';
+// Importamos SIEMPRE el environment base (Angular hace el reemplazo automático)
+import { environment } from '@env/environment';
 
 @Component({
   selector: 'app-menu',
@@ -17,6 +19,9 @@ export class MenuComponent implements OnInit {
   appPages!: Observable<ComponenteInterface[]>;
   public isAdmin: boolean = false;
   public nombreEmpresa: string = '';
+
+  // Creamos variables locales para almacenar los datos
+  appVersion: string = environment.appVersion;
     
   constructor(
     private menuService: MenuService,

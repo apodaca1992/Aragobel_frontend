@@ -1,7 +1,8 @@
 {
   "name": "aragobel_frontend",
-  "version": "0.0.1",
-  "author": "Ionic Framework",
+  "version": "1.0.0",
+  "versionCode": 1,
+  "author": "Adrian Apodaca",
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
@@ -13,7 +14,10 @@
     "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "version:sync": "capacitor-set-version --version $npm_package_version --build $npm_package_versionCode",
+    "android:qa": "rm -rf www && npm run version:sync && npm run build:qa && npx cap sync && npx cap open android",
+    "android:prod": "rm -rf www && npm run version:sync && npm run build:prod && npx cap sync && npx cap open android"
   },
   "private": true,
   "dependencies": {
@@ -66,6 +70,7 @@
     "@types/jasmine": "~5.1.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "capacitor-set-version": "^2.2.0",
     "eslint": "^8.57.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsdoc": "^48.2.1",
