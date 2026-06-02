@@ -8,6 +8,7 @@ import { VehiculoInterface } from '@interfaces/vehiculo-interface';
 import { PreferencesService } from '@services/preference.service';
 import { AlertService } from '@services/alert.service';
 import { ActionSheetService } from '@services/action-sheet.service';
+import { GeolocationService } from '@services/geolocation.service';
 
 @Component({
   selector: 'app-list-entregas',
@@ -32,6 +33,7 @@ export class ListEntregasComponent  implements OnInit {
     private _entregaService: EntregaService,
     private _vehiculoService: VehiculoService,
     private _actionSheetService: ActionSheetService,
+    private _geoService: GeolocationService
   ) {}
 
   async ngOnInit() {
@@ -155,6 +157,12 @@ export class ListEntregasComponent  implements OnInit {
   }
 
   async asignarEntrega(idEntrega: number | string, idVehiculo: string, nombreVehiculo: string) {
+
+    const coords = await this._geoService.getPosition();
+    if (!coords) {
+      return;
+    }
+
     // Creamos el objeto para actualizar (Estatus 2 = En tránsito)
     const datosActualizar: any = {
       id: idEntrega,
@@ -162,7 +170,8 @@ export class ListEntregasComponent  implements OnInit {
       nombre_repartidor: this.nombreUsuario,
       id_vehiculo: idVehiculo,
       nombre_vehiculo: nombreVehiculo,
-      estatus: 2 
+      estatus: 2,
+      ubicacion: { lat: coords.latitude, lng: coords.longitude }
     };
 
     this._entregaService.put(datosActualizar).subscribe({
@@ -176,10 +185,16 @@ export class ListEntregasComponent  implements OnInit {
   }
 
   async finalizarEntrega(idEntrega: number | string) {
+    const coords = await this._geoService.getPosition();
+    if (!coords) {
+      return;
+    }
+
     // Creamos el objeto para actualizar (Estatus 2 = En tránsito)
     const datosActualizar: any = {
       id: idEntrega,
-      estatus: 3
+      estatus: 3,
+      ubicacion: { lat: coords.latitude, lng: coords.longitude }
     };
 
     this._entregaService.put(datosActualizar).subscribe({

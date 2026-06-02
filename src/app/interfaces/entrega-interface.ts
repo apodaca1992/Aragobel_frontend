@@ -18,4 +18,6 @@ export interface EntregaInterface {
   fec_entregapedido?: any;
   createdAt?: any;
   updatedAt?: any;
+  // AGREGA ESTA LÍNEA (Estructura de coordenadas):
+  ubicacion?: { lat: number; lng: number };
 }

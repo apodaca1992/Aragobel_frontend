@@ -5,6 +5,7 @@ import { PreferencesService } from '@services/preference.service';
 import { EntregaInterface } from '@interfaces/entrega-interface';
 import { ToastService } from '@services/toast.service'; // Tu servicio de toast
 import { ColoniaService } from '@services/colonia.service';
+import { GeolocationService } from '@services/geolocation.service';
 
 @Component({
   selector: 'app-form-entregas',
@@ -39,6 +40,7 @@ export class FormEntregasComponent  implements OnInit {
     private router: Router,
     private _toastService: ToastService,
     private _coloniaService: ColoniaService,
+    private _geoService: GeolocationService
   ) { }
 
   async ngOnInit() {
@@ -132,6 +134,13 @@ export class FormEntregasComponent  implements OnInit {
       this._toastService.show('Por favor rellena todos los campos', 'warning', 'warning-outline');
       return;
     }
+
+    const coords = await this._geoService.getPosition();
+    if (!coords) {
+      return;
+    }
+    this.entrega.ubicacion = { lat: coords.latitude, lng: coords.longitude }
+
 
     // Decidimos si es POST (nuevo) o PUT (editar)
     const peticion = this.entrega.id 
