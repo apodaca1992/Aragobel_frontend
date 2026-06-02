@@ -39,16 +39,18 @@
     <ion-item>
       <ion-icon slot="start" name="business-outline" color="medium"></ion-icon>
       <ion-label>
-        <p>ID Empresa</p>
-        <h3 class="font-bold">{{ usuario?.id_empresa }}</h3>
+        <p>Negocio / Empresa</p>
+        <h3 class="font-bold">{{ usuario?.nombre_empresa || 'No asignado' }}</h3>
+        <small class="text-muted">ID: {{ usuario?.id_empresa }}</small>
       </ion-label>
     </ion-item>
 
     <ion-item>
       <ion-icon slot="start" name="storefront-outline" color="medium"></ion-icon>
       <ion-label>
-        <p>ID Tienda</p>
-        <h3 class="font-bold">{{ usuario?.id_tienda }}</h3>
+        <p>Tienda</p>
+        <h3 class="font-bold">{{ usuario?.nombre_tienda || 'No asignada' }}</h3>
+        <small class="text-muted">ID: {{ usuario?.id_tienda }}</small>
       </ion-label>
     </ion-item>
   </ion-list>

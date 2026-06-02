@@ -22,11 +22,31 @@ export class MiPerfilComponent  implements OnInit {
   ) { }
 
   async ngOnInit() {
+    // 1. Jalamos los datos del usuario como ya lo hacías
     const userStr = await this._preferencesService.getItem('user');
     if (userStr) {
       this.usuario = JSON.parse(userStr);
-      console.log('Datos del perfil:', this.usuario);
     }
+
+    // 2. Jalamos los datos de la Empresa de su propia llave de almacenamiento
+    const empresaStr = await this._preferencesService.getItem('empresa');
+    if (empresaStr && this.usuario) {
+      const empresaData = JSON.parse(empresaStr);
+      // Le inyectamos el nombre de la empresa directamente a nuestro objeto usuario en memoria
+      this.usuario.nombre_empresa = empresaData.nombre; // Guardará "QA"
+    }
+
+    // 3. Jalamos los datos de las Tiendas de su propia llave
+    const tiendasStr = await this._preferencesService.getItem('tiendas_asignadas');
+    if (tiendasStr && this.usuario) {
+      const tiendasData = JSON.parse(tiendasStr);
+      // Como vemos en tu captura que es un arreglo [ { ... } ], tomamos la primera asignada
+      if (tiendasData && tiendasData.length > 0) {
+        this.usuario.nombre_tienda = tiendasData[0].nombre; // Guarda el nombre de la tienda
+      }
+    }
+
+    console.log('Datos del perfil unificados:', this.usuario);
   }
 
   // Opcional: Función para formatear el nombre
