@@ -42,7 +42,6 @@ export class HardwareBackButtonService {
 
   public async handleBackButton() {
     // 1. Prioridad: Elementos visuales superpuestos (Overlays)
-    // Si hay un modal o popover, lo cerramos antes de navegar
     if (await this.closeOverlays()) return;
 
     // 2. Prioridad: Menú lateral
@@ -52,17 +51,16 @@ export class HardwareBackButtonService {
     }
 
     // 3. Prioridad: Navegación interna
+    // Si Ionic tiene páginas en el historial, regresa una pantalla
     if (this.routerOutlet?.canGoBack()) {
-      this.routerOutlet.pop(); // pop() es más preciso que location.back() en Ionic
+      this.routerOutlet.pop(); 
       return;
     }
 
-    // 4. Prioridad: Salida de la App
-    // Solo si estamos en páginas raíz (Login o Home)
-    const currentUrl = this.router.url;
-    if (currentUrl === '/home' || currentUrl === '/login') {
-      await this.presentExitConfirm();
-    }
+    // 4. Prioridad: Salida de la App (CUALQUIER PÁGINA RAÍZ)
+    // Si llegó aquí, significa que ya no hay páginas atrás en el historial.
+    // Se cierra la app directamente sin importar la URL actual. 🚀
+    App.exitApp();
   }
 
   /**
