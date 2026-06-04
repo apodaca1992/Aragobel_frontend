@@ -1,3 +1,117 @@
-<p>
-  form-vehiculos works!
-</p>
+<ion-header [translucent]="true">
+  <app-header [titulo]="esEdicion ? 'Editar Vehículo' : 'Nuevo Vehículo'" mode="back"></app-header>
+</ion-header>
+
+<ion-content color="light" class="ion-padding">
+  <div class="form-container">
+    
+    <!-- Encabezado ilustrativo superior -->
+    <div class="form-header-zone">
+      <div class="icon-circle">
+        <ion-icon [name]="esEdicion ? 'create-outline' : 'car-sport-outline'"></ion-icon>
+      </div>
+      <h3>{{ esEdicion ? 'Modificar Registro' : 'Alta de Vehículo' }}</h3>
+      <p>{{ esEdicion ? 'Actualiza las propiedades del vehículo seleccionado.' : 'Ingresa los datos del nuevo vehículo para el catálogo.' }}</p>
+    </div>
+
+    <!-- Tarjeta del Formulario -->
+    <ion-card class="custom-form-card">
+      <ion-card-content>
+        <form (ngSubmit)="guardarVehiculo()">
+          
+          <!-- Campo: Tipo de Vehículo -->
+          <div class="input-group">
+            <ion-label class="input-label">Tipo de Vehículo</ion-label>
+            <ion-item lines="none" class="custom-input-item">
+              <ion-icon name="options-outline" color="primary" slot="start"></ion-icon>
+              <ion-select 
+                label="" 
+                placeholder="Selecciona tipo" 
+                name="tipoVehiculo"
+                [(ngModel)]="vehiculo.tipo" 
+                interface="popover" 
+                style="width: 100%;">
+                <ion-select-option value="camioneta">Auto / Camioneta</ion-select-option>
+                <ion-select-option value="moto">Motocicleta</ion-select-option>
+                <ion-select-option value="otro">Otro</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+
+          <!-- Campo: Marca -->
+          <div class="input-group">
+            <ion-label class="input-label">Marca</ion-label>
+            <ion-item lines="none" class="custom-input-item">
+              <ion-icon name="ribbon-outline" color="primary" slot="start"></ion-icon>
+              <ion-input 
+                type="text" 
+                name="marcaVehiculo"
+                placeholder="Ej. Italika" 
+                [(ngModel)]="vehiculo.marca"
+                required
+                clearInput="true">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          <!-- Campo: Modelo -->
+          <div class="input-group">
+            <ion-label class="input-label">Modelo / Línea</ion-label>
+            <ion-item lines="none" class="custom-input-item">
+              <ion-icon name="car-outline" color="primary" slot="start"></ion-icon>
+              <ion-input 
+                type="text" 
+                name="modeloVehiculo"
+                placeholder="Ej. 150" 
+                [(ngModel)]="vehiculo.modelo"
+                required
+                clearInput="true">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          <!-- Campo: Placas -->
+          <div class="input-group">
+            <ion-label class="input-label">Placas del Vehículo</ion-label>
+            <ion-item lines="none" class="custom-input-item">
+              <ion-icon name="id-card-outline" color="primary" slot="start"></ion-icon>
+              <ion-input 
+                type="text" 
+                name="placasVehiculo"
+                placeholder="Ej. WLU-94-69" 
+                [(ngModel)]="vehiculo.placas"
+                required
+                clearInput="true">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          <!-- Botones de Acción -->
+          <div class="action-buttons-container">
+            <ion-button 
+              expand="block" 
+              shape="round" 
+              color="primary" 
+              type="submit"
+              class="btn-submit"
+              [disabled]="!vehiculo.tipo || !vehiculo.marca || !vehiculo.modelo || !vehiculo.placas">
+              <ion-icon slot="start" name="save-outline"></ion-icon>
+              {{ esEdicion ? 'GUARDAR CAMBIOS' : 'REGISTRAR VEHÍCULO' }}
+            </ion-button>
+
+            <ion-button 
+              expand="block" 
+              shape="round" 
+              fill="clear" 
+              color="medium" 
+              (click)="cancelar()">
+              Cancelar
+            </ion-button>
+          </div>
+
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+</ion-content>
