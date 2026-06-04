@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { UsuarioService } from '@services/usuario.service'; 
+import { RolService } from '@services/rol.service'; 
 import { PreferencesService } from '@services/preference.service';
 import { ToastService } from '@services/toast.service';
 
@@ -22,30 +23,36 @@ export class FormUsuariosComponent implements OnInit {
     nombre_completo_search: '', 
     usuario_search: '',         
     activo: 1,
-    tiendas_ids: [],            // 👈 CORREGIDO: Ahora es un arreglo de strings en lugar de un id individual
-    roles: ['repartidor']        
+    tiendas_ids: [],            
+    roles: []                  
   };
 
   esEdicion: boolean = false;
   mostrarPassword: boolean = false; 
+  listaRoles: any[] = [];      
 
   constructor(
     private _usuarioService: UsuarioService,
+    private _rolService: RolService,           
     private _preferencesService: PreferencesService,
     private _toastService: ToastService,
     private router: Router
   ) { }
 
   async ngOnInit() {
+    this.obtenerCatalogoRoles();
+
     const state = this.router.getCurrentNavigation()?.extras.state;
     
     if (state && state['usuario']) {
       this.usuario = { ...state['usuario'] };
       this.usuario.contrasena = ''; 
       
-      // Aseguramos que si por alguna razón 'tiendas_ids' no existe en el objeto que viene, se inicialice como arreglo
       if (!this.usuario.tiendas_ids) {
         this.usuario.tiendas_ids = [];
+      }
+      if (!this.usuario.roles) {
+        this.usuario.roles = [];
       }
       this.esEdicion = true;
     } else {
@@ -54,12 +61,23 @@ export class FormUsuariosComponent implements OnInit {
       const userStr = await this._preferencesService.getItem('user');
       if (userStr) {
         const user = JSON.parse(userStr);
-        // 👈 CORREGIDO: Insertamos el ID de la tienda actual dentro del arreglo de strings
         if (user.id_tienda) {
           this.usuario.tiendas_ids = [String(user.id_tienda)];
         }
       }    
     }
+  }
+
+  obtenerCatalogoRoles() {
+    this._rolService.get().subscribe({
+      next: (roles: any) => {
+        this.listaRoles = Array.isArray(roles) ? roles : (roles?.data || []); 
+      },
+      error: (err) => {
+        console.error('Error al cargar catálogo de roles', err);
+        this._toastService.show('No se pudieron cargar los roles desde el servidor', 'danger', 'alert-circle-outline');
+      }
+    });
   }
 
   async guardarUsuario() {
@@ -85,6 +103,11 @@ export class FormUsuariosComponent implements OnInit {
       return;
     }
 
+    if (!this.usuario.roles || this.usuario.roles.length === 0) {
+      this._toastService.show('Por favor selecciona al menos un rol para el usuario', 'warning', 'warning-outline');
+      return;
+    }
+
     const nombreLimpio = this.usuario.nombre.trim();
     const paternoLimpio = this.usuario.apellido_paterno.trim();
     const maternoLimpio = this.usuario.apellido_materno ? this.usuario.apellido_materno.trim() : '';
@@ -98,7 +121,6 @@ export class FormUsuariosComponent implements OnInit {
     this.usuario.nombre_completo_search = this.usuario.nombre_completo.toLowerCase();
     this.usuario.usuario_search = this.usuario.usuario.toLowerCase().trim();
 
-    // Clonamos el objeto de envío para manipular contrasena de forma segura
     const datosEnviar = { ...this.usuario };
 
     if (this.esEdicion && (!datosEnviar.contrasena || datosEnviar.contrasena.trim() === '')) {

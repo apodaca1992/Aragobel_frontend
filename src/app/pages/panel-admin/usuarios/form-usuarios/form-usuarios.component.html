@@ -111,6 +111,29 @@
             </ion-item>
           </div>
 
+          <div class="input-group">
+            <ion-label class="input-label">Roles Asignados</ion-label>
+            <ion-item lines="none" class="custom-input-item">
+              <ion-icon name="shield-checkmark-outline" color="primary" slot="start"></ion-icon>
+              <ion-select 
+                label="" 
+                placeholder="Selecciona uno o más roles" 
+                name="rolesUsuario"
+                [(ngModel)]="usuario.roles" 
+                multiple="true"
+                okText="Aceptar"
+                cancelText="Cancelar"
+                interface="popover" 
+                style="width: 100%;">
+                
+                <ion-select-option *ngFor="let rol of listaRoles" [value]="rol.id || rol.slug || rol.nombre">
+                  {{ rol.nombre }}
+                </ion-select-option>
+                
+              </ion-select>
+            </ion-item>
+          </div>
+
           <div class="action-buttons-container">
             <ion-button 
               expand="block" 
@@ -118,7 +141,7 @@
               color="primary" 
               type="submit"
               class="btn-submit"
-              [disabled]="!usuario.nombre || !usuario.apellido_paterno || !usuario.usuario || !usuario.email || (!esEdicion && !usuario.contrasena)">
+              [disabled]="!usuario.nombre || !usuario.apellido_paterno || !usuario.usuario || !usuario.email || (!esEdicion && !usuario.contrasena) || !usuario.roles || usuario.roles.length === 0">
               <ion-icon slot="start" name="save-outline"></ion-icon>
               {{ esEdicion ? 'GUARDAR CAMBIOS' : 'REGISTRAR USUARIO' }}
             </ion-button>
