@@ -56,14 +56,19 @@
         <ion-searchbar 
           placeholder="Escribe el nombre de la colonia..." 
           (ionInput)="filtrarColonias($event)"
-          [debounce]="250"
+          [debounce]="400"
           animated="true">
         </ion-searchbar>
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="ion-padding">
-      <ion-list lines="filteredColonias.length > 0 ? 'inset' : 'none'">
+      <div *ngIf="cargandoColonias" class="ion-text-center ion-padding" style="margin-top: 20px;">
+        <ion-spinner name="bubbles" color="primary"></ion-spinner>
+        <p style="color: #718096; font-size: 14px; margin-top: 8px;">Buscando en el servidor NoSQL...</p>
+      </div>
+
+      <ion-list lines="filteredColonias.length > 0 ? 'inset' : 'none'" *ngIf="!cargandoColonias">
         <ion-item 
           *ngFor="let col of filteredColonias" 
           button="true" 
@@ -78,7 +83,7 @@
 
         <div class="no-results" *ngIf="filteredColonias.length === 0" style="text-align: center; padding: 40px 20px; color: #a0aec0;">
           <ion-icon name="search-outline" style="font-size: 48px; margin-bottom: 8px;"></ion-icon>
-          <p>No se encontraron colonias que coincidan.</p>
+          <p>Escribe al menos 2 letras de la colonia para buscar en la base de datos.</p>
         </div>
       </ion-list>
     </ion-content>
