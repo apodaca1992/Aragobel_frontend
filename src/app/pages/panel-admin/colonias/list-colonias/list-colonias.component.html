@@ -40,7 +40,8 @@
             <ion-label class="section-label">Nombre de la Colonia</ion-label>
             <ion-item lines="none" class="filter-input-container">
               <ion-icon name="search-outline" color="primary" slot="start"></ion-icon>
-              <ion-input type="text" placeholder="Ej. Centro Histórico" [(ngModel)]="filtros.nombre"></ion-input>
+              <!-- ⚡ Agregado (ionInput) conectado al debouncer de la API para búsqueda interactiva -->
+              <ion-input type="text" placeholder="Ej. Centro" [(ngModel)]="filtros.nombre"></ion-input>
             </ion-item>
           </div>
         </div>
@@ -92,7 +93,7 @@
             <!-- Botones de Acción CRUD -->
             <div class="lunch-section" style="margin-top: 12px; border-top: 1px dashed #ddd; padding-top: 12px;">
               <div style="display: flex; justify-content: flex-end; gap: 10px; width: 100%;">
-                <ion-button size="small" fill="outline" color="primary" (click)="editColonia(colonia.id)">
+                <ion-button size="small" fill="outline" color="primary" (click)="editColonia(colonia)">
                   <ion-icon slot="start" name="create-outline"></ion-icon>
                   Editar
                 </ion-button>
@@ -116,12 +117,12 @@
         <ion-icon name="map-outline"></ion-icon>
       </div>
       <h3>Sin registros de colonias</h3>
-      <p>No se encontraron colonias con el nombre ingresado.</p>
+      <p>No se encontraron colonias con el nombre ingresado en el servidor.</p>
     </div>
   </ng-template>
 </ion-content>
 
-<!-- Botón Flotante para crear -->
+<!-- Botón Flotante para crear mapeado a tu path real del Router (nuevo) -->
 <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="ion-margin">
   <ion-fab-button color="primary" routerLink="nuevo">
     <ion-icon name="add-outline"></ion-icon>

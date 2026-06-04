@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
+import { Router } from '@angular/router';
+import { ColoniaService } from '@services/colonia.service'; 
+import { PreferencesService } from '@services/preference.service';
+import { ToastService } from '@services/toast.service';
 
+// ⚠️ ASEGÚRATE DE QUE ESTE DECORADOR ESTÉ BIEN ESCRITO JUSTO AQUÍ:
 @Component({
   selector: 'app-form-colonias',
   templateUrl: './form-colonias.component.html',
@@ -9,82 +12,75 @@ import { ToastController } from '@ionic/angular';
 })
 export class FormColoniasComponent implements OnInit {
 
-  esEdicion: boolean = false;
-  coloniaId!: number;
-  
-  // Modelo del objeto (solo almacena el nombre)
   colonia: any = {
-    nombre: ''
+    nombre: '',
+    activo: 1,
+    id_tienda: null,
+    id_usuario_creador: null,
+    nombre_usuario_creador: ''
   };
 
-  // BD Mock idéntica a la pantalla de lista para simular la búsqueda en edición
-  private listaColoniasMock: any[] = [
-    { id: 1, nombre: 'Centro Histórico' },
-    { id: 2, nombre: 'Las Quintas' },
-    { id: 3, nombre: 'Tres Ríos' },
-    { id: 4, nombre: 'Infonavit Humaya' },
-  ];
+  esEdicion: boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private toastCtrl: ToastController
+    private _coloniasService: ColoniaService,
+    private _preferencesService: PreferencesService,
+    private _toastService: ToastService,
+    private router: Router
   ) { }
 
-  ngOnInit() {
-    // Detectamos si viene un parámetro 'id' en la ruta
-    const idParam = this.route.snapshot.paramMap.get('id');
+  async ngOnInit() {
+    const state = this.router.getCurrentNavigation()?.extras.state;
     
-    if (idParam) {
+    if (state && state['colonia']) {
+      this.colonia = { ...state['colonia'] };
       this.esEdicion = true;
-      this.coloniaId = parseInt(idParam, 10);
-      this.cargarColonia(this.coloniaId);
-    }
-  }
-
-  // Simula la consulta a la base de datos por ID
-  cargarColonia(id: number) {
-    const coloniaEncontrada = this.listaColoniasMock.find(c => c.id === id);
-    if (coloniaEncontrada) {
-      // Clonamos el objeto para no alterar el mock directo en memoria de golpe
-      this.colonia = { ...coloniaEncontrada };
     } else {
-      this.mostrarToast('La colonia no existe.', 'danger');
-      this.router.navigate(['/panel-admin/colonias']);
+      this.esEdicion = false;
+      this.colonia.id_usuario_creador = await this._preferencesService.getIdUser();      
+      
+      const userStr = await this._preferencesService.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        this.colonia.id_tienda = user.id_tienda;
+        this.colonia.nombre_usuario_creador = user.nombre + ' ' + user.apellido_paterno + ' ' + user.apellido_materno;
+      }    
     }
   }
 
-  // Acción principal del formulario
   async guardarColonia() {
-    if (!this.colonia.nombre || this.colonia.nombre.trim() === '') return;
-
-    if (this.esEdicion) {
-      // LOGICA DE EDICIÓN (API PUT)
-      console.log('Actualizando Colonia ID:', this.coloniaId, 'Nuevo Nombre:', this.colonia.nombre);
-      await this.mostrarToast('Colonia actualizada correctamente.', 'success');
-    } else {
-      // LOGICA DE CREACIÓN (API POST)
-      console.log('Insertando nueva colonia:', this.colonia.nombre);
-      await this.mostrarToast('Colonia registrada con éxito.', 'success');
+    if (!this.colonia.nombre || this.colonia.nombre.trim() === '') {
+      this._toastService.show('Por favor ingresa un nombre válido para la colonia', 'warning', 'warning-outline');
+      return;
     }
 
-    // Redirigimos de vuelta al catálogo
-    this.router.navigate(['/panel-admin/colonias']);
+    const peticion = this.colonia.id 
+      ? this._coloniasService.put(this.colonia) 
+      : this._coloniasService.post(this.colonia);
+
+    peticion.subscribe({
+      next: (res) => {
+        const mensajeExito = this.colonia.id 
+          ? '¡Colonia actualizada con éxito!' 
+          : '¡Colonia registrada con éxito!';
+
+        this._toastService.show(mensajeExito, 'success', 'checkmark-circle-outline');
+        this.router.navigate(['/panel-admin/colonias'], { replaceUrl: true });
+      },
+      error: (err) => {
+        console.error(err);
+        let mensajeError = 'Error al conectar con el servidor';
+        if (err.error && err.error.message) {
+          mensajeError = err.error.message;
+        } else if (typeof err.error === 'string') {
+          mensajeError = err.error;
+        }
+        this._toastService.show(mensajeError, 'danger', 'alert-circle-outline');
+      }
+    });
   }
 
   cancelar() {
     this.router.navigate(['/panel-admin/colonias']);
-  }
-
-  // Helper UX para notificaciones flotantes sencillas
-  async mostrarToast(mensaje: string, color: 'success' | 'danger') {
-    const toast = await this.toastCtrl.create({
-      message: mensaje,
-      duration: 2000,
-      color: color,
-      position: 'bottom',
-      buttons: [{ text: 'OK', role: 'cancel' }]
-    });
-    await toast.present();
   }
 }
