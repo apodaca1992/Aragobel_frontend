@@ -3,12 +3,12 @@
 </ion-header>
 
 <ion-content color="light" class="ion-padding">  
-  <!-- Cabecera de Filtros Rápidos -->
   <div class="filter-header">
     <div class="summary">
       <ion-icon name="map-outline" color="primary"></ion-icon>
       <div class="date-chips">
         <span class="date-pill">Filtro: {{ filtros.nombre || 'Todas las Colonias' }}</span>
+        <span class="date-pill">Estatus: {{ filtros.activo === 1 ? 'Activas' : 'Inactivas' }}</span>
       </div>
     </div>
     <ion-button fill="clear" id="open-filters-colonias">
@@ -16,7 +16,6 @@
     </ion-button>
   </div>
 
-  <!-- Modal Bottom-Sheet para Búsqueda -->
   <ion-modal 
     trigger="open-filters-colonias" 
     #filterModal 
@@ -40,8 +39,18 @@
             <ion-label class="section-label">Nombre de la Colonia</ion-label>
             <ion-item lines="none" class="filter-input-container">
               <ion-icon name="search-outline" color="primary" slot="start"></ion-icon>
-              <!-- ⚡ Agregado (ionInput) conectado al debouncer de la API para búsqueda interactiva -->
               <ion-input type="text" placeholder="Ej. Centro" [(ngModel)]="filtros.nombre"></ion-input>
+            </ion-item>
+          </div>
+
+          <div class="filter-section" style="margin-top: 15px;">
+            <ion-label class="section-label">Estatus de Registro</ion-label>
+            <ion-item lines="none" class="filter-input-container">
+              <ion-icon name="toggle-outline" color="primary" slot="start"></ion-icon>
+              <ion-select label="" placeholder="Selecciona estatus" [(ngModel)]="filtros.activo" interface="popover" style="width: 100%;">
+                <ion-select-option [value]="1">Activo</ion-select-option>
+                <ion-select-option [value]="0">Inactivo</ion-select-option>
+              </ion-select>
             </ion-item>
           </div>
         </div>
@@ -62,7 +71,6 @@
 
   <div class="section-title">Colonias Registradas</div>
 
-  <!-- Listado en Acordeón Simplificado -->
   <ng-container *ngIf="hasColonias(); else emptyStateTemplate">
     <ion-accordion-group [multiple]="true">
       <ion-accordion [value]="colonia.id" *ngFor="let colonia of coloniasFiltradas" class="custom-accordion">
@@ -73,11 +81,10 @@
           </ion-avatar>
           <ion-label>
             <h2>{{ colonia.nombre }}</h2>
-            <p>ID Registro: #{{ colonia.id }}</p>
+            <p>ID Registro: {{ colonia.id }}</p>
           </ion-label>
         </ion-item>
 
-        <!-- Detalle con Acciones -->
         <div slot="content" class="accordion-detail-container">
           <div class="day-attendance-card">
             <div class="card-top-row">
@@ -86,20 +93,27 @@
                 <span class="text-month">{{ colonia.nombre }}</span>
               </div>
               <div class="status-tags-container">
-                <span class="compact-status-tag success">Activa</span>
+                <span class="compact-status-tag" [ngClass]="colonia.activo === 1 ? 'success' : 'danger'">
+                  {{ colonia.activo === 1 ? 'Activa' : 'Inactiva' }}
+                </span>
               </div>
             </div>
             
-            <!-- Botones de Acción CRUD -->
             <div class="lunch-section" style="margin-top: 12px; border-top: 1px dashed #ddd; padding-top: 12px;">
               <div style="display: flex; justify-content: flex-end; gap: 10px; width: 100%;">
                 <ion-button size="small" fill="outline" color="primary" (click)="editColonia(colonia)">
                   <ion-icon slot="start" name="create-outline"></ion-icon>
                   Editar
                 </ion-button>
-                <ion-button size="small" fill="outline" color="danger" (click)="deleteColonia(colonia)">
+
+                <ion-button *ngIf="colonia.activo === 1" size="small" fill="outline" color="danger" (click)="deleteColonia(colonia)">
                   <ion-icon slot="start" name="trash-outline"></ion-icon>
                   Eliminar
+                </ion-button>
+
+                <ion-button *ngIf="colonia.activo === 0" size="small" fill="outline" color="success" (click)="reactivarColonia(colonia)">
+                  <ion-icon slot="start" name="refresh-outline"></ion-icon>
+                  Reactivar
                 </ion-button>
               </div>
             </div>
@@ -110,19 +124,24 @@
     </ion-accordion-group>
   </ng-container>
 
-  <!-- Template Estado Vacío -->
   <ng-template #emptyStateTemplate>
     <div class="empty-state-container">
       <div class="icon-bubble">
         <ion-icon name="map-outline"></ion-icon>
       </div>
       <h3>Sin registros de colonias</h3>
-      <p>No se encontraron colonias con el nombre ingresado en el servidor.</p>
+      <p>No se encontraron colonias con los filtros seleccionados en el servidor.</p>
     </div>
   </ng-template>
+
+  <ion-infinite-scroll (ionInfinite)="cargarMasColonias($event)" #infiniteScroll>
+    <ion-infinite-scroll-content 
+      loadingSpinner="bubbles" 
+      loadingText="Cargando más colonias...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
 </ion-content>
 
-<!-- Botón Flotante para crear mapeado a tu path real del Router (nuevo) -->
 <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="ion-margin">
   <ion-fab-button color="primary" routerLink="nuevo">
     <ion-icon name="add-outline"></ion-icon>

@@ -12,11 +12,21 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    flex: 1;        // ⚡ Permite que la caja de textos use el espacio disponible
+    min-width: 0;   // ⚡ Evita desbordamientos en pantallas pequeñas
+    
     ion-icon { font-size: 24px; }
   }
 }
 
+// ⚡ CORRECCIÓN: Contenedor flexible para alinear las pastillas ordenadamente
 .date-chips {
+  display: flex;
+  flex-wrap: wrap; // ⚡ Si la pantalla es muy chica (ej. iPhone SE), la segunda pastilla baja limpiamente
+  gap: 6px;        // ⚡ Separación uniforme de 6px entre la pastilla de filtro y la de estatus
+  flex: 1;
+  min-width: 0;
+
   .date-pill {
     background: #f0f2f5;
     padding: 6px 12px;
@@ -24,6 +34,10 @@
     font-size: 13px;
     font-weight: 600;
     color: #444;
+    white-space: nowrap;      // ⚡ Evita que el texto de la pastilla se parta en dos renglones
+    overflow: hidden;
+    text-overflow: ellipsis;  // ⚡ Si el filtro de texto es larguísimo, le pone "..." automáticamente
+    max-width: 140px;         // ⚡ Limita el ancho máximo para mantener el balance visual
   }
 }
 
@@ -90,7 +104,12 @@
   border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
+  
+  // Tag de Activa (Verde)
   &.success { background: #e8f5e9; color: #2e7d32; }
+  
+  // ⚡ NUEVO: Tag de Inactiva (Rojo sutil que combina con tu diseño)
+  &.danger { background: #ffebee; color: #c62828; }
 }
 
 .filter-input-container {

@@ -4,7 +4,6 @@ import { ColoniaService } from '@services/colonia.service';
 import { PreferencesService } from '@services/preference.service';
 import { ToastService } from '@services/toast.service';
 
-// ⚠️ ASEGÚRATE DE QUE ESTE DECORADOR ESTÉ BIEN ESCRITO JUSTO AQUÍ:
 @Component({
   selector: 'app-form-colonias',
   templateUrl: './form-colonias.component.html',
@@ -12,8 +11,10 @@ import { ToastService } from '@services/toast.service';
 })
 export class FormColoniasComponent implements OnInit {
 
+  // Se añade 'nombre_search' a la estructura por defecto
   colonia: any = {
     nombre: '',
+    nombre_search: '', // 👈 Campo espejo para indexación NoSQL (Firebase)
     activo: 1,
     id_tienda: null,
     id_usuario_creador: null,
@@ -49,11 +50,17 @@ export class FormColoniasComponent implements OnInit {
   }
 
   async guardarColonia() {
+    // Validación básica habitual
     if (!this.colonia.nombre || this.colonia.nombre.trim() === '') {
       this._toastService.show('Por favor ingresa un nombre válido para la colonia', 'warning', 'warning-outline');
       return;
     }
 
+    // ⚡ ESTRATEGIA FIREBASE: Forzamos la normalización del campo de búsqueda en minúsculas.
+    // Esto asegura que tanto al CREAR como al EDITAR se actualice el índice correctamente.
+    this.colonia.nombre_search = this.colonia.nombre.toLowerCase().trim();
+
+    // Decidimos la petición HTTP (PUT para editar con ID, POST para nuevo)
     const peticion = this.colonia.id 
       ? this._coloniasService.put(this.colonia) 
       : this._coloniasService.post(this.colonia);
