@@ -1,3 +1,129 @@
-<p>
-  list-colonias works!
-</p>
+<ion-header [translucent]="true">
+  <app-header titulo="Catálogo de Colonias" mode="back"></app-header>
+</ion-header>
+
+<ion-content color="light" class="ion-padding">  
+  <!-- Cabecera de Filtros Rápidos -->
+  <div class="filter-header">
+    <div class="summary">
+      <ion-icon name="map-outline" color="primary"></ion-icon>
+      <div class="date-chips">
+        <span class="date-pill">Filtro: {{ filtros.nombre || 'Todas las Colonias' }}</span>
+      </div>
+    </div>
+    <ion-button fill="clear" id="open-filters-colonias">
+      <ion-icon slot="icon-only" name="options-outline"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- Modal Bottom-Sheet para Búsqueda -->
+  <ion-modal 
+    trigger="open-filters-colonias" 
+    #filterModal 
+    class="custom-filter-modal"
+    [initialBreakpoint]="1" 
+    [breakpoints]="[0, 1]" 
+    handle="true">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar color="primary">
+          <ion-title>Buscar Colonia</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="filterModal.dismiss()" style="font-weight: 700;">CERRAR</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <div class="modal-wrapper">
+          <div class="filter-section">
+            <ion-label class="section-label">Nombre de la Colonia</ion-label>
+            <ion-item lines="none" class="filter-input-container">
+              <ion-icon name="search-outline" color="primary" slot="start"></ion-icon>
+              <ion-input type="text" placeholder="Ej. Centro Histórico" [(ngModel)]="filtros.nombre"></ion-input>
+            </ion-item>
+          </div>
+        </div>
+      </ion-content>
+
+      <ion-footer class="ion-no-border ion-padding">
+        <ion-button 
+          expand="block" 
+          shape="round" 
+          color="primary" 
+          style="height: 56px; font-weight: 800; margin-bottom: 15px;"
+          (click)="aplicarFiltros(); filterModal.dismiss()">
+          BUSCAR COLONIA
+        </ion-button>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
+
+  <div class="section-title">Colonias Registradas</div>
+
+  <!-- Listado en Acordeón Simplificado -->
+  <ng-container *ngIf="hasColonias(); else emptyStateTemplate">
+    <ion-accordion-group [multiple]="true">
+      <ion-accordion [value]="colonia.id" *ngFor="let colonia of coloniasFiltradas" class="custom-accordion">
+        
+        <ion-item slot="header" lines="none">
+          <ion-avatar slot="start">
+            <div class="avatar-text">{{ colonia.nombre.slice(0,2) | uppercase }}</div>
+          </ion-avatar>
+          <ion-label>
+            <h2>{{ colonia.nombre }}</h2>
+            <p>ID Registro: #{{ colonia.id }}</p>
+          </ion-label>
+        </ion-item>
+
+        <!-- Detalle con Acciones -->
+        <div slot="content" class="accordion-detail-container">
+          <div class="day-attendance-card">
+            <div class="card-top-row">
+              <div class="date-inline-box">
+                <span class="num-day">Nombre</span>
+                <span class="text-month">{{ colonia.nombre }}</span>
+              </div>
+              <div class="status-tags-container">
+                <span class="compact-status-tag success">Activa</span>
+              </div>
+            </div>
+            
+            <!-- Botones de Acción CRUD -->
+            <div class="lunch-section" style="margin-top: 12px; border-top: 1px dashed #ddd; padding-top: 12px;">
+              <div style="display: flex; justify-content: flex-end; gap: 10px; width: 100%;">
+                <ion-button size="small" fill="outline" color="primary" (click)="editColonia(colonia.id)">
+                  <ion-icon slot="start" name="create-outline"></ion-icon>
+                  Editar
+                </ion-button>
+                <ion-button size="small" fill="outline" color="danger" (click)="deleteColonia(colonia)">
+                  <ion-icon slot="start" name="trash-outline"></ion-icon>
+                  Eliminar
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </ion-accordion>
+    </ion-accordion-group>
+  </ng-container>
+
+  <!-- Template Estado Vacío -->
+  <ng-template #emptyStateTemplate>
+    <div class="empty-state-container">
+      <div class="icon-bubble">
+        <ion-icon name="map-outline"></ion-icon>
+      </div>
+      <h3>Sin registros de colonias</h3>
+      <p>No se encontraron colonias con el nombre ingresado.</p>
+    </div>
+  </ng-template>
+</ion-content>
+
+<!-- Botón Flotante para crear -->
+<ion-fab slot="fixed" vertical="bottom" horizontal="end" class="ion-margin">
+  <ion-fab-button color="primary" routerLink="nuevo">
+    <ion-icon name="add-outline"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

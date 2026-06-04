@@ -1,3 +1,65 @@
-<p>
-  form-colonias works!
-</p>
+<ion-header [translucent]="true">
+  <app-header [titulo]="esEdicion ? 'Editar Colonia' : 'Nueva Colonia'" mode="back"></app-header>
+</ion-header>
+
+<ion-content color="light" class="ion-padding">
+  <div class="form-container">
+    
+    <!-- Encabezado ilustrativo superior -->
+    <div class="form-header-zone">
+      <div class="icon-circle">
+        <ion-icon [name]="esEdicion ? 'create-outline' : 'add-circle-outline'"></ion-icon>
+      </div>
+      <h3>{{ esEdicion ? 'Modificar Registro' : 'Alta de Colonia' }}</h3>
+      <p>{{ esEdicion ? 'Actualiza el nombre de la colonia seleccionada.' : 'Ingresa el nombre de la nueva colonia para el catálogo.' }}</p>
+    </div>
+
+    <!-- Tarjeta del Formulario -->
+    <ion-card class="custom-form-card">
+      <ion-card-content>
+        <form (ngSubmit)="guardarColonia()">
+          
+          <div class="input-group">
+            <ion-label class="input-label">Nombre de la Colonia</ion-label>
+            <ion-item lines="none" class="custom-input-item">
+              <ion-icon name="map-outline" color="primary" slot="start"></ion-icon>
+              <ion-input 
+                type="text" 
+                name="nombreColonia"
+                placeholder="Ej. Centro Histórico" 
+                [(ngModel)]="colonia.nombre"
+                required
+                clearInput="true">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          <!-- Botones de Acción -->
+          <div class="action-buttons-container">
+            <ion-button 
+              expand="block" 
+              shape="round" 
+              color="primary" 
+              type="submit"
+              class="btn-submit"
+              [disabled]="!colonia.nombre || colonia.nombre.trim() === ''">
+              <ion-icon slot="start" name="save-outline"></ion-icon>
+              {{ esEdicion ? 'GUARDAR CAMBIOS' : 'REGISTRAR COLONIA' }}
+            </ion-button>
+
+            <ion-button 
+              expand="block" 
+              shape="round" 
+              fill="clear" 
+              color="medium" 
+              (click)="cancelar()">
+              Cancelar
+            </ion-button>
+          </div>
+
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+</ion-content>
