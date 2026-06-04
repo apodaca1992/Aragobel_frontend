@@ -12,10 +12,11 @@ import { PreferencesService } from '@services/preference.service';
 export class PanelAdminComponent  implements OnInit {
   
   private allOptions: AdminOption[] = [
-    /*{ title: 'Usuarios', icon: 'people-outline', route: '/panel-admin/usuarios', class: 'blue', section: 'Personal y Seguridad' },
-    { title: 'Asistencias', icon: 'time-outline', route: '/panel-admin/asistencias', class: 'purple', section: 'Personal y Seguridad', key: 'checador' },
+    { title: 'Usuarios', icon: 'people-outline', route: '/panel-admin/usuarios', class: 'blue', section: 'Personal y Seguridad' },
+    //{ title: 'Asistencias', icon: 'time-outline', route: '/panel-admin/asistencias', class: 'purple', section: 'Personal y Seguridad', key: 'checador' },
     { title: 'Vehículos', icon: 'bus-outline', route: '/panel-admin/vehiculos', class: 'orange', section: 'Infraestructura y Logística' },
-    { title: 'Entregas', icon: 'bicycle-outline', route: '/panel-admin/deliveries', class: 'black', section: 'Infraestructura y Logística', key: 'entregas' },*/
+    { title: 'Colonias', icon: 'map-outline', route: '/panel-admin/colonias', class: 'green', section: 'Infraestructura y Logística' },
+    //{ title: 'Entregas', icon: 'bicycle-outline', route: '/panel-admin/deliveries', class: 'black', section: 'Infraestructura y Logística', key: 'entregas' },
     { title: 'Asistencia', icon: 'analytics-outline', route: '/panel-admin/reporte-asistencia', class: 'report', section: 'Reportes y Resultados', key: 'checador' },
     { title: 'Entregas', icon: 'bar-chart-outline', route: '/panel-admin/reporte-entregas', class: 'report', section: 'Reportes y Resultados', key: 'entregas' },
   ];

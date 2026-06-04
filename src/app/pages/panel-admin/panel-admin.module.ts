@@ -9,7 +9,7 @@ import { PanelAdminComponent } from './panel-admin.component';
 // Importa tus componentes compartidos (si usas el header ahí)
 import { ComponentsModule } from 'src/app/components/components.module';
 
-// 1. Importa tus nuevos componentes de reporte
+// Importa tus nuevos componentes de reporte (Estos se quedan declarados aquí porque no tienen módulo propio)
 import { AsistenciaComponent } from './reportes/asistencia/asistencia.component';
 import { EntregasComponent } from './reportes/entregas/entregas.component';
 
@@ -18,13 +18,13 @@ import { EntregasComponent } from './reportes/entregas/entregas.component';
     CommonModule,
     FormsModule,
     IonicModule,
-    ComponentsModule, // Para usar <app-header> y otros componentes propios
+    ComponentsModule, 
     RouterModule.forChild([
       {
         path: '',
         component: PanelAdminComponent
       },
-      // 2. Define las rutas hijas dentro de administración
+      // Reportes directos
       {
         path: 'reporte-asistencia',
         component: AsistenciaComponent
@@ -32,6 +32,22 @@ import { EntregasComponent } from './reportes/entregas/entregas.component';
       {
         path: 'reporte-entregas',
         component: EntregasComponent
+      },
+
+      // ========================================================
+      // 🚀 NUEVOS MÓDULOS ADMINISTRATIVOS (LAZY LOADING)
+      // ========================================================
+      {
+        path: 'colonias',
+        loadChildren: () => import('./colonias/colonias.module').then(m => m.ColoniasModule)
+      },
+      {
+        path: 'vehiculos',
+        loadChildren: () => import('./vehiculos/vehiculos.module').then(m => m.VehiculosModule)
+      },
+      {
+        path: 'usuarios',
+        loadChildren: () => import('./usuarios/usuarios.module').then(m => m.UsuariosModule)
       }
     ])
   ],
@@ -39,6 +55,8 @@ import { EntregasComponent } from './reportes/entregas/entregas.component';
     PanelAdminComponent,
     AsistenciaComponent,
     EntregasComponent
+    // 💡 OJO: Aquí NO se declaran "ListColoniasComponent", "ListVehiculosComponent", etc.
+    // porque ellos ya se declaran dentro de sus respectivos sub-módulos.
   ]
 })
 export class PanelAdminPageModule {}
