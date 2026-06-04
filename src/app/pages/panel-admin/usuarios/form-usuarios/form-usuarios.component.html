@@ -1,3 +1,141 @@
-<p>
-  form-usuarios works!
-</p>
+<ion-header [translucent]="true">
+  <app-header [titulo]="esEdicion ? 'Editar Usuario' : 'Nuevo Usuario'" mode="back"></app-header>
+</ion-header>
+
+<ion-content color="light" class="ion-padding">
+  <div class="form-container">
+    
+    <div class="form-header-zone">
+      <div class="icon-circle">
+        <ion-icon [name]="esEdicion ? 'create-outline' : 'person-add-outline'"></ion-icon>
+      </div>
+      <h3>{{ esEdicion ? 'Modificar Registro' : 'Alta de Usuario' }}</h3>
+      <p>{{ esEdicion ? 'Actualiza los datos y credenciales del usuario seleccionado.' : 'Ingresa la información básica para dar de alta al nuevo usuario.' }}</p>
+    </div>
+
+    <ion-card class="custom-form-card">
+      <ion-card-content>
+        <form (ngSubmit)="guardarUsuario()">
+          
+          <div class="input-group">
+            <ion-label class="input-label">Nombre(s)</ion-label>
+            <ion-item lines="none" class="custom-input-item">
+              <ion-icon name="person-outline" color="primary" slot="start"></ion-icon>
+              <ion-input 
+                type="text" 
+                name="nombreUsuario"
+                placeholder="Ej. Jesus Adrian" 
+                [(ngModel)]="usuario.nombre"
+                required
+                clearInput="true">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          <div class="input-group">
+            <ion-label class="input-label">Apellido Paterno</ion-label>
+            <ion-item lines="none" class="custom-input-item">
+              <ion-icon name="text-outline" color="primary" slot="start"></ion-icon>
+              <ion-input 
+                type="text" 
+                name="apellidoPaternoUsuario"
+                placeholder="Ej. Apodaca" 
+                [(ngModel)]="usuario.apellido_paterno"
+                required
+                clearInput="true">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          <div class="input-group">
+            <ion-label class="input-label">Apellido Materno</ion-label>
+            <ion-item lines="none" class="custom-input-item">
+              <ion-icon name="text-outline" color="primary" slot="start"></ion-icon>
+              <ion-input 
+                type="text" 
+                name="apellidoMaternoUsuario"
+                placeholder="Ej. Campos" 
+                [(ngModel)]="usuario.apellido_materno"
+                clearInput="true">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          <div class="input-group">
+            <ion-label class="input-label">Nombre de Usuario (Alias)</ion-label>
+            <ion-item lines="none" class="custom-input-item">
+              <ion-icon name="at-outline" color="primary" slot="start"></ion-icon>
+              <ion-input 
+                type="text" 
+                name="aliasUsuario"
+                placeholder="Ej. adrian1" 
+                [(ngModel)]="usuario.usuario"
+                required
+                clearInput="true">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          <div class="input-group">
+            <ion-label class="input-label">Correo Electrónico</ion-label>
+            <ion-item lines="none" class="custom-input-item">
+              <ion-icon name="mail-outline" color="primary" slot="start"></ion-icon>
+              <ion-input 
+                type="email" 
+                name="emailUsuario"
+                placeholder="Ej. correo&#64;dominio.com" 
+                [(ngModel)]="usuario.email"
+                required
+                clearInput="true">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          <div class="input-group">
+            <ion-label class="input-label">
+              Contraseña {{ esEdicion ? '(Dejar en blanco para no cambiar)' : '' }}
+            </ion-label>
+            <ion-item lines="none" class="custom-input-item">
+              <ion-icon name="lock-closed-outline" color="primary" slot="start"></ion-icon>
+              <ion-input 
+                [type]="mostrarPassword ? 'text' : 'password'" 
+                name="contrasenaUsuario"
+                placeholder="Mínimo 6 caracteres" 
+                [(ngModel)]="usuario.contrasena"
+                [required]="!esEdicion"
+                clearInput="false">
+              </ion-input>
+              <ion-button slot="end" fill="clear" color="medium" (click)="mostrarPassword = !mostrarPassword" style="margin: 0;">
+                <ion-icon slot="icon-only" [name]="mostrarPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </ion-button>
+            </ion-item>
+          </div>
+
+          <div class="action-buttons-container">
+            <ion-button 
+              expand="block" 
+              shape="round" 
+              color="primary" 
+              type="submit"
+              class="btn-submit"
+              [disabled]="!usuario.nombre || !usuario.apellido_paterno || !usuario.usuario || !usuario.email || (!esEdicion && !usuario.contrasena)">
+              <ion-icon slot="start" name="save-outline"></ion-icon>
+              {{ esEdicion ? 'GUARDAR CAMBIOS' : 'REGISTRAR USUARIO' }}
+            </ion-button>
+
+            <ion-button 
+              expand="block" 
+              shape="round" 
+              fill="clear" 
+              color="medium" 
+              (click)="cancelar()">
+              Cancelar
+            </ion-button>
+          </div>
+
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+</ion-content>
