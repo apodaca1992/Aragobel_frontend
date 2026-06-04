@@ -3,7 +3,6 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { UsuarioService } from '@services/usuario.service'; 
 import { PreferencesService } from '@services/preference.service';
 import { AlertService } from '@services/alert.service';
-// CORRECCIÓN: Se agrega IonModal a las importaciones de Ionic
 import { IonInfiniteScroll, IonModal } from '@ionic/angular';
 
 @Component({
@@ -14,11 +13,10 @@ import { IonInfiniteScroll, IonModal } from '@ionic/angular';
 export class ListUsuariosComponent implements OnInit {
 
   @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
-  
-  // CORRECCIÓN DEFINITIVA: Vinculamos la referencia #filterModal del HTML al controlador TS
   @ViewChild('filterModal') filterModal!: IonModal;
 
   filtros: any = {
+    tipoBusqueda: 'nombre',
     busqueda: '', 
     activo: 1 
   };
@@ -70,11 +68,15 @@ export class ListUsuariosComponent implements OnInit {
     this.cargarDatos();
   }
 
-  // CORRECCIÓN: Método limpio para controlar la apertura manual desde el botón
   abrirFiltros() {
     if (this.filterModal) {
       this.filterModal.present();
     }
+  }
+
+  // AGREGADO: Limpia el campo de texto cuando el usuario alterna el tipo de criterio
+  limpiarBusqueda() {
+    this.filtros.busqueda = '';
   }
 
   async cargarDatos(event?: any) {
@@ -95,8 +97,14 @@ export class ListUsuariosComponent implements OnInit {
 
     if (this.filtros.busqueda && this.filtros.busqueda.trim() !== '') {
       const textoBusqueda = this.filtros.busqueda.toLowerCase().trim();
-      parametros.nombre_search_gte = textoBusqueda;
-      parametros.nombre_search_lte = textoBusqueda + '\uf8ff';
+      
+      if (this.filtros.tipoBusqueda === 'nombre') {
+        parametros.nombre_completo_search_gte = textoBusqueda;
+        parametros.nombre_completo_search_lte = textoBusqueda + '\uf8ff';
+      } else {
+        parametros.usuario_search_gte = textoBusqueda;
+        parametros.usuario_search_lte = textoBusqueda + '\uf8ff';
+      }
     }
 
     this._usuarioService.get(parametros).subscribe({
@@ -149,10 +157,12 @@ export class ListUsuariosComponent implements OnInit {
     this.cargarDatos();
   }
 
-  obtenerIniciales(nombre: string, apellido: string): string {
-    const initNombre = nombre ? nombre.slice(0, 1) : 'U';
-    const initApellido = apellido ? apellido.slice(0, 1) : 'S';
-    return (initNombre + initApellido).toUpperCase();
+  obtenerIniciales(nombreCompleto: string, segundoParametro?: string): string {
+    if (!nombreCompleto) return 'US';
+    const partes = nombreCompleto.trim().split(' ');
+    const primeraLetra = partes[0] ? partes[0].charAt(0) : 'U';
+    const segundaLetra = partes[1] ? partes[1].charAt(0) : 'S'; 
+    return (primeraLetra + segundaLetra).toUpperCase();
   }
 
   editUsuario(usuario: any) {

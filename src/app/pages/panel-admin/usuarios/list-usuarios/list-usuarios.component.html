@@ -8,7 +8,9 @@
     <div class="summary">
       <ion-icon name="people-outline" color="primary"></ion-icon>
       <div class="date-chips">
-        <span class="date-pill">Filtro: {{ filtros.busqueda || 'Todos' }}</span>
+        <span class="date-pill">
+          Filtro: {{ filtros.busqueda ? (filtros.tipoBusqueda === 'nombre' ? 'Nombre: ' : 'Usuario: ') + filtros.busqueda : 'Todos' }}
+        </span>
         <span class="date-pill">Estatus: {{ filtros.activo === 1 ? 'Activos' : 'Inactivos' }}</span>
       </div>
     </div>
@@ -36,11 +38,29 @@
         </ion-header>
 
         <div class="modal-scrollable-body ion-padding" style="flex: 1; overflow-y: auto;">
+          
           <div class="filter-section">
-            <ion-label class="section-label">Nombre o Apellido</ion-label>
+            <ion-label class="section-label">Buscar por:</ion-label>
             <ion-item lines="none" class="filter-input-container">
-              <ion-icon name="search-outline" color="primary" slot="start"></ion-icon>
-              <ion-input type="text" placeholder="Ej. Jesus Adrian" [(ngModel)]="filtros.busqueda"></ion-input>
+              <ion-icon name="filter-outline" color="primary" slot="start"></ion-icon>
+              <ion-select label="" [(ngModel)]="filtros.tipoBusqueda" (ionChange)="limpiarBusqueda()" interface="popover" style="width: 100%;">
+                <ion-select-option value="nombre">Nombre Completo</ion-select-option>
+                <ion-select-option value="usuario">Usuario (&#64;alias)</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+
+          <div class="filter-section" style="margin-top: 15px;">
+            <ion-label class="section-label">
+              {{ filtros.tipoBusqueda === 'nombre' ? 'Escribe el Nombre o Apellido' : 'Escribe el Usuario (&#64;alias)' }}
+            </ion-label>
+            <ion-item lines="none" class="filter-input-container">
+              <ion-icon [name]="filtros.tipoBusqueda === 'nombre' ? 'search-outline' : 'at-outline'" color="primary" slot="start"></ion-icon>
+              <ion-input 
+                type="text" 
+                [placeholder]="filtros.tipoBusqueda === 'nombre' ? 'Ej. Jesus Adrian' : 'Ej. adrian1'" 
+                [(ngModel)]="filtros.busqueda">
+              </ion-input>
             </ion-item>
           </div>
 
@@ -79,10 +99,10 @@
         
         <ion-item slot="header" lines="none">
           <ion-avatar slot="start">
-            <div class="avatar-text">{{ obtenerIniciales(usuario.nombre, usuario.apellido_paterno) }}</div>
+            <div class="avatar-text">{{ obtenerIniciales(usuario.nombre_completo, '') }}</div>
           </ion-avatar>
           <ion-label>
-            <h2>{{ usuario.nombre }} {{ usuario.apellido_paterno }} {{ usuario.apellido_materno }}</h2>
+            <h2>{{ usuario.nombre_completo }}</h2>
             <p>Usuario: &#64;{{ usuario.usuario }}</p>
           </ion-label>
         </ion-item>
