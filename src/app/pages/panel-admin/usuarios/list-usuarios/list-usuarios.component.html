@@ -1,3 +1,167 @@
-<p>
-  list-usuarios works!
-</p>
+<ion-header [translucent]="true">
+  <app-header titulo="Catálogo de Usuarios" mode="back"></app-header>
+</ion-header>
+
+<ion-content color="light" class="ion-padding">  
+  
+  <div class="filter-header">
+    <div class="summary">
+      <ion-icon name="people-outline" color="primary"></ion-icon>
+      <div class="date-chips">
+        <span class="date-pill">Filtro: {{ filtros.busqueda || 'Todos' }}</span>
+        <span class="date-pill">Estatus: {{ filtros.activo === 1 ? 'Activos' : 'Inactivos' }}</span>
+      </div>
+    </div>
+    <ion-button fill="clear" (click)="abrirFiltros()">
+      <ion-icon slot="icon-only" name="options-outline"></ion-icon>
+    </ion-button>
+  </div>
+
+  <ion-modal 
+    #filterModal 
+    class="custom-filter-modal"
+    [initialBreakpoint]="1" 
+    [breakpoints]="[0, 1]" 
+    handle="true">
+    <ng-template>
+      <div style="display: flex; flex-direction: column; height: 100%; width: 100%;">
+        
+        <ion-header class="ion-no-border">
+          <ion-toolbar color="primary">
+            <ion-title>Buscar Usuario</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="filterModal.dismiss()" style="font-weight: 700;">CERRAR</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+
+        <div class="modal-scrollable-body ion-padding" style="flex: 1; overflow-y: auto;">
+          <div class="filter-section">
+            <ion-label class="section-label">Nombre o Apellido</ion-label>
+            <ion-item lines="none" class="filter-input-container">
+              <ion-icon name="search-outline" color="primary" slot="start"></ion-icon>
+              <ion-input type="text" placeholder="Ej. Jesus Adrian" [(ngModel)]="filtros.busqueda"></ion-input>
+            </ion-item>
+          </div>
+
+          <div class="filter-section" style="margin-top: 15px;">
+            <ion-label class="section-label">Estatus de Registro</ion-label>
+            <ion-item lines="none" class="filter-input-container">
+              <ion-icon name="toggle-outline" color="primary" slot="start"></ion-icon>
+              <ion-select label="" placeholder="Selecciona estatus" [(ngModel)]="filtros.activo" interface="popover" style="width: 100%;">
+                <ion-select-option [value]="1">Activo</ion-select-option>
+                <ion-select-option [value]="0">Inactivo</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+        </div>
+
+        <ion-footer class="ion-no-border ion-padding" style="background: #ffffff;">
+          <ion-button 
+            expand="block" 
+            shape="round" 
+            color="primary" 
+            style="height: 56px; font-weight: 800; margin: 0 0 10px 0;"
+            (click)="aplicarFiltros(); filterModal.dismiss()">
+            BUSCAR USUARIO
+          </ion-button>
+        </ion-footer>
+        
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <div class="section-title">Usuarios Registrados</div>
+
+  <ng-container *ngIf="hasUsuarios(); else emptyStateTemplate">
+    <ion-accordion-group [multiple]="true">
+      <ion-accordion [value]="usuario.id" *ngFor="let usuario of usuariosFiltrados" class="custom-accordion">
+        
+        <ion-item slot="header" lines="none">
+          <ion-avatar slot="start">
+            <div class="avatar-text">{{ obtenerIniciales(usuario.nombre, usuario.apellido_paterno) }}</div>
+          </ion-avatar>
+          <ion-label>
+            <h2>{{ usuario.nombre }} {{ usuario.apellido_paterno }} {{ usuario.apellido_materno }}</h2>
+            <p>Usuario: &#64;{{ usuario.usuario }}</p>
+          </ion-label>
+        </ion-item>
+
+        <div slot="content" class="accordion-detail-container">
+          <div class="day-attendance-card">
+            <div class="card-top-row">
+              <div class="date-inline-box">
+                <span class="num-day">Correo Electrónico</span>
+                <span class="text-month" style="font-size: 14px; font-weight: 600; text-transform: none;">{{ usuario.email }}</span>
+              </div>
+              <div class="status-tags-container">
+                <span class="compact-status-tag" [ngClass]="usuario.activo === 1 ? 'success' : 'danger'">
+                  {{ usuario.activo === 1 ? 'Activo' : 'Inactivo' }}
+                </span>
+              </div>
+            </div>
+
+            <div style="margin-top: 10px; border-top: 1px dashed #eee; padding-top: 8px;">
+              <span style="font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; display: block; margin-bottom: 4px;">Roles asignados</span>
+              
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;" *ngIf="usuario.roles && usuario.roles.length > 0; else sinRolTemplate">
+                <ion-badge color="primary" mode="ios" style="font-weight: 700; padding: 6px 12px; font-size: 11px; text-transform: uppercase;" *ngFor="let unRol of usuario.roles">
+                  {{ unRol }}
+                </ion-badge>
+              </div>
+
+              <ng-template #sinRolTemplate>
+                <ion-badge color="medium" mode="ios" style="font-weight: 700; padding: 6px 12px; font-size: 11px;">
+                  Sin Rol asignado
+                </ion-badge>
+              </ng-template>
+            </div>
+            
+            <div class="lunch-section" style="margin-top: 12px; border-top: 1px dashed #ddd; padding-top: 12px;">
+              <div style="display: flex; justify-content: flex-end; gap: 10px; width: 100%;">
+                <ion-button size="small" fill="outline" color="primary" (click)="editUsuario(usuario)">
+                  <ion-icon slot="start" name="create-outline"></ion-icon>
+                  Editar
+                </ion-button>
+
+                <ion-button *ngIf="usuario.activo === 1" size="small" fill="outline" color="danger" (click)="deleteUsuario(usuario)">
+                  <ion-icon slot="start" name="trash-outline"></ion-icon>
+                  Eliminar
+                </ion-button>
+
+                <ion-button *ngIf="usuario.activo === 0" size="small" fill="outline" color="success" (click)="reactivarUsuario(usuario)">
+                  <ion-icon slot="start" name="refresh-outline"></ion-icon>
+                  Reactivar
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </ion-accordion>
+    </ion-accordion-group>
+  </ng-container>
+
+  <ng-template #emptyStateTemplate>
+    <div class="empty-state-container">
+      <div class="icon-bubble">
+        <ion-icon name="people-outline"></ion-icon>
+      </div>
+      <h3>Sin registros de usuarios</h3>
+      <p>No se encontraron usuarios con los filtros seleccionados en el servidor.</p>
+    </div>
+  </ng-template>
+
+  <ion-infinite-scroll (ionInfinite)="cargarMasUsuarios($event)" #infiniteScroll>
+    <ion-infinite-scroll-content 
+      loadingSpinner="bubbles" 
+      loadingText="Cargando más usuarios...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>
+
+<ion-fab slot="fixed" vertical="bottom" horizontal="end" class="ion-margin" *ngIf="puedeCrear || esAdmin">
+  <ion-fab-button color="primary" routerLink="nuevo">
+    <ion-icon name="add-outline"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
