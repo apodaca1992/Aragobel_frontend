@@ -24,7 +24,8 @@ export class FormUsuariosComponent implements OnInit {
     usuario_search: '',         
     activo: 1,
     tiendas_ids: [],            
-    roles: []                  
+    roles: [],
+    permisos: {} // 👈 Se inicializa la propiedad vacía
   };
 
   esEdicion: boolean = false;
@@ -54,6 +55,9 @@ export class FormUsuariosComponent implements OnInit {
       if (!this.usuario.roles) {
         this.usuario.roles = [];
       }
+      if (!this.usuario.permisos) {
+        this.usuario.permisos = {};
+      }
       this.esEdicion = true;
     } else {
       this.esEdicion = false;
@@ -72,10 +76,63 @@ export class FormUsuariosComponent implements OnInit {
     this._rolService.get().subscribe({
       next: (roles: any) => {
         this.listaRoles = Array.isArray(roles) ? roles : (roles?.data || []); 
+        
+        // Si estamos editando un usuario existente, recalculamos los permisos una vez
+        // que el catálogo de roles se cargue completamente en memoria.
+        if (this.esEdicion) {
+          this.onRolesChanged();
+        }
       },
       error: (err) => {
         console.error('Error al cargar catálogo de roles', err);
         this._toastService.show('No se pudieron cargar los roles desde el servidor', 'danger', 'alert-circle-outline');
+      }
+    });
+  }
+
+  // Algoritmo dinámico para la unión matemática de los mapeos de permisos
+  onRolesChanged() {
+    this.usuario.permisos = {};
+
+    if (!this.usuario.roles || this.usuario.roles.length === 0) {
+      return;
+    }
+
+    this.usuario.roles.forEach((rolId: string) => {
+      // Busca el rol correspondiente dentro de la lista de roles
+      const rolEncontrado = this.listaRoles.find(
+        (r) => String(r.id || r.slug || r.nombre).toUpperCase() === String(rolId).toUpperCase()
+      );
+
+      if (rolEncontrado && rolEncontrado.permisos) {
+        const modulos = Object.keys(rolEncontrado.permisos);
+
+        modulos.forEach((nombreModulo) => {
+          // Si el módulo no existe en las propiedades del usuario, se instancia la estructura básica
+          if (!this.usuario.permisos[nombreModulo]) {
+            this.usuario.permisos[nombreModulo] = {
+              acciones_modulo: [],
+              recursos_internos: []
+            };
+          }
+
+          const permisosRolModulo = rolEncontrado.permisos[nombreModulo];
+          const permisosUsuarioModulo = this.usuario.permisos[nombreModulo];
+
+          // Fusión de acciones de módulo mitigando valores repetidos
+          if (permisosRolModulo.acciones_modulo && Array.isArray(permisosRolModulo.acciones_modulo)) {
+            permisosUsuarioModulo.acciones_modulo = Array.from(
+              new Set([...permisosUsuarioModulo.acciones_modulo, ...permisosRolModulo.acciones_modulo])
+            );
+          }
+
+          // Fusión de recursos internos mitigando valores repetidos
+          if (permisosRolModulo.recursos_internos && Array.isArray(permisosRolModulo.recursos_internos)) {
+            permisosUsuarioModulo.recursos_internos = Array.from(
+              new Set([...permisosUsuarioModulo.recursos_internos, ...permisosRolModulo.recursos_internos])
+            );
+          }
+        });
       }
     });
   }

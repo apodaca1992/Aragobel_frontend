@@ -120,6 +120,7 @@
                 placeholder="Selecciona uno o más roles" 
                 name="rolesUsuario"
                 [(ngModel)]="usuario.roles" 
+                (ionChange)="onRolesChanged()"
                 multiple="true"
                 okText="Aceptar"
                 cancelText="Cancelar"
