@@ -16,9 +16,7 @@ export class FormColoniasComponent implements OnInit {
     nombre: '',
     nombre_search: '', // 👈 Campo espejo para indexación NoSQL (Firebase)
     activo: 1,
-    id_tienda: null,
-    id_usuario_creador: null,
-    nombre_usuario_creador: ''
+    id_tienda: null
   };
 
   esEdicion: boolean = false;
@@ -38,13 +36,13 @@ export class FormColoniasComponent implements OnInit {
       this.esEdicion = true;
     } else {
       this.esEdicion = false;
-      this.colonia.id_usuario_creador = await this._preferencesService.getIdUser();      
+      //this.colonia.id_usuario_creador = await this._preferencesService.getIdUser();      
       
       const userStr = await this._preferencesService.getItem('user');
       if (userStr) {
         const user = JSON.parse(userStr);
         this.colonia.id_tienda = user.id_tienda;
-        this.colonia.nombre_usuario_creador = user.nombre + ' ' + user.apellido_paterno + ' ' + user.apellido_materno;
+        //this.colonia.nombre_usuario_creador = user.nombre + ' ' + user.apellido_paterno + ' ' + user.apellido_materno;
       }    
     }
   }
