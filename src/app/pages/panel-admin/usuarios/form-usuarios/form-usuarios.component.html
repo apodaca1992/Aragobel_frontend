@@ -18,7 +18,7 @@
         <form (ngSubmit)="guardarUsuario()">
           
           <div class="input-group">
-            <ion-label class="input-label">Nombre(s)</ion-label>
+            <ion-label class="input-label">Nombre(s) *</ion-label>
             <ion-item lines="none" class="custom-input-item">
               <ion-icon name="person-outline" color="primary" slot="start"></ion-icon>
               <ion-input 
@@ -33,7 +33,7 @@
           </div>
 
           <div class="input-group">
-            <ion-label class="input-label">Apellido Paterno</ion-label>
+            <ion-label class="input-label">Apellido Paterno *</ion-label>
             <ion-item lines="none" class="custom-input-item">
               <ion-icon name="text-outline" color="primary" slot="start"></ion-icon>
               <ion-input 
@@ -62,7 +62,7 @@
           </div>
 
           <div class="input-group">
-            <ion-label class="input-label">Nombre de Usuario (Alias)</ion-label>
+            <ion-label class="input-label">Nombre de Usuario (Alias) *</ion-label>
             <ion-item lines="none" class="custom-input-item">
               <ion-icon name="at-outline" color="primary" slot="start"></ion-icon>
               <ion-input 
@@ -77,23 +77,29 @@
           </div>
 
           <div class="input-group">
-            <ion-label class="input-label">Correo Electrónico</ion-label>
-            <ion-item lines="none" class="custom-input-item">
+            <ion-label class="input-label">Correo Electrónico *</ion-label>
+            <ion-item lines="none" class="custom-input-item" [style.border-color]="emailCtrl.invalid && emailCtrl.dirty ? 'var(--ion-color-danger)' : ''">
               <ion-icon name="mail-outline" color="primary" slot="start"></ion-icon>
               <ion-input 
                 type="email" 
                 name="emailUsuario"
+                #emailCtrl="ngModel"
                 placeholder="Ej. correo&#64;dominio.com" 
                 [(ngModel)]="usuario.email"
                 required
+                pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                 clearInput="true">
               </ion-input>
             </ion-item>
+            <div *ngIf="emailCtrl.invalid && emailCtrl.dirty" style="color: var(--ion-color-danger); font-size: 0.75rem; margin-top: 4px; padding-left: 5px; font-weight: 500;">
+              <span *ngIf="emailCtrl.errors?.['required']">El correo electrónico es requerido.</span>
+              <span *ngIf="emailCtrl.errors?.['pattern']">Por favor ingresa un correo electrónico válido (Ej: usuario&#64;dominio.com).</span>
+            </div>
           </div>
 
           <div class="input-group">
             <ion-label class="input-label">
-              Contraseña {{ esEdicion ? '(Dejar en blanco para no cambiar)' : '' }}
+              Contraseña {{ esEdicion ? '(Dejar en blanco para no cambiar)' : '*' }}
             </ion-label>
             <ion-item lines="none" class="custom-input-item">
               <ion-icon name="lock-closed-outline" color="primary" slot="start"></ion-icon>
@@ -112,7 +118,7 @@
           </div>
 
           <div class="input-group">
-            <ion-label class="input-label">Roles Asignados</ion-label>
+            <ion-label class="input-label">Roles Asignados *</ion-label>
             <ion-item lines="none" class="custom-input-item">
               <ion-icon name="shield-checkmark-outline" color="primary" slot="start"></ion-icon>
               <ion-select 
@@ -163,17 +169,17 @@
                   <ion-row>
                     <ion-col size="6">
                       <div class="input-group">
-                        <ion-label class="input-label">Hora Entrada</ion-label>
+                        <ion-label class="input-label">Hora Entrada *</ion-label>
                         <ion-item lines="none" class="custom-input-item">
-                          <ion-input type="text" placeholder="21:00:00" name="entrada_actual" [(ngModel)]="usuario.tiendas_asignadas[0].hora_entrada"></ion-input>
+                          <ion-input type="text" placeholder="Ej. 09:00:00" name="entrada_actual" [(ngModel)]="usuario.tiendas_asignadas[0].hora_entrada" required></ion-input>
                         </ion-item>
                       </div>
                     </ion-col>
                     <ion-col size="6">
                       <div class="input-group">
-                        <ion-label class="input-label">Hora Salida</ion-label>
+                        <ion-label class="input-label">Hora Salida *</ion-label>
                         <ion-item lines="none" class="custom-input-item">
-                          <ion-input type="text" placeholder="05:30:00" name="salida_actual" [(ngModel)]="usuario.tiendas_asignadas[0].hora_salida"></ion-input>
+                          <ion-input type="text" placeholder="Ej. 18:00:00" name="salida_actual" [(ngModel)]="usuario.tiendas_asignadas[0].hora_salida" required></ion-input>
                         </ion-item>
                       </div>
                     </ion-col>
@@ -182,17 +188,17 @@
                   <ion-row>
                     <ion-col size="6">
                       <div class="input-group">
-                        <ion-label class="input-label">Días Desfase Salida</ion-label>
+                        <ion-label class="input-label">Días Desfase Salida *</ion-label>
                         <ion-item lines="none" class="custom-input-item">
-                          <ion-input type="number" name="desfase_actual" [(ngModel)]="usuario.tiendas_asignadas[0].dias_desfase"></ion-input>
+                          <ion-input type="number" placeholder="Ej. 0" name="desfase_actual" [(ngModel)]="usuario.tiendas_asignadas[0].dias_desfase" required></ion-input>
                         </ion-item>
                       </div>
                     </ion-col>
                     <ion-col size="6">
                       <div class="input-group">
-                        <ion-label class="input-label">Tolerancia (Mins)</ion-label>
+                        <ion-label class="input-label">Tolerancia (Mins) *</ion-label>
                         <ion-item lines="none" class="custom-input-item">
-                          <ion-input type="number" name="tolerancia_actual" [(ngModel)]="usuario.tiendas_asignadas[0].tolerancia_minutos"></ion-input>
+                          <ion-input type="number" placeholder="Ej. 15" name="tolerancia_actual" [(ngModel)]="usuario.tiendas_asignadas[0].tolerancia_minutos" required></ion-input>
                         </ion-item>
                       </div>
                     </ion-col>
@@ -201,10 +207,10 @@
 
                 <div *ngIf="usuario.tiendas_asignadas[0].tipo_esquema === 'LIBRE'">
                   <div class="input-group">
-                    <ion-label class="input-label">Jornada Efectiva Diaria (Horas)</ion-label>
+                    <ion-label class="input-label">Jornada Efectiva Diaria (Horas) *</ion-label>
                     <ion-item lines="none" class="custom-input-item">
                       <ion-icon name="time-outline" color="primary" slot="start"></ion-icon>
-                      <ion-input type="number" placeholder="Ej. 8" name="jornada_actual" [(ngModel)]="usuario.tiendas_asignadas[0].jornada_efectiva"></ion-input>
+                      <ion-input type="number" placeholder="Ej. 8" name="jornada_actual" [(ngModel)]="usuario.tiendas_asignadas[0].jornada_efectiva" required></ion-input>
                     </ion-item>
                   </div>
                 </div>
@@ -229,17 +235,17 @@
                     <ion-row>
                       <ion-col size="6">
                         <div class="input-group" style="margin-bottom: 5px;">
-                          <ion-label class="input-label" style="font-size: 0.75rem;">Inicio</ion-label>
+                          <ion-label class="input-label" style="font-size: 0.75rem;">Inicio *</ion-label>
                           <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
-                            <ion-input type="text" placeholder="14:00:00" [name]="'ini_com_' + iComida" [(ngModel)]="comida.hora_comida_inicio"></ion-input>
+                            <ion-input type="text" placeholder="Ej. 14:00:00" [name]="'ini_com_' + iComida" [(ngModel)]="comida.hora_comida_inicio" required></ion-input>
                           </ion-item>
                         </div>
                       </ion-col>
                       <ion-col size="6">
                         <div class="input-group" style="margin-bottom: 5px;">
-                          <ion-label class="input-label" style="font-size: 0.75rem;">Fin</ion-label>
+                          <ion-label class="input-label" style="font-size: 0.75rem;">Fin *</ion-label>
                           <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
-                            <ion-input type="text" placeholder="15:00:00" [name]="'fin_com_' + iComida" [(ngModel)]="comida.hora_comida_fin"></ion-input>
+                            <ion-input type="text" placeholder="Ej. 15:00:00" [name]="'fin_com_' + iComida" [(ngModel)]="comida.hora_comida_fin" required></ion-input>
                           </ion-item>
                         </div>
                       </ion-col>
@@ -248,17 +254,17 @@
                     <ion-row>
                       <ion-col size="6">
                         <div class="input-group" style="margin-bottom: 0;">
-                          <ion-label class="input-label" style="font-size: 0.75rem;">Desfase Inicio (Días)</ion-label>
+                          <ion-label class="input-label" style="font-size: 0.75rem;">Desfase Inicio (Días) *</ion-label>
                           <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
-                            <ion-input type="number" [name]="'des_ini_com_' + iComida" [(ngModel)]="comida.dias_desfase_comida_inicio"></ion-input>
+                            <ion-input type="number" placeholder="Ej. 0" [name]="'des_ini_com_' + iComida" [(ngModel)]="comida.dias_desfase_comida_inicio" required></ion-input>
                           </ion-item>
                         </div>
                       </ion-col>
                       <ion-col size="6">
                         <div class="input-group" style="margin-bottom: 0;">
-                          <ion-label class="input-label" style="font-size: 0.75rem;">Desfase Fin (Días)</ion-label>
+                          <ion-label class="input-label" style="font-size: 0.75rem;">Desfase Fin (Días) *</ion-label>
                           <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
-                            <ion-input type="number" [name]="'des_fin_com_' + iComida" [(ngModel)]="comida.dias_desfase_comida_fin"></ion-input>
+                            <ion-input type="number" placeholder="Ej. 0" [name]="'des_fin_com_' + iComida" [(ngModel)]="comida.dias_desfase_comida_fin" required></ion-input>
                           </ion-item>
                         </div>
                       </ion-col>
@@ -267,10 +273,10 @@
 
                   <div *ngIf="usuario.tiendas_asignadas[0].tipo_esquema === 'LIBRE'">
                     <div class="input-group" style="margin-bottom: 0;">
-                      <ion-label class="input-label" style="font-size: 0.75rem;">Tiempo Máximo Permitido (Horas)</ion-label>
+                      <ion-label class="input-label" style="font-size: 0.75rem;">Tiempo Máximo Permitido (Horas) *</ion-label>
                       <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
                         <ion-icon name="hourglass-outline" color="primary" slot="start" style="font-size: 1rem; margin-right: 5px;"></ion-icon>
-                        <ion-input type="number" placeholder="Ej. 1" [name]="'max_com_' + iComida" [(ngModel)]="comida.tiempo_comida_max"></ion-input>
+                        <ion-input type="number" placeholder="Ej. 1.5" [name]="'max_com_' + iComida" [(ngModel)]="comida.tiempo_comida_max" required></ion-input>
                       </ion-item>
                     </div>
                   </div>
@@ -287,7 +293,7 @@
               color="primary" 
               type="submit"
               class="btn-submit"
-              [disabled]="!usuario.nombre || !usuario.apellido_paterno || !usuario.usuario || !usuario.email || (!esEdicion && !usuario.contrasena) || !usuario.roles || usuario.roles.length === 0">
+              [disabled]="!usuario.nombre || !usuario.apellido_paterno || !usuario.usuario || !usuario.email || emailCtrl.invalid || (!esEdicion && !usuario.contrasena) || !usuario.roles || usuario.roles.length === 0 || esHorarioInvalido()">
               <ion-icon slot="start" name="save-outline"></ion-icon>
               {{ esEdicion ? 'GUARDAR CAMBIOS' : 'REGISTRAR USUARIO' }}
             </ion-button>
