@@ -111,7 +111,6 @@
             </ion-item>
           </div>
 
-          <!-- Selector de Roles -->
           <div class="input-group">
             <ion-label class="input-label">Roles Asignados</ion-label>
             <ion-item lines="none" class="custom-input-item">
@@ -134,7 +133,6 @@
             </ion-item>
           </div>
 
-          <!-- CONFIGURACIÓN DE HORARIOS DIRECTA (Tienda Actual) -->
           <div class="horarios-config-section" *ngIf="usuario.tiendas_asignadas && usuario.tiendas_asignadas.length > 0">
             <div class="section-divider" style="margin: 20px 0 10px 0; text-align: center; border-bottom: 1px dashed var(--ion-color-medium); padding-bottom: 5px;">
               <span style="font-size: 0.8rem; font-weight: bold; color: var(--ion-color-medium); letter-spacing: 1px;">CONFIGURACIÓN DE HORARIO LABORAL</span>
@@ -149,7 +147,6 @@
               </ion-card-header>
 
               <ion-card-content style="padding: 15px;">
-                <!-- Selección de Tipo de Esquema (Simplificado a solo "Fijo" y "Libre") -->
                 <div class="input-group" style="margin-bottom: 15px;">
                   <ion-label class="input-label" style="display: block; margin-bottom: 5px; font-weight: 500;">Modalidad de Esquema</ion-label>
                   <ion-segment [(ngModel)]="usuario.tiendas_asignadas[0].tipo_esquema" name="esquema_actual" color="primary">
@@ -162,7 +159,6 @@
                   </ion-segment>
                 </div>
 
-                <!-- ================= ESCENARIO: HORARIO FIJO ================= -->
                 <div *ngIf="usuario.tiendas_asignadas[0].tipo_esquema === 'FIJO'">
                   <ion-row>
                     <ion-col size="6">
@@ -203,7 +199,6 @@
                   </ion-row>
                 </div>
 
-                <!-- ================= ESCENARIO: HORARIO LIBRE ================= -->
                 <div *ngIf="usuario.tiendas_asignadas[0].tipo_esquema === 'LIBRE'">
                   <div class="input-group">
                     <ion-label class="input-label">Jornada Efectiva Diaria (Horas)</ion-label>
@@ -214,16 +209,14 @@
                   </div>
                 </div>
 
-                <!-- ================= CONFIGURACIÓN MÚLTIPLE DE COMIDAS ================= -->
                 <div class="comidas-header" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; margin-bottom: 8px;">
-                  <span style="font-weight: bold; color: var(--ion-color-medium); font-size: 0.85rem;">TIEMPOS DE COMIDA ({{ usuario.tiendas_asignadas[0].config_comidas?.length || 0 }})</span>
+                  <span style="font-weight: bold; color: var(--ion-color-medium); font-size: 0.85rem;">TIEMPOS DE COMIDA / DESCANSO ({{ usuario.tiendas_asignadas[0].config_comidas?.length || 0 }})</span>
                   <ion-button fill="clear" size="small" (click)="agregarComida(usuario.tiendas_asignadas[0])">
                     <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-                    Agregar Comida
+                    Agregar Tiempo
                   </ion-button>
                 </div>
 
-                <!-- Listado Dinámico de Comidas de la Tienda -->
                 <div *ngFor="let comida of usuario.tiendas_asignadas[0].config_comidas; let iComida = index" class="comida-item-row" style="background: #f4f5f8; padding: 10px; border-radius: 8px; margin-bottom: 10px; position: relative;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <strong style="font-size: 0.85rem; color: var(--ion-color-primary);">{{ comida.nombre }}</strong>
@@ -232,50 +225,61 @@
                     </ion-button>
                   </div>
 
-                  <ion-row>
-                    <ion-col size="6">
-                      <div class="input-group" style="margin-bottom: 5px;">
-                        <ion-label class="input-label" style="font-size: 0.75rem;">Inicio Comida</ion-label>
-                        <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
-                          <ion-input type="text" placeholder="02:00:00" [name]="'ini_com_' + iComida" [(ngModel)]="comida.hora_comida_inicio"></ion-input>
-                        </ion-item>
-                      </div>
-                    </ion-col>
-                    <ion-col size="6">
-                      <div class="input-group" style="margin-bottom: 5px;">
-                        <ion-label class="input-label" style="font-size: 0.75rem;">Fin Comida</ion-label>
-                        <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
-                          <ion-input type="text" placeholder="03:00:00" [name]="'fin_com_' + iComida" [(ngModel)]="comida.hora_comida_fin"></ion-input>
-                        </ion-item>
-                      </div>
-                    </ion-col>
-                  </ion-row>
+                  <div *ngIf="usuario.tiendas_asignadas[0].tipo_esquema === 'FIJO'">
+                    <ion-row>
+                      <ion-col size="6">
+                        <div class="input-group" style="margin-bottom: 5px;">
+                          <ion-label class="input-label" style="font-size: 0.75rem;">Inicio</ion-label>
+                          <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
+                            <ion-input type="text" placeholder="14:00:00" [name]="'ini_com_' + iComida" [(ngModel)]="comida.hora_comida_inicio"></ion-input>
+                          </ion-item>
+                        </div>
+                      </ion-col>
+                      <ion-col size="6">
+                        <div class="input-group" style="margin-bottom: 5px;">
+                          <ion-label class="input-label" style="font-size: 0.75rem;">Fin</ion-label>
+                          <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
+                            <ion-input type="text" placeholder="15:00:00" [name]="'fin_com_' + iComida" [(ngModel)]="comida.hora_comida_fin"></ion-input>
+                          </ion-item>
+                        </div>
+                      </ion-col>
+                    </ion-row>
 
-                  <ion-row>
-                    <ion-col size="6">
-                      <div class="input-group" style="margin-bottom: 0;">
-                        <ion-label class="input-label" style="font-size: 0.75rem;">Desfase Inicio (Días)</ion-label>
-                        <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
-                          <ion-input type="number" [name]="'des_ini_com_' + iComida" [(ngModel)]="comida.dias_desfase_comida_inicio"></ion-input>
-                        </ion-item>
-                      </div>
-                    </ion-col>
-                    <ion-col size="6">
-                      <div class="input-group" style="margin-bottom: 0;">
-                        <ion-label class="input-label" style="font-size: 0.75rem;">Desfase Fin (Días)</ion-label>
-                        <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
-                          <ion-input type="number" [name]="'des_fin_com_' + iComida" [(ngModel)]="comida.dias_desfase_comida_fin"></ion-input>
-                        </ion-item>
-                      </div>
-                    </ion-col>
-                  </ion-row>
+                    <ion-row>
+                      <ion-col size="6">
+                        <div class="input-group" style="margin-bottom: 0;">
+                          <ion-label class="input-label" style="font-size: 0.75rem;">Desfase Inicio (Días)</ion-label>
+                          <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
+                            <ion-input type="number" [name]="'des_ini_com_' + iComida" [(ngModel)]="comida.dias_desfase_comida_inicio"></ion-input>
+                          </ion-item>
+                        </div>
+                      </ion-col>
+                      <ion-col size="6">
+                        <div class="input-group" style="margin-bottom: 0;">
+                          <ion-label class="input-label" style="font-size: 0.75rem;">Desfase Fin (Días)</ion-label>
+                          <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
+                            <ion-input type="number" [name]="'des_fin_com_' + iComida" [(ngModel)]="comida.dias_desfase_comida_fin"></ion-input>
+                          </ion-item>
+                        </div>
+                      </ion-col>
+                    </ion-row>
+                  </div>
+
+                  <div *ngIf="usuario.tiendas_asignadas[0].tipo_esquema === 'LIBRE'">
+                    <div class="input-group" style="margin-bottom: 0;">
+                      <ion-label class="input-label" style="font-size: 0.75rem;">Tiempo Máximo Permitido (Horas)</ion-label>
+                      <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
+                        <ion-icon name="hourglass-outline" color="primary" slot="start" style="font-size: 1rem; margin-right: 5px;"></ion-icon>
+                        <ion-input type="number" placeholder="Ej. 1" [name]="'max_com_' + iComida" [(ngModel)]="comida.tiempo_comida_max"></ion-input>
+                      </ion-item>
+                    </div>
+                  </div>
+
                 </div>
-
               </ion-card-content>
             </ion-card>
           </div>
 
-          <!-- Botones de Acción -->
           <div class="action-buttons-container" style="margin-top: 25px;">
             <ion-button 
               expand="block" 

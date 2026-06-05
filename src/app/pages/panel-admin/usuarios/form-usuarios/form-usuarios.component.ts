@@ -139,21 +139,27 @@ export class FormUsuariosComponent implements OnInit {
     });
   }
 
-  // AQUÍ SE CORRIGIÓ EL TEXTO PARA LA NUEVA TARJETA
+  // Se modificó para inicializar el objeto según el tipo de esquema activo
   agregarComida(tienda: any) {
     if (!tienda || !tienda.config_comidas) return;
     
     const numeroComida = tienda.config_comidas.length + 1;
-    tienda.config_comidas.push({
-      nombre: `Comida/Descanso ${numeroComida}`,
-      hora_comida_inicio: '14:00:00',
-      hora_comida_fin: '15:00:00',
-      dias_desfase_comida_inicio: 0,
-      dias_desfase_comida_fin: 0
-    });
+    const nuevaComida: any = {
+      nombre: `Comida/Descanso ${numeroComida}`
+    };
+
+    if (tienda.tipo_esquema === 'LIBRE') {
+      nuevaComida.tiempo_comida_max = 1; // 1 hora asignada por defecto para esquema libre
+    } else {
+      nuevaComida.hora_comida_inicio = '14:00:00';
+      nuevaComida.hora_comida_fin = '15:00:00';
+      nuevaComida.dias_desfase_comida_inicio = 0;
+      nuevaComida.dias_desfase_comida_fin = 0;
+    }
+
+    tienda.config_comidas.push(nuevaComida);
   }
 
-  // AQUÍ SE CORRIGIÓ EL TEXTO AL REORDENAR DESPUÉS DE ELIMINAR
   removerComida(tienda: any, index: number) {
     if (!tienda || !tienda.config_comidas) return;
     
@@ -193,13 +199,33 @@ export class FormUsuariosComponent implements OnInit {
 
     if (this.usuario.tiendas_asignadas && this.usuario.tiendas_asignadas.length > 0) {
       const tiendaActual = this.usuario.tiendas_asignadas[0];
+      
       if (tiendaActual.tipo_esquema === 'LIBRE') {
+        // Limpiar parámetros innecesarios de horario Fijo principal
         delete tiendaActual.hora_entrada;
         delete tiendaActual.hora_salida;
         delete tiendaActual.dias_desfase;
         delete tiendaActual.tolerancia_minutos;
+
+        // Limpiar parámetros fijos dentro del arreglo de comidas/descansos
+        if (tiendaActual.config_comidas) {
+          tiendaActual.config_comidas.forEach((comida: any) => {
+            delete comida.hora_comida_inicio;
+            delete comida.hora_comida_fin;
+            delete comida.dias_desfase_comida_inicio;
+            delete comida.dias_desfase_comida_fin;
+          });
+        }
       } else {
+        // Limpiar parámetros innecesarios de horario Libre principal
         delete tiendaActual.jornada_efectiva;
+
+        // Limpiar parámetros libres dentro del arreglo de comidas/descansos
+        if (tiendaActual.config_comidas) {
+          tiendaActual.config_comidas.forEach((comida: any) => {
+            delete comida.tiempo_comida_max;
+          });
+        }
       }
     }
 
