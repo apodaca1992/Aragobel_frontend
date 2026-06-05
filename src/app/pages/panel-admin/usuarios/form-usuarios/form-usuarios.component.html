@@ -167,15 +167,18 @@
 
                 <div *ngIf="usuario.tiendas_asignadas[0].tipo_esquema === 'FIJO'">
                   <ion-row class="ion-align-items-center">
+                    
                     <ion-col size="6">
                       <div class="input-group">
                         <ion-label class="input-label">Hora Entrada *</ion-label>
-                        <div class="datetime-picker-wrapper">
-                          <ion-datetime-button datetime="horaEntradaPicker"></ion-datetime-button>
-                          <ion-modal [keepContentsMounted]="true">
-                            <ng-template>
+                        <ion-item lines="none" class="custom-input-item" id="open-entrada-picker" style="border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; height: 42px; min-height: 42px;">
+                          <ion-input type="text" readonly="true" placeholder="Ej. 09:00:00" name="entrada_actual_view" [(ngModel)]="usuario.tiendas_asignadas[0].hora_entrada" style="cursor: pointer;"></ion-input>
+                        </ion-item>
+                        
+                        <ion-modal trigger="open-entrada-picker" [initialBreakpoint]="0.4" [breakpoints]="[0, 0.4]">
+                          <ng-template>
+                            <ion-content class="ion-padding ion-text-center">
                               <ion-datetime 
-                                id="horaEntradaPicker" 
                                 presentation="time" 
                                 preferWheel="true"
                                 hourCycle="h23"
@@ -184,22 +187,26 @@
                                 cancelText="Cancelar"
                                 showDefaultButtons="true"
                                 name="entrada_actual"
-                                [(ngModel)]="usuario.tiendas_asignadas[0].hora_entrada">
+                                [(ngModel)]="usuario.tiendas_asignadas[0].hora_entrada"
+                                (ionChange)="usuario.tiendas_asignadas[0].hora_entrada = limpiarHoraInstantanea($event)">
                               </ion-datetime>
-                            </ng-template>
-                          </ion-modal>
-                        </div>
+                            </ion-content>
+                          </ng-template>
+                        </ion-modal>
                       </div>
                     </ion-col>
+
                     <ion-col size="6">
                       <div class="input-group">
                         <ion-label class="input-label">Hora Salida *</ion-label>
-                        <div class="datetime-picker-wrapper">
-                          <ion-datetime-button datetime="horaSalidaPicker"></ion-datetime-button>
-                          <ion-modal [keepContentsMounted]="true">
-                            <ng-template>
+                        <ion-item lines="none" class="custom-input-item" id="open-salida-picker" style="border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; height: 42px; min-height: 42px;">
+                          <ion-input type="text" readonly="true" placeholder="Ej. 18:00:00" name="salida_actual_view" [(ngModel)]="usuario.tiendas_asignadas[0].hora_salida" style="cursor: pointer;"></ion-input>
+                        </ion-item>
+                        
+                        <ion-modal trigger="open-salida-picker" [initialBreakpoint]="0.4" [breakpoints]="[0, 0.4]">
+                          <ng-template>
+                            <ion-content class="ion-padding ion-text-center">
                               <ion-datetime 
-                                id="horaSalidaPicker" 
                                 presentation="time" 
                                 preferWheel="true"
                                 hourCycle="h23"
@@ -208,11 +215,12 @@
                                 cancelText="Cancelar"
                                 showDefaultButtons="true"
                                 name="salida_actual"
-                                [(ngModel)]="usuario.tiendas_asignadas[0].hora_salida">
+                                [(ngModel)]="usuario.tiendas_asignadas[0].hora_salida"
+                                (ionChange)="usuario.tiendas_asignadas[0].hora_salida = limpiarHoraInstantanea($event)">
                               </ion-datetime>
-                            </ng-template>
-                          </ion-modal>
-                        </div>
+                            </ion-content>
+                          </ng-template>
+                        </ion-modal>
                       </div>
                     </ion-col>
                   </ion-row>
@@ -221,7 +229,7 @@
                     <ion-col size="6">
                       <div class="input-group">
                         <ion-label class="input-label">Días Desfase Salida *</ion-label>
-                        <ion-item lines="none" class="custom-input-item">
+                        <ion-item lines="none" class="custom-input-item" style="border: 1px solid #e2e8f0; border-radius: 8px;">
                           <ion-input type="number" placeholder="Ej. 0" name="desfase_actual" [(ngModel)]="usuario.tiendas_asignadas[0].dias_desfase" required></ion-input>
                         </ion-item>
                       </div>
@@ -229,7 +237,7 @@
                     <ion-col size="6">
                       <div class="input-group">
                         <ion-label class="input-label">Tolerancia (Mins) *</ion-label>
-                        <ion-item lines="none" class="custom-input-item">
+                        <ion-item lines="none" class="custom-input-item" style="border: 1px solid #e2e8f0; border-radius: 8px;">
                           <ion-input type="number" placeholder="Ej. 15" name="tolerancia_actual" [(ngModel)]="usuario.tiendas_asignadas[0].tolerancia_minutos" required></ion-input>
                         </ion-item>
                       </div>
@@ -247,33 +255,48 @@
                   </div>
                 </div>
 
-                <div class="comidas-header" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; margin-bottom: 8px;">
-                  <span style="font-weight: bold; color: var(--ion-color-medium); font-size: 0.85rem;">TIEMPOS DE COMIDA / DESCANSO ({{ usuario.tiendas_asignadas[0].config_comidas?.length || 0 }})</span>
-                  <ion-button fill="clear" size="small" (click)="agregarComida(usuario.tiendas_asignadas[0])">
-                    <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-                    Agregar Tiempo
-                  </ion-button>
-                </div>
-
-                <div *ngFor="let comida of usuario.tiendas_asignadas[0].config_comidas; let iComida = index" class="comida-item-row" style="background: #f4f5f8; padding: 10px; border-radius: 8px; margin-bottom: 10px; position: relative;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <strong style="font-size: 0.85rem; color: var(--ion-color-primary);">{{ comida.nombre }}</strong>
-                    <ion-button fill="clear" color="danger" size="small" style="margin: 0; height: 20px;" (click)="removerComida(usuario.tiendas_asignadas[0], iComida)">
-                      <ion-icon slot="icon-only" name="trash-outline"></ion-icon> 
+                <ion-row class="ion-align-items-center" style="margin-top: 15px; margin-bottom: 10px;">
+                  <ion-col size="7">
+                    <span style="font-weight: bold; color: var(--ion-color-medium); font-size: 0.85rem; text-transform: uppercase;">
+                      Tiempos de Comida / Descanso ({{ usuario.tiendas_asignadas[0].config_comidas?.length || 0 }})
+                    </span>
+                  </ion-col>
+                  <ion-col size="5" class="ion-text-end">
+                    <ion-button fill="clear" size="small" (click)="agregarComida(usuario.tiendas_asignadas[0])" style="font-size: 0.75rem; font-weight: bold; --padding-start: 0; --padding-end: 0;">
+                      <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+                      AGREGAR TIEMPO
                     </ion-button>
-                  </div>
+                  </ion-col>
+                </ion-row>
+
+                <div *ngFor="let comida of usuario.tiendas_asignadas[0].config_comidas; let iComida = index" 
+                     style="background: #f4f5f8; padding: 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #eef0f4;">
+                  
+                  <ion-row class="ion-align-items-center" style="margin-bottom: 5px;">
+                    <ion-col size="10">
+                      <strong style="font-size: 0.85rem; color: var(--ion-color-primary);">{{ comida.nombre }}</strong>
+                    </ion-col>
+                    <ion-col size="2" class="ion-text-end">
+                      <ion-button fill="clear" color="danger" size="small" style="margin: 0; padding: 0; height: 24px;" (click)="removerComida(usuario.tiendas_asignadas[0], iComida)">
+                        <ion-icon slot="icon-only" name="trash-outline" style="font-size: 1.1rem;"></ion-icon> 
+                      </ion-button>
+                    </ion-col>
+                  </ion-row>
 
                   <div *ngIf="usuario.tiendas_asignadas[0].tipo_esquema === 'FIJO'">
                     <ion-row class="ion-align-items-center">
+                      
                       <ion-col size="6">
                         <div class="input-group" style="margin-bottom: 5px;">
-                          <ion-label class="input-label" style="font-size: 0.75rem;">Inicio *</ion-label>
-                          <div class="datetime-picker-wrapper small-picker">
-                            <ion-datetime-button [attr.datetime]="'comidaInicioPicker_' + iComida"></ion-datetime-button>
-                            <ion-modal [keepContentsMounted]="true">
-                              <ng-template>
+                          <ion-label class="input-label" style="font-size: 0.75rem;">INICIO *</ion-label>
+                          <ion-item lines="none" class="custom-input-item" [id]="'open-picker-ini-' + iComida" style="--background: #fff; min-height: 38px; height: 38px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer;">
+                            <ion-input type="text" readonly="true" placeholder="Ej. 14:00:00" [name]="'ini_com_view_' + iComida" [(ngModel)]="comida.hora_comida_inicio" style="cursor: pointer;"></ion-input>
+                          </ion-item>
+                          
+                          <ion-modal [trigger]="'open-picker-ini-' + iComida" [initialBreakpoint]="0.4" [breakpoints]="[0, 0.4]">
+                            <ng-template>
+                              <ion-content class="ion-padding ion-text-center">
                                 <ion-datetime 
-                                  [id]="'comidaInicioPicker_' + iComida" 
                                   presentation="time" 
                                   preferWheel="true"
                                   hourCycle="h23"
@@ -282,22 +305,26 @@
                                   cancelText="Cancelar"
                                   showDefaultButtons="true"
                                   [name]="'ini_com_' + iComida" 
-                                  [(ngModel)]="comida.hora_comida_inicio">
+                                  [(ngModel)]="comida.hora_comida_inicio"
+                                  (ionChange)="comida.hora_comida_inicio = limpiarHoraInstantanea($event)">
                                 </ion-datetime>
-                              </ng-template>
-                            </ion-modal>
-                          </div>
+                              </ion-content>
+                            </ng-template>
+                          </ion-modal>
                         </div>
                       </ion-col>
+
                       <ion-col size="6">
                         <div class="input-group" style="margin-bottom: 5px;">
-                          <ion-label class="input-label" style="font-size: 0.75rem;">Fin *</ion-label>
-                          <div class="datetime-picker-wrapper small-picker">
-                            <ion-datetime-button [attr.datetime]="'comidaFinPicker_' + iComida"></ion-datetime-button>
-                            <ion-modal [keepContentsMounted]="true">
-                              <ng-template>
+                          <ion-label class="input-label" style="font-size: 0.75rem;">FIN *</ion-label>
+                          <ion-item lines="none" class="custom-input-item" [id]="'open-picker-fin-' + iComida" style="--background: #fff; min-height: 38px; height: 38px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer;">
+                            <ion-input type="text" readonly="true" placeholder="Ej. 15:00:00" [name]="'fin_com_view_' + iComida" [(ngModel)]="comida.hora_comida_fin" style="cursor: pointer;"></ion-input>
+                          </ion-item>
+                          
+                          <ion-modal [trigger]="'open-picker-fin-' + iComida" [initialBreakpoint]="0.4" [breakpoints]="[0, 0.4]">
+                            <ng-template>
+                              <ion-content class="ion-padding ion-text-center">
                                 <ion-datetime 
-                                  [id]="'comidaFinPicker_' + iComida" 
                                   presentation="time" 
                                   preferWheel="true"
                                   hourCycle="h23"
@@ -306,11 +333,12 @@
                                   cancelText="Cancelar"
                                   showDefaultButtons="true"
                                   [name]="'fin_com_' + iComida" 
-                                  [(ngModel)]="comida.hora_comida_fin">
+                                  [(ngModel)]="comida.hora_comida_fin"
+                                  (ionChange)="comida.hora_comida_fin = limpiarHoraInstantanea($event)">
                                 </ion-datetime>
-                              </ng-template>
-                            </ion-modal>
-                          </div>
+                              </ion-content>
+                            </ng-template>
+                          </ion-modal>
                         </div>
                       </ion-col>
                     </ion-row>
@@ -318,16 +346,16 @@
                     <ion-row>
                       <ion-col size="6">
                         <div class="input-group" style="margin-bottom: 0;">
-                          <ion-label class="input-label" style="font-size: 0.75rem;">Desfase Inicio (Días) *</ion-label>
-                          <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
+                          <ion-label class="input-label" style="font-size: 0.75rem;">DESFASE INICIO (DÍAS) *</ion-label>
+                          <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 38px; height: 38px; border: 1px solid #e2e8f0; border-radius: 8px;">
                             <ion-input type="number" placeholder="Ej. 0" [name]="'des_ini_com_' + iComida" [(ngModel)]="comida.dias_desfase_comida_inicio" required></ion-input>
                           </ion-item>
                         </div>
                       </ion-col>
                       <ion-col size="6">
                         <div class="input-group" style="margin-bottom: 0;">
-                          <ion-label class="input-label" style="font-size: 0.75rem;">Desfase Fin (Días) *</ion-label>
-                          <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
+                          <ion-label class="input-label" style="font-size: 0.75rem;">DESFASE FIN (DÍAS) *</ion-label>
+                          <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 38px; height: 38px; border: 1px solid #e2e8f0; border-radius: 8px;">
                             <ion-input type="number" placeholder="Ej. 0" [name]="'des_fin_com_' + iComida" [(ngModel)]="comida.dias_desfase_comida_fin" required></ion-input>
                           </ion-item>
                         </div>
@@ -337,8 +365,8 @@
 
                   <div *ngIf="usuario.tiendas_asignadas[0].tipo_esquema === 'LIBRE'">
                     <div class="input-group" style="margin-bottom: 0;">
-                      <ion-label class="input-label" style="font-size: 0.75rem;">Tiempo Máximo Permitido (Horas) *</ion-label>
-                      <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
+                      <ion-label class="input-label" style="font-size: 0.75rem;">TIEMPO MÁXIMO PERMITIDO (HORAS) *</ion-label>
+                      <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 38px; height: 38px; border: 1px solid #e2e8f0; border-radius: 8px;">
                         <ion-icon name="hourglass-outline" color="primary" slot="start" style="font-size: 1rem; margin-right: 5px;"></ion-icon>
                         <ion-input type="number" placeholder="Ej. 1.5" [name]="'max_com_' + iComida" [(ngModel)]="comida.tiempo_comida_max" required></ion-input>
                       </ion-item>

@@ -82,10 +82,10 @@ export class FormUsuariosComponent implements OnInit {
       id_tienda: idTienda,
       nombre: nombreTienda,
       tipo_esquema: 'FIJO',
-      hora_entrada: '09:00:00',       
-      hora_salida: '18:00:00',          
-      dias_desfase: '0',        
-      tolerancia_minutos: '15',  
+      hora_entrada: '',       
+      hora_salida: '',          
+      dias_desfase: '',        
+      tolerancia_minutos: '',  
       jornada_efectiva: null,    
       config_comidas: [] 
     }];
@@ -152,12 +152,12 @@ export class FormUsuariosComponent implements OnInit {
     };
 
     if (tienda.tipo_esquema === 'LIBRE') {
-      nuevaComida.tiempo_comida_max = null; 
+      nuevaComida.tiempo_comida_max = ''; 
     } else {
-      nuevaComida.hora_comida_inicio = '14:00:00'; 
-      nuevaComida.hora_comida_fin = '15:00:00';      
-      nuevaComida.dias_desfase_comida_inicio = 0; 
-      nuevaComida.dias_desfase_comida_fin = 0;    
+      nuevaComida.hora_comida_inicio = ''; 
+      nuevaComida.hora_comida_fin = '';      
+      nuevaComida.dias_desfase_comida_inicio = ''; 
+      nuevaComida.dias_desfase_comida_fin = '';    
     }
 
     tienda.config_comidas.push(nuevaComida);
@@ -213,20 +213,16 @@ export class FormUsuariosComponent implements OnInit {
     return false;
   }
 
-  // FUNCIÓN AUXILIAR ESTRICTA PARA EXTRAER SOLAMENTE "HH:mm:ss"
   private limpiarFormatoHora(valorHora: any): string {
     if (!valorHora) return '00:00:00';
     
     const cadena = String(valorHora).trim();
     
-    // Si viene un formato ISO completo (ej: 2026-06-04T18:06:00-06:00)
     if (cadena.includes('T')) {
-      const parteTiempo = cadena.split('T')[1]; // Nos quedamos con "18:06:00-06:00"
-      const tiempoLimpio = parteTiempo.substring(0, 8); // Extraemos exactamente "18:06:00"
-      return tiempoLimpio;
+      const parteTiempo = cadena.split('T')[1]; 
+      return parteTiempo.substring(0, 8); 
     }
     
-    // Si viene solo tiempo parcial o completo (ej: "18:06" o "18:06:00")
     const partes = cadena.split(':');
     if (partes.length === 2) {
       return `${cadena}:00`;
@@ -235,6 +231,22 @@ export class FormUsuariosComponent implements OnInit {
     }
     
     return cadena;
+  }
+
+  /**
+   * Limpia el valor ISO emitido por ion-datetime en tiempo real
+   * evitando que se visualicen fechas en las cajas de texto de los horarios.
+   */
+  limpiarHoraInstantanea(event: any): string {
+    const valor = event.detail.value;
+    if (!valor) return '';
+
+    if (String(valor).includes('T')) {
+      const parteTiempo = String(valor).split('T')[1];
+      return parteTiempo.substring(0, 8); // Devuelve exclusivamente "HH:mm:ss"
+    }
+    
+    return valor;
   }
 
   async guardarUsuario() {
@@ -285,7 +297,6 @@ export class FormUsuariosComponent implements OnInit {
     if (datosEnviar.tiendas_asignadas && datosEnviar.tiendas_asignadas.length > 0) {
       const tiendaActual = datosEnviar.tiendas_asignadas[0];
       
-      // PROCESADO Y LIMPIEZA INMEDIATA DE DATETIME ISO A STRING TIME SEGURO (HH:mm:ss)
       if (tiendaActual.tipo_esquema === 'FIJO') {
         tiendaActual.hora_entrada = this.limpiarFormatoHora(tiendaActual.hora_entrada);
         tiendaActual.hora_salida = this.limpiarFormatoHora(tiendaActual.hora_salida);
@@ -302,7 +313,6 @@ export class FormUsuariosComponent implements OnInit {
             delete comida.dias_desfase_comida_fin;
             comida.tiempo_comida_max = Number(comida.tiempo_comida_max);
           } else {
-            // Limpieza estricta de las horas de comida
             comida.hora_comida_inicio = this.limpiarFormatoHora(comida.hora_comida_inicio);
             comida.hora_comida_fin = this.limpiarFormatoHora(comida.hora_comida_fin);
             
