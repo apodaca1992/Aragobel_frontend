@@ -25,7 +25,8 @@ export class FormUsuariosComponent implements OnInit {
     activo: 1,
     tiendas_ids: [],            
     roles: [],
-    permisos: {} // 👈 Se inicializa la propiedad vacía
+    permisos: {},
+    tiendas_asignadas: [] 
   };
 
   esEdicion: boolean = false;
@@ -49,15 +50,15 @@ export class FormUsuariosComponent implements OnInit {
       this.usuario = { ...state['usuario'] };
       this.usuario.contrasena = ''; 
       
-      if (!this.usuario.tiendas_ids) {
-        this.usuario.tiendas_ids = [];
+      if (!this.usuario.tiendas_ids) this.usuario.tiendas_ids = [];
+      if (!this.usuario.roles) this.usuario.roles = [];
+      if (!this.usuario.permisos) this.usuario.permisos = {};
+      if (!this.usuario.tiendas_asignadas) this.usuario.tiendas_asignadas = [];
+      
+      if (this.usuario.tiendas_asignadas.length === 0 && this.usuario.tiendas_ids.length > 0) {
+        this.inicializarTiendaActual(this.usuario.tiendas_ids[0], 'Tienda Actual');
       }
-      if (!this.usuario.roles) {
-        this.usuario.roles = [];
-      }
-      if (!this.usuario.permisos) {
-        this.usuario.permisos = {};
-      }
+      
       this.esEdicion = true;
     } else {
       this.esEdicion = false;
@@ -66,19 +67,34 @@ export class FormUsuariosComponent implements OnInit {
       if (userStr) {
         const user = JSON.parse(userStr);
         if (user.id_tienda) {
-          this.usuario.tiendas_ids = [String(user.id_tienda)];
+          const idTiendaDefecto = String(user.id_tienda);
+          const nombreTiendaDefecto = user.nombre_tienda || 'Tienda Principal';
+          
+          this.inicializarTiendaActual(idTiendaDefecto, nombreTiendaDefecto);
         }
       }    
     }
+  }
+
+  inicializarTiendaActual(idTienda: string, nombreTienda: string) {
+    this.usuario.tiendas_ids = [idTienda];
+    this.usuario.tiendas_asignadas = [{
+      id_tienda: idTienda,
+      nombre: nombreTienda,
+      tipo_esquema: 'FIJO',
+      hora_entrada: '09:00:00',
+      hora_salida: '18:00:00',
+      dias_desfase: 0,
+      tolerancia_minutos: 15,
+      jornada_efectiva: 8,
+      config_comidas: []
+    }];
   }
 
   obtenerCatalogoRoles() {
     this._rolService.get().subscribe({
       next: (roles: any) => {
         this.listaRoles = Array.isArray(roles) ? roles : (roles?.data || []); 
-        
-        // Si estamos editando un usuario existente, recalculamos los permisos una vez
-        // que el catálogo de roles se cargue completamente en memoria.
         if (this.esEdicion) {
           this.onRolesChanged();
         }
@@ -90,43 +106,29 @@ export class FormUsuariosComponent implements OnInit {
     });
   }
 
-  // Algoritmo dinámico para la unión matemática de los mapeos de permisos
   onRolesChanged() {
     this.usuario.permisos = {};
-
-    if (!this.usuario.roles || this.usuario.roles.length === 0) {
-      return;
-    }
+    if (!this.usuario.roles || this.usuario.roles.length === 0) return;
 
     this.usuario.roles.forEach((rolId: string) => {
-      // Busca el rol correspondiente dentro de la lista de roles
       const rolEncontrado = this.listaRoles.find(
         (r) => String(r.id || r.slug || r.nombre).toUpperCase() === String(rolId).toUpperCase()
       );
 
       if (rolEncontrado && rolEncontrado.permisos) {
         const modulos = Object.keys(rolEncontrado.permisos);
-
         modulos.forEach((nombreModulo) => {
-          // Si el módulo no existe en las propiedades del usuario, se instancia la estructura básica
           if (!this.usuario.permisos[nombreModulo]) {
-            this.usuario.permisos[nombreModulo] = {
-              acciones_modulo: [],
-              recursos_internos: []
-            };
+            this.usuario.permisos[nombreModulo] = { acciones_modulo: [], recursos_internos: [] };
           }
-
           const permisosRolModulo = rolEncontrado.permisos[nombreModulo];
           const permisosUsuarioModulo = this.usuario.permisos[nombreModulo];
 
-          // Fusión de acciones de módulo mitigando valores repetidos
           if (permisosRolModulo.acciones_modulo && Array.isArray(permisosRolModulo.acciones_modulo)) {
             permisosUsuarioModulo.acciones_modulo = Array.from(
               new Set([...permisosUsuarioModulo.acciones_modulo, ...permisosRolModulo.acciones_modulo])
             );
           }
-
-          // Fusión de recursos internos mitigando valores repetidos
           if (permisosRolModulo.recursos_internos && Array.isArray(permisosRolModulo.recursos_internos)) {
             permisosUsuarioModulo.recursos_internos = Array.from(
               new Set([...permisosUsuarioModulo.recursos_internos, ...permisosRolModulo.recursos_internos])
@@ -134,6 +136,30 @@ export class FormUsuariosComponent implements OnInit {
           }
         });
       }
+    });
+  }
+
+  // AQUÍ SE CORRIGIÓ EL TEXTO PARA LA NUEVA TARJETA
+  agregarComida(tienda: any) {
+    if (!tienda || !tienda.config_comidas) return;
+    
+    const numeroComida = tienda.config_comidas.length + 1;
+    tienda.config_comidas.push({
+      nombre: `Comida/Descanso ${numeroComida}`,
+      hora_comida_inicio: '14:00:00',
+      hora_comida_fin: '15:00:00',
+      dias_desfase_comida_inicio: 0,
+      dias_desfase_comida_fin: 0
+    });
+  }
+
+  // AQUÍ SE CORRIGIÓ EL TEXTO AL REORDENAR DESPUÉS DE ELIMINAR
+  removerComida(tienda: any, index: number) {
+    if (!tienda || !tienda.config_comidas) return;
+    
+    tienda.config_comidas.splice(index, 1);
+    tienda.config_comidas.forEach((comida: any, idx: number) => {
+      comida.nombre = `Comida/Descanso ${idx + 1}`;
     });
   }
 
@@ -161,8 +187,20 @@ export class FormUsuariosComponent implements OnInit {
     }
 
     if (!this.usuario.roles || this.usuario.roles.length === 0) {
-      this._toastService.show('Por favor selecciona al menos un rol para el usuario', 'warning', 'warning-outline');
+      this._toastService.show('Por favor selecciona al menos un rol', 'warning', 'warning-outline');
       return;
+    }
+
+    if (this.usuario.tiendas_asignadas && this.usuario.tiendas_asignadas.length > 0) {
+      const tiendaActual = this.usuario.tiendas_asignadas[0];
+      if (tiendaActual.tipo_esquema === 'LIBRE') {
+        delete tiendaActual.hora_entrada;
+        delete tiendaActual.hora_salida;
+        delete tiendaActual.dias_desfase;
+        delete tiendaActual.tolerancia_minutos;
+      } else {
+        delete tiendaActual.jornada_efectiva;
+      }
     }
 
     const nombreLimpio = this.usuario.nombre.trim();
