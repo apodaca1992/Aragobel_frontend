@@ -84,7 +84,7 @@
                 type="email" 
                 name="emailUsuario"
                 #emailCtrl="ngModel"
-                placeholder="Ej. correo&#64;dominio.com" 
+                placeholder="Ej. correo{{ '@' }}dominio.com" 
                 [(ngModel)]="usuario.email"
                 required
                 pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
@@ -93,7 +93,7 @@
             </ion-item>
             <div *ngIf="emailCtrl.invalid && emailCtrl.dirty" style="color: var(--ion-color-danger); font-size: 0.75rem; margin-top: 4px; padding-left: 5px; font-weight: 500;">
               <span *ngIf="emailCtrl.errors?.['required']">El correo electrónico es requerido.</span>
-              <span *ngIf="emailCtrl.errors?.['pattern']">Por favor ingresa un correo electrónico válido (Ej: usuario&#64;dominio.com).</span>
+              <span *ngIf="emailCtrl.errors?.['pattern']">Por favor ingresa un correo electrónico válido (Ej: usuario{{ '@' }}dominio.com).</span>
             </div>
           </div>
 
@@ -132,7 +132,7 @@
                 cancelText="Cancelar"
                 interface="popover" 
                 style="width: 100%;">
-                <ion-select-option *ngFor="let rol of listaRoles" [value]="rol.id || rol.slug || rol.nombre">
+                <ion-select-option *ngFor="let rol of listaRoles" [value]="getRolId(rol)">
                   {{ rol.nombre }}
                 </ion-select-option>
               </ion-select>
@@ -166,21 +166,53 @@
                 </div>
 
                 <div *ngIf="usuario.tiendas_asignadas[0].tipo_esquema === 'FIJO'">
-                  <ion-row>
+                  <ion-row class="ion-align-items-center">
                     <ion-col size="6">
                       <div class="input-group">
                         <ion-label class="input-label">Hora Entrada *</ion-label>
-                        <ion-item lines="none" class="custom-input-item">
-                          <ion-input type="text" placeholder="Ej. 09:00:00" name="entrada_actual" [(ngModel)]="usuario.tiendas_asignadas[0].hora_entrada" required></ion-input>
-                        </ion-item>
+                        <div class="datetime-picker-wrapper">
+                          <ion-datetime-button datetime="horaEntradaPicker"></ion-datetime-button>
+                          <ion-modal [keepContentsMounted]="true">
+                            <ng-template>
+                              <ion-datetime 
+                                id="horaEntradaPicker" 
+                                presentation="time" 
+                                preferWheel="true"
+                                hourCycle="h23"
+                                preferSeconds="true"
+                                doneText="Confirmar"
+                                cancelText="Cancelar"
+                                showDefaultButtons="true"
+                                name="entrada_actual"
+                                [(ngModel)]="usuario.tiendas_asignadas[0].hora_entrada">
+                              </ion-datetime>
+                            </ng-template>
+                          </ion-modal>
+                        </div>
                       </div>
                     </ion-col>
                     <ion-col size="6">
                       <div class="input-group">
                         <ion-label class="input-label">Hora Salida *</ion-label>
-                        <ion-item lines="none" class="custom-input-item">
-                          <ion-input type="text" placeholder="Ej. 18:00:00" name="salida_actual" [(ngModel)]="usuario.tiendas_asignadas[0].hora_salida" required></ion-input>
-                        </ion-item>
+                        <div class="datetime-picker-wrapper">
+                          <ion-datetime-button datetime="horaSalidaPicker"></ion-datetime-button>
+                          <ion-modal [keepContentsMounted]="true">
+                            <ng-template>
+                              <ion-datetime 
+                                id="horaSalidaPicker" 
+                                presentation="time" 
+                                preferWheel="true"
+                                hourCycle="h23"
+                                preferSeconds="true"
+                                doneText="Confirmar"
+                                cancelText="Cancelar"
+                                showDefaultButtons="true"
+                                name="salida_actual"
+                                [(ngModel)]="usuario.tiendas_asignadas[0].hora_salida">
+                              </ion-datetime>
+                            </ng-template>
+                          </ion-modal>
+                        </div>
                       </div>
                     </ion-col>
                   </ion-row>
@@ -232,21 +264,53 @@
                   </div>
 
                   <div *ngIf="usuario.tiendas_asignadas[0].tipo_esquema === 'FIJO'">
-                    <ion-row>
+                    <ion-row class="ion-align-items-center">
                       <ion-col size="6">
                         <div class="input-group" style="margin-bottom: 5px;">
                           <ion-label class="input-label" style="font-size: 0.75rem;">Inicio *</ion-label>
-                          <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
-                            <ion-input type="text" placeholder="Ej. 14:00:00" [name]="'ini_com_' + iComida" [(ngModel)]="comida.hora_comida_inicio" required></ion-input>
-                          </ion-item>
+                          <div class="datetime-picker-wrapper small-picker">
+                            <ion-datetime-button [attr.datetime]="'comidaInicioPicker_' + iComida"></ion-datetime-button>
+                            <ion-modal [keepContentsMounted]="true">
+                              <ng-template>
+                                <ion-datetime 
+                                  [id]="'comidaInicioPicker_' + iComida" 
+                                  presentation="time" 
+                                  preferWheel="true"
+                                  hourCycle="h23"
+                                  preferSeconds="true"
+                                  doneText="Confirmar"
+                                  cancelText="Cancelar"
+                                  showDefaultButtons="true"
+                                  [name]="'ini_com_' + iComida" 
+                                  [(ngModel)]="comida.hora_comida_inicio">
+                                </ion-datetime>
+                              </ng-template>
+                            </ion-modal>
+                          </div>
                         </div>
                       </ion-col>
                       <ion-col size="6">
                         <div class="input-group" style="margin-bottom: 5px;">
                           <ion-label class="input-label" style="font-size: 0.75rem;">Fin *</ion-label>
-                          <ion-item lines="none" class="custom-input-item" style="--background: #fff; min-height: 35px; height: 35px;">
-                            <ion-input type="text" placeholder="Ej. 15:00:00" [name]="'fin_com_' + iComida" [(ngModel)]="comida.hora_comida_fin" required></ion-input>
-                          </ion-item>
+                          <div class="datetime-picker-wrapper small-picker">
+                            <ion-datetime-button [attr.datetime]="'comidaFinPicker_' + iComida"></ion-datetime-button>
+                            <ion-modal [keepContentsMounted]="true">
+                              <ng-template>
+                                <ion-datetime 
+                                  [id]="'comidaFinPicker_' + iComida" 
+                                  presentation="time" 
+                                  preferWheel="true"
+                                  hourCycle="h23"
+                                  preferSeconds="true"
+                                  doneText="Confirmar"
+                                  cancelText="Cancelar"
+                                  showDefaultButtons="true"
+                                  [name]="'fin_com_' + iComida" 
+                                  [(ngModel)]="comida.hora_comida_fin">
+                                </ion-datetime>
+                              </ng-template>
+                            </ion-modal>
+                          </div>
                         </div>
                       </ion-col>
                     </ion-row>

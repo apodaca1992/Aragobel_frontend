@@ -99,3 +99,54 @@
     box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.2);
   }
 }
+
+/* ==========================================================================
+   ESTILOS ADAPTADOS PARA LOS SELECTORES CON SEGUNDOS (ion-datetime-button)
+   ========================================================================== */
+
+.datetime-picker-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: #f5f6f9;               
+  border: 1px solid #eef0f4;         
+  border-radius: 12px;               
+  padding: 4px 12px;
+  min-height: 46px;                  
+  width: 100%;
+
+  ion-datetime-button {
+    --background: transparent;       
+    --color: #222;                   
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0;
+
+    &::part(native) {
+      padding: 0;
+      box-shadow: none;
+    }
+  }
+}
+
+.small-picker {
+  min-height: 38px;                  
+  background: #ffffff;               
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 2px 8px;
+
+  ion-datetime-button {
+    font-size: 14px;
+  }
+}
+
+ion-row.ion-align-items-center {
+  margin-left: -4px;
+  margin-right: -4px;
+
+  ion-col {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+}

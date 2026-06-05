@@ -82,10 +82,10 @@ export class FormUsuariosComponent implements OnInit {
       id_tienda: idTienda,
       nombre: nombreTienda,
       tipo_esquema: 'FIJO',
-      hora_entrada: '',          
-      hora_salida: '',           
-      dias_desfase: '',        
-      tolerancia_minutos: '',  
+      hora_entrada: '09:00:00',       
+      hora_salida: '18:00:00',          
+      dias_desfase: '0',        
+      tolerancia_minutos: '15',  
       jornada_efectiva: null,    
       config_comidas: [] 
     }];
@@ -106,13 +106,17 @@ export class FormUsuariosComponent implements OnInit {
     });
   }
 
+  getRolId(rol: any): string {
+    return rol.id || rol.slug || rol.nombre;
+  }
+
   onRolesChanged() {
     this.usuario.permisos = {};
     if (!this.usuario.roles || this.usuario.roles.length === 0) return;
 
     this.usuario.roles.forEach((rolId: string) => {
       const rolEncontrado = this.listaRoles.find(
-        (r) => String(r.id || r.slug || r.nombre).toUpperCase() === String(rolId).toUpperCase()
+        (r) => String(this.getRolId(r)).toUpperCase() === String(rolId).toUpperCase()
       );
 
       if (rolEncontrado && rolEncontrado.permisos) {
@@ -150,8 +154,8 @@ export class FormUsuariosComponent implements OnInit {
     if (tienda.tipo_esquema === 'LIBRE') {
       nuevaComida.tiempo_comida_max = null; 
     } else {
-      nuevaComida.hora_comida_inicio = '';       
-      nuevaComida.hora_comida_fin = '';          
+      nuevaComida.hora_comida_inicio = '14:00:00'; 
+      nuevaComida.hora_comida_fin = '15:00:00';      
       nuevaComida.dias_desfase_comida_inicio = 0; 
       nuevaComida.dias_desfase_comida_fin = 0;    
     }
@@ -168,12 +172,10 @@ export class FormUsuariosComponent implements OnInit {
     });
   }
 
-  // VALIDACIÓN DE HORARIOS Y COMIDAS (FIJO Y LIBRE)
   esHorarioInvalido(): boolean {
     if (!this.usuario.tiendas_asignadas || this.usuario.tiendas_asignadas.length === 0) return false;
     const tienda = this.usuario.tiendas_asignadas[0];
     
-    // VALIDACIÓN ESQUEMA FIJO
     if (tienda.tipo_esquema === 'FIJO') {
       const baseInvalida = (
         !tienda.hora_entrada || String(tienda.hora_entrada).trim() === '' || 
@@ -192,17 +194,14 @@ export class FormUsuariosComponent implements OnInit {
             comida.dias_desfase_comida_inicio === null || comida.dias_desfase_comida_inicio === undefined || String(comida.dias_desfase_comida_inicio).trim() === '' ||
             comida.dias_desfase_comida_fin === null || comida.dias_desfase_comida_fin === undefined || String(comida.dias_desfase_comida_fin).trim() === ''
           );
-          if (comidaInvalida) return true;
+          if (comidaInvalida) return true; 
         }
       }
     } 
-    
-    // VALIDACIÓN ESQUEMA LIBRE
     else if (tienda.tipo_esquema === 'LIBRE') {
       const baseLibreInvalida = tienda.jornada_efectiva === null || tienda.jornada_efectiva === undefined || String(tienda.jornada_efectiva).trim() === '';
       if (baseLibreInvalida) return true;
 
-      // NUEVO: Validar que si hay comidas en esquema Libre, 'tiempo_comida_max' no esté vacío
       if (tienda.config_comidas && tienda.config_comidas.length > 0) {
         for (const comida of tienda.config_comidas) {
           if (comida.tiempo_comida_max === null || comida.tiempo_comida_max === undefined || String(comida.tiempo_comida_max).trim() === '') {
@@ -212,6 +211,30 @@ export class FormUsuariosComponent implements OnInit {
       }
     }
     return false;
+  }
+
+  // FUNCIÓN AUXILIAR ESTRICTA PARA EXTRAER SOLAMENTE "HH:mm:ss"
+  private limpiarFormatoHora(valorHora: any): string {
+    if (!valorHora) return '00:00:00';
+    
+    const cadena = String(valorHora).trim();
+    
+    // Si viene un formato ISO completo (ej: 2026-06-04T18:06:00-06:00)
+    if (cadena.includes('T')) {
+      const parteTiempo = cadena.split('T')[1]; // Nos quedamos con "18:06:00-06:00"
+      const tiempoLimpio = parteTiempo.substring(0, 8); // Extraemos exactamente "18:06:00"
+      return tiempoLimpio;
+    }
+    
+    // Si viene solo tiempo parcial o completo (ej: "18:06" o "18:06:00")
+    const partes = cadena.split(':');
+    if (partes.length === 2) {
+      return `${cadena}:00`;
+    } else if (partes.length >= 3) {
+      return `${partes[0]}:${partes[1]}:${partes[2].substring(0, 2)}`;
+    }
+    
+    return cadena;
   }
 
   async guardarUsuario() {
@@ -262,6 +285,12 @@ export class FormUsuariosComponent implements OnInit {
     if (datosEnviar.tiendas_asignadas && datosEnviar.tiendas_asignadas.length > 0) {
       const tiendaActual = datosEnviar.tiendas_asignadas[0];
       
+      // PROCESADO Y LIMPIEZA INMEDIATA DE DATETIME ISO A STRING TIME SEGURO (HH:mm:ss)
+      if (tiendaActual.tipo_esquema === 'FIJO') {
+        tiendaActual.hora_entrada = this.limpiarFormatoHora(tiendaActual.hora_entrada);
+        tiendaActual.hora_salida = this.limpiarFormatoHora(tiendaActual.hora_salida);
+      }
+
       if (!tiendaActual.config_comidas || !Array.isArray(tiendaActual.config_comidas) || tiendaActual.config_comidas.length === 0) {
         tiendaActual.config_comidas = [];
       } else {
@@ -271,9 +300,12 @@ export class FormUsuariosComponent implements OnInit {
             delete comida.hora_comida_fin;
             delete comida.dias_desfase_comida_inicio;
             delete comida.dias_desfase_comida_fin;
-            // Forzar conversión limpia a número para guardar en la base de datos
             comida.tiempo_comida_max = Number(comida.tiempo_comida_max);
           } else {
+            // Limpieza estricta de las horas de comida
+            comida.hora_comida_inicio = this.limpiarFormatoHora(comida.hora_comida_inicio);
+            comida.hora_comida_fin = this.limpiarFormatoHora(comida.hora_comida_fin);
+            
             delete comida.tiempo_comida_max;
             comida.dias_desfase_comida_inicio = Number(comida.dias_desfase_comida_inicio);
             comida.dias_desfase_comida_fin = Number(comida.dias_desfase_comida_fin);
