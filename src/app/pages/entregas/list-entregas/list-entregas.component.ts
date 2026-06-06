@@ -1,7 +1,6 @@
-import { Component, effect, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpHelper } from '../../../class/http-helper';
-import { EntregaService } from '@services/entrega.service'; // Asegura que la ruta sea correcta
+import { EntregaService } from '@services/entrega.service'; 
 import { VehiculoService } from '@services/vehiculo.service'; 
 import { EntregaInterface } from '@interfaces/entrega-interface';
 import { VehiculoInterface } from '@interfaces/vehiculo-interface';
@@ -9,20 +8,39 @@ import { PreferencesService } from '@services/preference.service';
 import { AlertService } from '@services/alert.service';
 import { ActionSheetService } from '@services/action-sheet.service';
 import { GeolocationService } from '@services/geolocation.service';
+import { IonInfiniteScroll } from '@ionic/angular';
+
+// Definimos una interfaz para el estado de cada pestaña de forma aislada
+interface EstadoPestana {
+  datos: EntregaInterface[];
+  lastDocId: string | null;
+  completado: boolean;
+}
 
 @Component({
   selector: 'app-list-entregas',
   templateUrl: './list-entregas.component.html',
   styleUrls: ['./list-entregas.component.scss'],
 })
-export class ListEntregasComponent  implements OnInit {
+export class ListEntregasComponent implements OnInit {
+
+  @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
+
   segmentoActual: string = 'disponibles';
-  todasLasEntregas: EntregaInterface[] = []; // Aquí llenas con tu API
- 
+  cargando: boolean = false;
+  limite: number = 10;
+
+  // ⚡ EL SECRETO: Diccionario contenedor con estados independientes por pestaña
+  listasPorSegmento: { [key: string]: EstadoPestana } = {
+    'mis-registros': { datos: [], lastDocId: null, completado: false },
+    'disponibles':   { datos: [], lastDocId: null, completado: false },
+    'camino':        { datos: [], lastDocId: null, completado: false }
+  };
+
   idUsuarioActual: string = '';
   idTiendaUsuarioActual: string = '';
   nombreUsuario: string = '';
-  puedeCrear: boolean = false; // Variable booleana para la vista
+  puedeCrear: boolean = false; 
   esCajero: boolean = false;
   esAdmin: boolean = false;
 
@@ -38,31 +56,28 @@ export class ListEntregasComponent  implements OnInit {
 
   async ngOnInit() {
     this.puedeCrear = await this._preferencesService.tienePermiso('ENTREGAS', 'CREAR');
-    this.esAdmin = await this._preferencesService.esAdmin(); // O tu lógica de rol
+    this.esAdmin = await this._preferencesService.esAdmin(); 
     this.idUsuarioActual = await this._preferencesService.getIdUser();
+    
     const userStr = await this._preferencesService.getItem('user');
     if (userStr) {
         const user = JSON.parse(userStr);
-        this.idTiendaUsuarioActual = user.id_tienda; // O la propiedad que necesites
+        this.idTiendaUsuarioActual = user.id_tienda; 
         this.nombreUsuario = user.nombre + ' ' + user.apellido_paterno + ' ' + user.apellido_materno;
     }
+    
     this.esCajero = this.puedeCrear;
-    // 3. Definimos qué pestaña mostrar por defecto al entrar
-    if (this.puedeCrear && !this.esAdmin) { //!this.esAdmin
+    
+    if (this.puedeCrear && !this.esAdmin) { 
       this.esCajero = true;
       this.segmentoActual = 'mis-registros';
     } else {
       this.esCajero = false;
       this.segmentoActual = 'disponibles';
     }
-    //this.cargarDatos();
   }
 
-  // Se dispara cada vez que entras a la vista, incluso al regresar del formulario
   async ionViewWillEnter() {
-    console.log('La vista va a entrar, refrescando datos...');
-    // Pequeño seguro: si por velocidad de Ionic el ngOnInit no ha terminado, 
-    // re-intentamos leer la tienda para que el filtro nunca falle
     if (!this.idTiendaUsuarioActual) {
       const userStr = await this._preferencesService.getItem('user');
       if (userStr) {
@@ -71,99 +86,163 @@ export class ListEntregasComponent  implements OnInit {
       }
     }
 
+    // Al entrar a la vista limpiamos por completo todas las pestañas para traer datos frescos
+    this.reiniciarTodoElPaginador();
     this.cargarDatos();
   }
 
-  async cargarDatos() {
-    // Si aún no tenemos el id de la tienda, evitamos hacer un disparo erróneo a la API
+  // Al cambiar de pestaña, evaluamos si ya tiene datos previos o si requiere consulta inicial
+  cambiarSegmento() {
+    const estado = this.listasPorSegmento[this.segmentoActual];
+    
+    // Controlamos el estado del componente Infinite Scroll nativo según la pestaña destino
+    if (this.infiniteScroll) {
+      this.infiniteScroll.disabled = estado.completado;
+    }
+
+    // Si la pestaña no tiene datos cargados, hacemos su primera petición
+    if (estado.datos.length === 0 && !estado.completado) {
+      this.cargarDatos();
+    }
+  }
+
+  private reiniciarTodoElPaginador() {
+    Object.keys(this.listasPorSegmento).forEach(key => {
+      this.listasPorSegmento[key] = { datos: [], lastDocId: null, completado: false };
+    });
+    if (this.infiniteScroll) this.infiniteScroll.disabled = false;
+  }
+
+  // Re-utilizable para limpiar una sola pestaña tras una mutación (Tomar o Finalizar entrega)
+  private reiniciarPestanaEspecifica(segmento: string) {
+    this.listasPorSegmento[segmento] = { datos: [], lastDocId: null, completado: false };
+    if (this.segmentoActual === segmento && this.infiniteScroll) {
+      this.infiniteScroll.disabled = false;
+    }
+  }
+
+  async cargarDatos(event?: any) {
     if (!this.idTiendaUsuarioActual) {
-      console.warn('Esperando id_tienda válido...');
+      if (event) event.target.complete();
       return;
     }
-    // Aquí llamarías a tu servicio: this.entregaService.getEntregas().subscribe(...)
-    // Ejemplo de datos basado en tu tabla SQL:
-    const filtros = {
+
+    // Obtenemos la referencia del estado de la pestaña que está viendo el usuario actualmente
+    const estadoActual = this.listasPorSegmento[this.segmentoActual];
+
+    // Si es la primera página del segmento, disparamos el loader visual
+    if (!estadoActual.lastDocId) {
+      this.cargando = true;
+    }
+
+    const filtros: any = {
       activo: 1,
       id_tienda: this.idTiendaUsuarioActual,
       fecha_venta: 'TODAY',
-      ignorarLimite: true,
-      estatus: '!=|3'
+      limit: this.limite
     };
 
-    // Llamamos al servicio GET que definimos anteriormente
+    // Aplicamos el cursor si y solo si pertenece al registro histórico de ESTE segmento
+    if (estadoActual.lastDocId) {
+      filtros.lastDocId = estadoActual.lastDocId;
+    }
+
+    // Aplicación de filtros dinámicos Server-Side
+    if (this.esCajero) {
+      filtros.id_usuario_creador = this.idUsuarioActual;
+      filtros.estatus = '!=|3'; 
+    } else {
+      if (this.segmentoActual === 'disponibles') {
+        filtros.estatus = 1; 
+      } else if (this.segmentoActual === 'camino') {
+        filtros.estatus = 2; 
+        if (!this.esAdmin) {
+          filtros.id_repartidor = this.idUsuarioActual; 
+        }
+      }
+    }
+
     this._entregaService.get(filtros).subscribe({
-      next: (res:any) => {
-        this.todasLasEntregas = res.data;
-        console.log('Datos cargados:', res.data);
+      next: (res: any) => {
+        const nuevosDatos = Array.isArray(res) ? res : (res.data || []);
+        
+        if (!estadoActual.lastDocId) {
+          estadoActual.datos = nuevosDatos;
+        } else {
+          estadoActual.datos = [...estadoActual.datos, ...nuevosDatos];
+        }
+
+        // Registramos el cursor apuntando al último elemento del segmento actual
+        if (nuevosDatos.length > 0) {
+          const ultimoElemento = nuevosDatos[nuevosDatos.length - 1];
+          estadoActual.lastDocId = ultimoElemento.id;
+        }
+
+        // Si regresan menos datos que el límite, marcamos la pestaña como completada
+        if (nuevosDatos.length < this.limite) {
+          estadoActual.completado = true;
+          if (this.infiniteScroll) this.infiniteScroll.disabled = true;
+        }
+
+        if (event) event.target.complete();
+        this.cargando = false;
       },
       error: (err) => {
-        this.todasLasEntregas = [];
-        console.error('Error al cargar entregas', err);
+        if (!estadoActual.lastDocId) estadoActual.datos = [];
+        if (event) event.target.complete();
+        this.cargando = false;
+        console.error('Error al consultar entregas por segmento:', err);
       }
     });
-  
   }
 
-  // El "motor" de las pestañas
-  get entregasFiltradas() {
-
-    if (!Array.isArray(this.todasLasEntregas)) {
-      return [];
+  cargarMasEntregas(event: any) {
+    const estadoActual = this.listasPorSegmento[this.segmentoActual];
+    if (estadoActual.completado) {
+      event.target.disabled = true;
+      return;
     }
-    
-    if (this.esCajero) {
-      return this.todasLasEntregas.filter(e => e.id_usuario_creador === this.idUsuarioActual);
-    }
-
-
-    if (this.segmentoActual === 'disponibles') {
-      return this.todasLasEntregas.filter(e => e.estatus === 1);
-    } else {
-      if (this.esAdmin) {
-        return this.todasLasEntregas.filter(e => e.estatus === 2);
-      }
-      return this.todasLasEntregas.filter(e => e.estatus === 2 && e.id_repartidor === this.idUsuarioActual);
-    }
+    this.cargarDatos(event);
   }
+
+  // Helper para mapear los datos correctos en el HTML de forma limpia
+  get entregasPorPestana(): EntregaInterface[] {
+    return this.listasPorSegmento[this.segmentoActual]?.datos || [];
+  }
+
+  hasEntregas(): boolean {
+    return this.entregasPorPestana.length > 0;
+  }
+
+  // --- Operaciones de flujo de estatus ---
 
   async abrirSelectorVehiculo(entrega: any) {
-    
     this._vehiculoService.get({ activo: 1, id_tienda: this.idTiendaUsuarioActual }).subscribe({
       next: async (res: any) => {
         const vehiculos = Array.isArray(res) ? res : (res.data || []);        
-
-        // Mapeamos al formato que pide nuestro servicio
         const opciones = vehiculos.map((v: VehiculoInterface) => ({
           text: v.nombre,
           icon: v.tipo === 'moto' ? 'bicycle-outline' : (v.tipo === 'camioneta' ? 'car-outline' : 'walk-outline'),
           value: { id: v.id, nombre: v.nombre }
         }));
 
-        // Invocamos el Action Sheet y esperamos la respuesta
         const seleccion = await this._actionSheetService.show<{ id: string, nombre: string }>(
           '¿En qué vehículo sales?', 
           opciones,
           'Selecciona una unidad para el folio: ' + entrega.folio
         );
 
-        // Si seleccionó algo (y no dio clic en cancelar)
         if (seleccion) {
           this.asignarEntrega(entrega.id, seleccion.id, seleccion.nombre);
         }
-
       }
     });
-
   }
 
   async asignarEntrega(idEntrega: number | string, idVehiculo: string, nombreVehiculo: string) {
-
     const coords = await this._geoService.getPosition();
-    if (!coords) {
-      return;
-    }
+    if (!coords) return;
 
-    // Creamos el objeto para actualizar (Estatus 2 = En tránsito)
     const datosActualizar: any = {
       id: idEntrega,
       id_repartidor: this.idUsuarioActual,
@@ -176,21 +255,20 @@ export class ListEntregasComponent  implements OnInit {
 
     this._entregaService.put(datosActualizar).subscribe({
       next: () => {
-        this.cargarDatos(); // Refrescamos la lista
+        // ⚡ OPTIMIZACIÓN REACTIVA: Cuando tomas una entrega, limpias ambas pestañas afectadas 
+        // para forzar a que recalculen sus cursores e índices desde el servidor limpiamente.
+        this.reiniciarPestanaEspecifica('disponibles');
+        this.reiniciarPestanaEspecifica('camino');
+        this.cargarDatos(); 
       },
-      error: (err) => {
-        console.error(err);
-      }
+      error: (err) => console.error(err)
     });
   }
 
   async finalizarEntrega(idEntrega: number | string) {
     const coords = await this._geoService.getPosition();
-    if (!coords) {
-      return;
-    }
+    if (!coords) return;
 
-    // Creamos el objeto para actualizar (Estatus 2 = En tránsito)
     const datosActualizar: any = {
       id: idEntrega,
       estatus: 3,
@@ -199,11 +277,11 @@ export class ListEntregasComponent  implements OnInit {
 
     this._entregaService.put(datosActualizar).subscribe({
       next: () => {
-        this.cargarDatos(); // Refrescamos la lista
+        // Al finalizar, removemos el cache local de la pestaña "En Camino" para actualizar la lista
+        this.reiniciarPestanaEspecifica('camino');
+        this.cargarDatos(); 
       },
-      error: (err) => {
-        console.error(err);
-      }
+      error: (err) => console.error(err)
     });
   }
 
@@ -212,23 +290,17 @@ export class ListEntregasComponent  implements OnInit {
   }
 
   editarEntrega(entrega: any) {
-    if (entrega.estatus === 3) {
-      // Opcional: mostrar un toast avisando que ya no se puede editar
-      return;
-    }
-  
+    if (entrega.estatus === 3) return;
     this.router.navigate(['/entregas/form-entregas'], {
       state: { entrega: entrega }
     });
   }
 
   async marcarComoEntregado(entrega: any) {
-    // Usamos el servicio centralizado
     await this._alertService.confirm(
       '¿Finalizar Entrega?',
       `¿Confirmas que el folio ${entrega.folio} ha sido entregado?`,
       () => {
-        // Esta es la función que se ejecuta si el usuario da clic en "Aceptar"
         this.finalizarEntrega(entrega.id);
       }
     );

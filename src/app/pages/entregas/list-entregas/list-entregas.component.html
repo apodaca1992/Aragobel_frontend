@@ -7,7 +7,7 @@
 
   <ion-toolbar>
     <ng-container *ngIf="esCajero; else vistaRepartidor">
-      <ion-segment [(ngModel)]="segmentoActual" mode="md">
+      <ion-segment [(ngModel)]="segmentoActual" (ionChange)="cambiarSegmento()" mode="md">
         <ion-segment-button value="mis-registros">
           <ion-label>Registros de Hoy</ion-label>
         </ion-segment-button>
@@ -15,7 +15,7 @@
     </ng-container>
 
     <ng-template #vistaRepartidor>
-      <ion-segment [(ngModel)]="segmentoActual" mode="md">
+      <ion-segment [(ngModel)]="segmentoActual" (ionChange)="cambiarSegmento()" mode="md">
         <ion-segment-button value="disponibles">
           <ion-label>Disponibles</ion-label>
         </ion-segment-button>
@@ -28,54 +28,84 @@
 </ion-header>
 
 <ion-content>
-  <ion-list lines="none" *ngIf="entregasFiltradas.length > 0; else sinDatos">
+  <div *ngIf="cargando" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <ng-container *ngIf="!cargando">
     
-    <ion-card *ngFor="let entrega of entregasFiltradas" 
-              mode="ios" 
-              class="entrega-card"
-              [class.clickable]="esCajero"
-              (click)="esCajero ? editarEntrega(entrega) : null">
-      <ion-item>
-        <ion-icon name="document-text-outline" slot="start" color="primary"></ion-icon>
-        <ion-label>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2><strong>Folio: {{ entrega.folio }}</strong></h2>
-            <ion-badge *ngIf="esCajero" [color]="entrega.estatus === 3 ? 'success' : (entrega.estatus === 2 ? 'primary' : 'warning')">
-              {{ entrega.estatus === 1 ? 'Pendiente' : (entrega.estatus === 2 ? 'En Ruta' : 'Entregado') }}
-            </ion-badge>
-          </div>
-          <p>📍 {{ entrega.colonia }}</p>
-        </ion-label>
-      </ion-item>
+    <ion-list lines="none" *ngIf="hasEntregas(); else sinDatos">
+      
+      <ion-card *ngFor="let entrega of entregasPorPestana" 
+                mode="ios" 
+                class="entrega-card"
+                [class.clickable]="esCajero"
+                (click)="esCajero ? editarEntrega(entrega) : null">
+        
+        <ion-item>
+          <ion-icon name="document-text-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h2><strong>Folio: {{ entrega.folio }}</strong></h2>
+              <ion-badge *ngIf="esCajero" [color]="entrega.estatus === 3 ? 'success' : (entrega.estatus === 2 ? 'primary' : 'warning')">
+                {{ entrega.estatus === 1 ? 'Pendiente' : (entrega.estatus === 2 ? 'En Ruta' : 'Entregado') }}
+              </ion-badge>
+            </div>
+            <p>📍 {{ entrega.colonia }}</p>
+          </ion-label>
+        </ion-item>
 
-      <ion-card-content>
-        <p><strong>Recibe:</strong> {{ entrega.persona_recibe }}</p>
-        <p class="fecha" *ngIf="entrega.fec_registropedido">
-          Registrado: {{ entrega.fec_registropedido | date:'shortTime' }}
-        </p>
-      </ion-card-content>
+        <ion-card-content>
+          <p><strong>Recibe:</strong> {{ entrega.persona_recibe }}</p>
+          <p class="fecha" *ngIf="entrega.fec_registropedido">
+            Registrado: {{ entrega.fec_registropedido | date:'shortTime' }}
+          </p>
+        </ion-card-content>
 
-      <div class="ion-padding-start ion-padding-end ion-padding-bottom" *ngIf="!esCajero">
-        <ion-button *ngIf="segmentoActual === 'disponibles'" 
-                    expand="block" 
-                    shape="round"
-                    (click)="abrirSelectorVehiculo(entrega)">
-          <ion-icon name="bicycle-outline" slot="start"></ion-icon>
-          Tomar Entrega
-        </ion-button>
+        <div class="ion-padding-start ion-padding-end ion-padding-bottom" *ngIf="!esCajero">
+          <ion-button *ngIf="segmentoActual === 'disponibles'" 
+                      expand="block" 
+                      shape="round"
+                      (click)="abrirSelectorVehiculo(entrega)">
+            <ion-icon name="bicycle-outline" slot="start"></ion-icon>
+            Tomar Entrega
+          </ion-button>
 
-        <ion-button *ngIf="segmentoActual === 'camino'" 
-                    expand="block" 
-                    color="success" 
-                    shape="round"
-                    (click)="marcarComoEntregado(entrega)">
-          <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
-          Finalizar Entrega
-        </ion-button>
-      </div>
-    </ion-card>
+          <ion-button *ngIf="segmentoActual === 'camino'" 
+                      expand="block" 
+                      color="success" 
+                      shape="round"
+                      (click)="marcarComoEntregado(entrega)">
+            <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+            Finalizar Entrega
+          </ion-button>
+        </div>
+      </ion-card>
 
-  </ion-list>
+    </ion-list>
+
+    <ion-infinite-scroll *ngIf="esCajero && segmentoActual === 'mis-registros' && hasEntregas()" (ionInfinite)="cargarMasEntregas($event)">
+      <ion-infinite-scroll-content 
+        loadingSpinner="bubbles" 
+        loadingText="Cargando más registros...">
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+
+    <ion-infinite-scroll *ngIf="!esCajero && segmentoActual === 'disponibles' && hasEntregas()" (ionInfinite)="cargarMasEntregas($event)">
+      <ion-infinite-scroll-content 
+        loadingSpinner="bubbles" 
+        loadingText="Buscando más disponibles...">
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+
+    <ion-infinite-scroll *ngIf="!esCajero && segmentoActual === 'camino' && hasEntregas()" (ionInfinite)="cargarMasEntregas($event)">
+      <ion-infinite-scroll-content 
+        loadingSpinner="bubbles" 
+        loadingText="Cargando historial en camino...">
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+
+  </ng-container>
 
   <ng-template #sinDatos>
     <div class="ion-text-center ion-padding mt-5">
