@@ -87,68 +87,43 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
     if (!userStr) return;
     const user = JSON.parse(userStr);
 
-    const datos = {         
+    // 1. Primer intento: Buscar si hay alguna jornada remanente 'ACTIVA' del usuario (sin importar el día)
+    const datosBusquedaActiva = {         
       id_tienda: user.id_tienda,
       id_usuario: user.id,
-      status_jornada: 'ACTIVA',//fecha: 'TODAY',
+      status_jornada: 'ACTIVA',
       activo: 1
     };
 
-    this._asistenciaService.get(datos).subscribe({
+    this._asistenciaService.get(datosBusquedaActiva).subscribe({
       next: async (res: any) => { 
-        const jornada = res?.data ? (Array.isArray(res.data) ? res.data[0] : res.data) : res;
+        let jornada = res?.data ? (Array.isArray(res.data) ? res.data[0] : res.data) : res;
 
-        if (jornada && (jornada.id || jornada.id_usuario)) {
-          const idDocumento = jornada.id;
+        // Si no hay jornada ACTIVA, significa que no ha entrado o que ya marcó su SALIDA final hoy
+        if (!jornada || (Array.isArray(res) && res.length === 0) || (!jornada.id && !jornada.id_usuario)) {
+          
+          // 2. Segundo intento: Buscar la jornada de HOY sin filtros de estatus para pintar el resumen final
+          const datosHoy = {
+            id_tienda: user.id_tienda,
+            id_usuario: user.id,
+            fecha: 'TODAY',
+            activo: 1
+          };
 
-          if (idDocumento) {
-            if (jornada.status_jornada === 'ACTIVA') {
-              const idActual = await this._preferencesService.getItem('id_jornada_activa');
-              if (!idActual) {
-                await this._preferencesService.setItem('id_jornada_activa', idDocumento);
-                console.log('🔄 ID de jornada recuperado:', idDocumento);
-              }
-            } else {
-              await this._preferencesService.removeItem('id_jornada_activa');
+          this._asistenciaService.get(datosHoy).subscribe({
+            next: async (resHoy: any) => {
+              const jornadaHoy = resHoy?.data ? (Array.isArray(resHoy.data) ? resHoy.data[0] : resHoy.data) : resHoy;
+              this.procesarResultadoJornada(jornadaHoy, user);
+            },
+            error: (err) => {
+              this.cargandoHistorial = false;
+              console.error('Error al re-consultar jornada de hoy:', err);
             }
-          }
+          });
 
-          this.mapearRegistros(jornada);
         } else {
-          // ===================================================================
-          // TRATAMIENTO PARA CUANDO NO HAY JORNADA EN EL SERVIDOR (SIN ENTRADA)
-          // ===================================================================
-          await this._preferencesService.removeItem('id_jornada_activa');
-          
-          // Rescatamos los datos del contrato/perfil directo del usuario logueado
-          this.tipoEsquema = user.tipo_esquema || 'FIJO'; 
-          
-          if (this.tipoEsquema === 'FIJO') {
-            // Buscamos sus valores predeterminados asignados
-            this.horaEntradaFija = user.hora_entrada || '21:00'; 
-            this.horaSalidaFija = user.hora_salida || '05:30';
-
-            // Armamos instancias de objetos Date síncronos para que el HTML renderice el día de inmediato
-            const hoyEntrada = new Date();
-            const [hE, mE] = this.horaEntradaFija.split(':');
-            hoyEntrada.setHours(parseInt(hE), parseInt(mE), 0, 0);
-            this.entradaFijaDate = hoyEntrada;
-
-            const hoySalida = new Date();
-            const [hS, mS] = this.horaSalidaFija.split(':');
-            hoySalida.setHours(parseInt(hS), parseInt(mS), 0, 0);
-            
-            // Verificación del cruce de medianoche en turno nocturno estándar
-            if (hoySalida.getTime() < hoyEntrada.getTime()) {
-              hoySalida.setDate(hoySalida.getDate() + 1);
-            }
-            this.salidaFijaDate = hoySalida;
-          }
-
-          this.registro = { entrada: null, salida: null };
-          this.listaComidasUI = [];
-          this.cargandoHistorial = false;
-          // ===================================================================
+          // Si encontramos una jornada activa en curso o colgada, la procesamos
+          this.procesarResultadoJornada(jornada, user);
         }
       },
       error: (err) => {
@@ -156,6 +131,58 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
         console.error('Error al cargar historial:', err);
       }
     });
+  }
+
+  // Método auxiliar encargado de gestionar la persistencia del ID de jornada y ejecutar el mapeo
+  private async procesarResultadoJornada(jornada: any, user: any) {
+    if (jornada && (jornada.id || jornada.id_usuario)) {
+      const idDocumento = jornada.id;
+
+      if (idDocumento) {
+        if (jornada.status_jornada === 'ACTIVA') {
+          const idActual = await this._preferencesService.getItem('id_jornada_activa');
+          if (!idActual) {
+            await this._preferencesService.setItem('id_jornada_activa', idDocumento);
+            console.log('🔄 ID de jornada recuperado:', idDocumento);
+          }
+        } else {
+          // Si la jornada devuelta ya está cerrada (FINALIZADA), limpiamos la llave de seguimiento activo
+          await this._preferencesService.removeItem('id_jornada_activa');
+        }
+      }
+
+      // Procesamos el mapeo de registros (renderiza las marcas históricas en la UI)
+      this.mapearRegistros(jornada);
+
+    } else {
+      // Tratamiento definitivo cuando de verdad no existe histórico del día ni jornadas colgadas
+      await this._preferencesService.removeItem('id_jornada_activa');
+      
+      this.tipoEsquema = user.tipo_esquema || 'FIJO'; 
+      
+      if (this.tipoEsquema === 'FIJO') {
+        this.horaEntradaFija = user.hora_entrada || '21:00'; 
+        this.horaSalidaFija = user.hora_salida || '05:30';
+
+        const hoyEntrada = new Date();
+        const [hE, mE] = this.horaEntradaFija.split(':');
+        hoyEntrada.setHours(parseInt(hE), parseInt(mE), 0, 0);
+        this.entradaFijaDate = hoyEntrada;
+
+        const hoySalida = new Date();
+        const [hS, mS] = this.horaSalidaFija.split(':');
+        hoySalida.setHours(parseInt(hS), parseInt(mS), 0, 0);
+        
+        if (hoySalida.getTime() < hoyEntrada.getTime()) {
+          hoySalida.setDate(hoySalida.getDate() + 1);
+        }
+        this.salidaFijaDate = hoySalida;
+      }
+
+      this.registro = { entrada: null, salida: null };
+      this.listaComidasUI = [];
+      this.cargandoHistorial = false;
+    }
   }
 
   private mapearRegistros(data: any) {
@@ -176,7 +203,6 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
     if (data.hora_salida && this.entradaFijaDate) {
       this.salidaFijaDate = new Date(data.hora_salida);
       
-      // Si la hora de salida es menor que la de entrada (ej: 05:30 < 21:00), avanza un día automáticamente
       if (this.salidaFijaDate.getTime() < this.entradaFijaDate.getTime()) {
         this.salidaFijaDate.setDate(this.salidaFijaDate.getDate() + 1);
         console.log('🌙 Turno nocturno detectado. Salida ajustada al día siguiente:', this.salidaFijaDate);
@@ -184,7 +210,6 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
       
       this.horaSalidaFija = this.salidaFijaDate.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
     }
-    // -------------------------------------------------------------
 
     const ev = data.eventos;
     this.nodoComidasBackend = ev?.comidas || null;
@@ -213,7 +238,6 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
       let salidaComerDate = config.hora_salida_comer ? new Date(config.hora_salida_comer) : null;
       let regresoComerDate = config.hora_regreso_comer ? new Date(config.hora_regreso_comer) : null;
 
-      // Ajuste de desfase para los horarios fijos de comida si cruzan la medianoche respecto a la entrada
       if (this.entradaFijaDate) {
         if (salidaComerDate && salidaComerDate.getTime() < this.entradaFijaDate.getTime()) {
           salidaComerDate.setDate(salidaComerDate.getDate() + 1);
@@ -377,6 +401,10 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
 
   obtenerComidasCompletadas(): number {
     return this.listaComidasUI.filter(c => c.inicio && c.fin).length;
+  }
+
+  textObtenerComidasCompletadas(): string {
+    return `${this.obtenerComidasCompletadas()} / ${this.listaComidasUI.length}`;
   }
 
   esComidaHabilitada(index: number): boolean {
