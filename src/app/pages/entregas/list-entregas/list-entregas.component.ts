@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { LoadingService } from '@services/loading.service'; // 👈 Tu servicio centralizado importado
 import { EntregaService } from '@services/entrega.service'; 
 import { VehiculoService } from '@services/vehiculo.service'; 
 import { EntregaInterface } from '@interfaces/entrega-interface';
@@ -53,7 +54,8 @@ export class ListEntregasComponent implements OnInit {
     private _entregaService: EntregaService,
     private _vehiculoService: VehiculoService,
     private _actionSheetService: ActionSheetService,
-    private _geoService: GeolocationService
+    private _geoService: GeolocationService,
+    private _loadingService: LoadingService // 👈 Inyectamos tu servicio modificado aquí
   ) {}
 
   async ngOnInit() {
@@ -90,15 +92,11 @@ export class ListEntregasComponent implements OnInit {
   async ionViewWillEnter() {
     console.log('Entrando al módulo de entregas...');
     
-    // ⚡ SOLUCIÓN AL ERROR EN CELULAR FÍSICO:
-    // Si la lectura asíncrona del teléfono va lenta y las variables críticas están vacías,
-    // frenamos el hilo y obligamos a esperar a que PreferencesService responda por completo.
     if (!this.usuarioInicializado || !this.idTiendaUsuarioActual || !this.idUsuarioActual) {
       console.log('Almacenamiento asíncrono retrasado. Forzando espera en dispositivo físico...');
       await this.cargarConfiguracionUsuario();
     }
 
-    // Una vez resuelto el rol real (Cajero), reseteamos los cursores del paginado y descargamos
     this.reiniciarTodoElPaginador();
     this.cargarDatos();
   }
@@ -131,7 +129,6 @@ export class ListEntregasComponent implements OnInit {
   }
 
   async cargarDatos(event?: any) {
-    // Protección final de nulos para la API
     if (!this.idTiendaUsuarioActual || !this.usuarioInicializado) {
       if (event) event.target.complete();
       return;
@@ -143,7 +140,6 @@ export class ListEntregasComponent implements OnInit {
       this.cargando = true;
     }
 
-    // ⚡ HOMOLOGACIÓN DE FECHA: Estructurada idéntica a la inserción del formulario para que NoSQL la encuentre
     const filtros: any = {
       activo: 1,
       id_tienda: this.idTiendaUsuarioActual,
@@ -155,7 +151,6 @@ export class ListEntregasComponent implements OnInit {
       filtros.lastDocId = estadoActual.lastDocId;
     }
 
-    // Ahora 'this.esCajero' tiene el valor real correcto desde la primera carga
     if (this.esCajero) {
       filtros.id_usuario_creador = this.idUsuarioActual;
       filtros.estatus = '!=|3'; 
@@ -245,46 +240,78 @@ export class ListEntregasComponent implements OnInit {
   }
 
   async asignarEntrega(idEntrega: number | string, idVehiculo: string, nombreVehiculo: string) {
-    const coords = await this._geoService.getPosition();
-    if (!coords) return;
+    // ⚡ USO DE TU SERVICIO: Encendemos el cargando global
+    await this._loadingService.show();
 
-    const datosActualizar: any = {
-      id: idEntrega,
-      id_repartidor: this.idUsuarioActual,
-      nombre_repartidor: this.nombreUsuario,
-      id_vehiculo: idVehiculo,
-      nombre_vehiculo: nombreVehiculo,
-      estatus: 2,
-      ubicacion: { lat: coords.latitude, lng: coords.longitude }
-    };
+    try {
+      const coords = await this._geoService.getPosition();
+      if (!coords) {
+        await this._loadingService.hide(); // Si falla el GPS, apagamos de inmediato
+        return;
+      }
 
-    this._entregaService.put(datosActualizar).subscribe({
-      next: () => {
-        this.reiniciarPestanaEspecifica('disponibles');
-        this.reiniciarPestanaEspecifica('camino');
-        this.cargarDatos(); 
-      },
-      error: (err) => console.error(err)
-    });
+      const datosActualizar: any = {
+        id: idEntrega,
+        id_repartidor: this.idUsuarioActual,
+        nombre_repartidor: this.nombreUsuario,
+        id_vehiculo: idVehiculo,
+        nombre_vehiculo: nombreVehiculo,
+        estatus: 2,
+        ubicacion: { lat: coords.latitude, lng: coords.longitude }
+      };
+
+      this._entregaService.put(datosActualizar).subscribe({
+        next: async () => {
+          this.reiniciarPestanaEspecifica('disponibles');
+          this.reiniciarPestanaEspecifica('camino');
+          await this.cargarDatos(); 
+          await this._loadingService.hide(); // ⚡ Apagamos de forma limpia al terminar con éxito
+        },
+        error: async (err) => {
+          console.error(err);
+          await this._loadingService.hide(); // Apagamos si la API truena
+        }
+      });
+      
+    } catch (error) {
+      console.error(error);
+      await this._loadingService.hide();
+    }
   }
 
   async finalizarEntrega(idEntrega: number | string) {
-    const coords = await this._geoService.getPosition();
-    if (!coords) return;
+    // ⚡ USO DE TU SERVICIO: Encendemos el cargando global para finalizar la entrega
+    await this._loadingService.show();
 
-    const datosActualizar: any = {
-      id: idEntrega,
-      estatus: 3,
-      ubicacion: { lat: coords.latitude, lng: coords.longitude }
-    };
+    try {
+      const coords = await this._geoService.getPosition();
+      if (!coords) {
+        await this._loadingService.hide();
+        return;
+      }
 
-    this._entregaService.put(datosActualizar).subscribe({
-      next: () => {
-        this.reiniciarPestanaEspecifica('camino');
-        this.cargarDatos(); 
-      },
-      error: (err) => console.error(err)
-    });
+      const datosActualizar: any = {
+        id: idEntrega,
+        estatus: 3,
+        ubicacion: { lat: coords.latitude, lng: coords.longitude }
+      };
+
+      this._entregaService.put(datosActualizar).subscribe({
+        next: async () => {
+          this.reiniciarPestanaEspecifica('camino');
+          await this.cargarDatos(); 
+          await this._loadingService.hide(); // ⚡ Éxito
+        },
+        error: async (err) => {
+          console.error(err);
+          await this._loadingService.hide();
+        }
+      });
+
+    } catch (error) {
+      console.error(error);
+      await this._loadingService.hide();
+    }
   }
 
   nuevaEntrega() {
