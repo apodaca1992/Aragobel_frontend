@@ -21,7 +21,7 @@ export class FormUsuariosComponent implements OnInit {
     contrasena: '',            
     nombre_completo: '',        
     nombre_completo_search: '', 
-    usuario_search: '',  
+    usuario_search: '',     
     tiendas_ids: [],            
     roles: [],
     permisos: {},
@@ -45,6 +45,15 @@ export class FormUsuariosComponent implements OnInit {
 
     const state = this.router.getCurrentNavigation()?.extras.state;
     
+    // 1. Primero recuperamos la configuración de la tienda del administrador en sesión
+    let tipoChecadoTiendaAdmin = 'MIXTO'; // Por defecto si no se encuentra
+    const userStr = await this._preferencesService.getItem('user');
+    if (userStr) {
+      const userDoc = JSON.parse(userStr);
+      // Extraemos el tipo_esquema de la tienda activa de la sesión (ej. MIXTO)
+      tipoChecadoTiendaAdmin = userDoc.tienda_activa_config?.tipo_esquema || 'MIXTO';
+    }
+
     if (state && state['usuario']) {
       this.usuario = { ...state['usuario'] };
       this.usuario.contrasena = ''; 
@@ -55,36 +64,50 @@ export class FormUsuariosComponent implements OnInit {
       if (!this.usuario.tiendas_asignadas) this.usuario.tiendas_asignadas = [];
       
       if (this.usuario.tiendas_asignadas.length === 0 && this.usuario.tiendas_ids.length > 0) {
-        this.inicializarTiendaActual(this.usuario.tiendas_ids[0], 'Tienda Actual');
+        this.inicializarTiendaActual(this.usuario.tiendas_ids[0], 'Tienda Actual', tipoChecadoTiendaAdmin);
+      } else if (this.usuario.tiendas_asignadas.length > 0) {
+        // CORRECCIÓN AQUÍ: Forzamos que herede el tipo de checado de la sesión activa 
+        // para que el segmento habilite los botones "FIJO" y "LIBRE" si es MIXTO.
+        this.usuario.tiendas_asignadas[0].tipo_checado_tienda = tipoChecadoTiendaAdmin;
+        
+        // Si por alguna razón el usuario guardado no traía tipo_esquema, le asignamos el actual
+        if (!this.usuario.tiendas_asignadas[0].tipo_esquema) {
+          this.usuario.tiendas_asignadas[0].tipo_esquema = 'FIJO';
+        }
       }
       
       this.esEdicion = true;
     } else {
       this.esEdicion = false;
       
-      const userStr = await this._preferencesService.getItem('user');
       if (userStr) {
         const user = JSON.parse(userStr);
-        if (user.id_tienda) {
-          const idTiendaDefecto = String(user.id_tienda);
+        if (user.id_tienda || (user.tiendas_ids && user.tiendas_ids.length > 0)) {
+          const idTiendaDefecto = user.id_tienda ? String(user.id_tienda) : String(user.tiendas_ids[0]);
           const nombreTiendaDefecto = user.nombre_tienda || 'Tienda Principal';
           
-          this.inicializarTiendaActual(idTiendaDefecto, nombreTiendaDefecto);
+          this.inicializarTiendaActual(idTiendaDefecto, nombreTiendaDefecto, tipoChecadoTiendaAdmin, '');
         }
       }    
     }
   }
 
-  inicializarTiendaActual(idTienda: string, nombreTienda: string) {
+  inicializarTiendaActual(idTienda: string, nombreTienda: string, tipoChecadoTienda: string = 'MIXTO', tolerancia: any = '') {
+    let esquemaInicial = 'FIJO';
+    if (tipoChecadoTienda === 'LIBRE') {
+      esquemaInicial = 'LIBRE';
+    }
+
     this.usuario.tiendas_ids = [idTienda];
     this.usuario.tiendas_asignadas = [{
       id_tienda: idTienda,
       nombre: nombreTienda,
-      tipo_esquema: 'FIJO',
+      tipo_esquema: esquemaInicial, 
+      tipo_checado_tienda: tipoChecadoTienda, 
       hora_entrada: '',       
       hora_salida: '',          
       dias_desfase: '',        
-      tolerancia_minutos: '',  
+      tolerancia_minutos: tolerancia,  
       jornada_efectiva: null,    
       config_comidas: [] 
     }];
@@ -232,17 +255,13 @@ export class FormUsuariosComponent implements OnInit {
     return cadena;
   }
 
-  /**
-   * Limpia el valor ISO emitido por ion-datetime en tiempo real
-   * evitando que se visualicen fechas en las cajas de texto de los horarios.
-   */
   limpiarHoraInstantanea(event: any): string {
     const valor = event.detail.value;
     if (!valor) return '';
 
     if (String(valor).includes('T')) {
       const parteTiempo = String(valor).split('T')[1];
-      return parteTiempo.substring(0, 8); // Devuelve exclusivamente "HH:mm:ss"
+      return parteTiempo.substring(0, 8); 
     }
     
     return valor;
@@ -296,6 +315,10 @@ export class FormUsuariosComponent implements OnInit {
     if (datosEnviar.tiendas_asignadas && datosEnviar.tiendas_asignadas.length > 0) {
       const tiendaActual = datosEnviar.tiendas_asignadas[0];
       
+      if (tiendaActual.tipo_checado_tienda) {
+        delete tiendaActual.tipo_checado_tienda;
+      }
+
       if (tiendaActual.tipo_esquema === 'FIJO') {
         tiendaActual.hora_entrada = this.limpiarFormatoHora(tiendaActual.hora_entrada);
         tiendaActual.hora_salida = this.limpiarFormatoHora(tiendaActual.hora_salida);

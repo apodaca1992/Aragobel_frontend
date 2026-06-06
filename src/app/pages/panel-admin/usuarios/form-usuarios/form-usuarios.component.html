@@ -156,12 +156,15 @@
                 <div class="input-group" style="margin-bottom: 15px;">
                   <ion-label class="input-label" style="display: block; margin-bottom: 5px; font-weight: 500;">Modalidad de Esquema</ion-label>
                   <ion-segment [(ngModel)]="usuario.tiendas_asignadas[0].tipo_esquema" name="esquema_actual" color="primary">
-                    <ion-segment-button value="FIJO">
+                    
+                    <ion-segment-button value="FIJO" *ngIf="!usuario.tiendas_asignadas[0].tipo_checado_tienda || usuario.tiendas_asignadas[0].tipo_checado_tienda === 'MIXTO' || usuario.tiendas_asignadas[0].tipo_checado_tienda === 'FIJO'">
                       <ion-label>Fijo</ion-label>
                     </ion-segment-button>
-                    <ion-segment-button value="LIBRE">
+                    
+                    <ion-segment-button value="LIBRE" *ngIf="usuario.tiendas_asignadas[0].tipo_checado_tienda === 'MIXTO' || usuario.tiendas_asignadas[0].tipo_checado_tienda === 'LIBRE'">
                       <ion-label>Libre</ion-label>
                     </ion-segment-button>
+                    
                   </ion-segment>
                 </div>
 

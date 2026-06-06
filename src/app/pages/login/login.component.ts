@@ -115,7 +115,8 @@ export class LoginComponent extends FormClass implements OnInit {
 									apertura: config.hora_apertura,
 									cierre: config.hora_cierre,
 									tolerancia: config.tolerancia_minutos,
-									timezone: config.time_zone
+									timezone: config.time_zone,
+									tipo_esquema: config.tipo_esquema
 								};
 								await this._preferencesService.setItem('user', JSON.stringify(user));						
 								
