@@ -31,6 +31,9 @@ export class FormUsuariosComponent implements OnInit {
   esEdicion: boolean = false;
   mostrarPassword: boolean = false; 
   listaRoles: any[] = [];      
+  
+  // Respaldo en memoria de la configuración inicial del usuario venido de la base de datos
+  tiendaOriginalRespaldada: any = null;
 
   constructor(
     private _usuarioService: UsuarioService,
@@ -46,11 +49,10 @@ export class FormUsuariosComponent implements OnInit {
     const state = this.router.getCurrentNavigation()?.extras.state;
     
     // 1. Primero recuperamos la configuración de la tienda del administrador en sesión
-    let tipoChecadoTiendaAdmin = 'MIXTO'; // Por defecto si no se encuentra
+    let tipoChecadoTiendaAdmin = 'MIXTO'; 
     const userStr = await this._preferencesService.getItem('user');
     if (userStr) {
       const userDoc = JSON.parse(userStr);
-      // Extraemos el tipo_esquema de la tienda activa de la sesión (ej. MIXTO)
       tipoChecadoTiendaAdmin = userDoc.tienda_activa_config?.tipo_esquema || 'MIXTO';
     }
 
@@ -66,16 +68,18 @@ export class FormUsuariosComponent implements OnInit {
       if (this.usuario.tiendas_asignadas.length === 0 && this.usuario.tiendas_ids.length > 0) {
         this.inicializarTiendaActual(this.usuario.tiendas_ids[0], 'Tienda Actual', tipoChecadoTiendaAdmin);
       } else if (this.usuario.tiendas_asignadas.length > 0) {
-        // CORRECCIÓN AQUÍ: Forzamos que herede el tipo de checado de la sesión activa 
-        // para que el segmento habilite los botones "FIJO" y "LIBRE" si es MIXTO.
         this.usuario.tiendas_asignadas[0].tipo_checado_tienda = tipoChecadoTiendaAdmin;
         
-        // Si por alguna razón el usuario guardado no traía tipo_esquema, le asignamos el actual
         if (!this.usuario.tiendas_asignadas[0].tipo_esquema) {
           this.usuario.tiendas_asignadas[0].tipo_esquema = 'FIJO';
         }
       }
       
+      // CREAMOS RESPALDO DE SEGURIDAD: Guardamos una copia idéntica del estado original de la Base de Datos
+      if (this.usuario.tiendas_asignadas && this.usuario.tiendas_asignadas.length > 0) {
+        this.tiendaOriginalRespaldada = JSON.parse(JSON.stringify(this.usuario.tiendas_asignadas[0]));
+      }
+
       this.esEdicion = true;
     } else {
       this.esEdicion = false;
@@ -106,8 +110,8 @@ export class FormUsuariosComponent implements OnInit {
       tipo_checado_tienda: tipoChecadoTienda, 
       hora_entrada: '',       
       hora_salida: '',          
-      dias_desfase: '',        
-      tolerancia_minutos: tolerancia,  
+      dias_desfase: '', // <-- CORREGIDO: Se quitó el 0 por defecto para evitar sobreescrituras molestas
+      tolerancia_minutos: tolerancia, // <-- CORREGIDO: Usa el parámetro dinámico real de inicialización
       jornada_efectiva: null,    
       config_comidas: [] 
     }];
@@ -163,6 +167,57 @@ export class FormUsuariosComponent implements OnInit {
         });
       }
     });
+  }
+
+  // MÉTODO DINÁMICO DE INTERCAMBIO DE ESQUEMAS
+  cambiarEsquemaDinamico(event: any) {
+    const esquemaSeleccionado = event.detail?.value?.toUpperCase();
+    if (!esquemaSeleccionado) return;
+
+    if (this.usuario && this.usuario.tiendas_asignadas && this.usuario.tiendas_asignadas.length > 0) {
+      
+      // Caso 1: Si regresa al esquema que tenía originalmente guardado de base de datos
+      if (this.tiendaOriginalRespaldada && this.tiendaOriginalRespaldada.tipo_esquema === esquemaSeleccionado) {
+        this.usuario.tiendas_asignadas[0] = JSON.parse(JSON.stringify(this.tiendaOriginalRespaldada));
+      } 
+      // Caso 2: Si explora un esquema alternativo nuevo, preservamos variables en blanco o existentes sin forzar estáticos
+      else {
+        const tiendaActual = this.usuario.tiendas_asignadas[0];
+        const idTienda = tiendaActual.id_tienda || tiendaActual.id;
+        const nombreTienda = tiendaActual.nombre;
+        const tipoChecado = tiendaActual.tipo_checado_tienda;
+
+        if (esquemaSeleccionado === 'LIBRE') {
+          this.usuario.tiendas_asignadas[0] = {
+            id: idTienda,
+            id_tienda: idTienda,
+            nombre: nombreTienda,
+            tipo_checado_tienda: tipoChecado,
+            tipo_esquema: 'LIBRE',
+            jornada_efectiva: tiendaActual.jornada_efectiva || '',
+            config_comidas: [] // Se fuerza vacío para destruir bloques fantasmas duplicados
+          };
+        } 
+        else if (esquemaSeleccionado === 'FIJO') {
+          this.usuario.tiendas_asignadas[0] = {
+            id: idTienda,
+            id_tienda: idTienda,
+            nombre: nombreTienda,
+            tipo_checado_tienda: tipoChecado,
+            tipo_esquema: 'FIJO',
+            hora_entrada: tiendaActual.hora_entrada || '',
+            hora_salida: tiendaActual.hora_salida || '',
+            // CORRECCIÓN CLAVE: Se removieron los valores duros (0 y 15) que sobreescribían la interfaz incorrectamente
+            dias_desfase: tiendaActual.dias_desfase !== undefined && tiendaActual.dias_desfase !== null ? tiendaActual.dias_desfase : '',
+            tolerancia_minutos: tiendaActual.tolerancia_minutos !== undefined && tiendaActual.tolerancia_minutos !== null ? tiendaActual.tolerancia_minutos : '',
+            config_comidas: [] // Se fuerza vacío para destruir bloques fantasmas duplicados
+          };
+        }
+      }
+
+      // Forzamos a Angular a revaluar la referencia del arreglo para actualizar los controles inputs de inmediato
+      this.usuario.tiendas_asignadas = [...this.usuario.tiendas_asignadas];
+    }
   }
 
   agregarComida(tienda: any) {
@@ -273,7 +328,7 @@ export class FormUsuariosComponent implements OnInit {
       return;
     }
     if (!this.usuario.apellido_paterno || this.usuario.apellido_paterno.trim() === '') {
-      this._toastService.show('Por favor ingresa el apellido paterno', 'warning', 'warning-outline');
+      this._toastService.show('Por favor ingresa el apellido paternal', 'warning', 'warning-outline');
       return;
     }
     if (!this.usuario.usuario || this.usuario.usuario.trim() === '') {
