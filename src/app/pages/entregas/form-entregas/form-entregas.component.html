@@ -18,7 +18,7 @@
             <ion-input label="Persona que recibe" labelPlacement="floating" [(ngModel)]="entrega.persona_recibe"></ion-input>
           </ion-item>
 
-          <ion-item lines="none" class="custom-item" id="open-colonia-modal" button="true" detail="false">
+          <ion-item lines="none" class="custom-item" id="open-colonia-modal" [button]="!guardando" detail="false" [disabled]="guardando">
             <ion-icon slot="start" name="map-outline" color="primary"></ion-icon>
             
             <div class="input-floating-mock">
@@ -33,8 +33,17 @@
         </div>        
 
         <div class="ion-padding-top">
-          <ion-button expand="block" shape="round" class="main-button" (click)="guardar()">
-            {{ entrega.id ? 'ACTUALIZAR' : 'CREAR ENTREGA' }}
+          <ion-button expand="block" shape="round" class="main-button" (click)="guardar()" [disabled]="guardando">
+            
+            <ng-container *ngIf="!guardando">
+              {{ entrega.id ? 'ACTUALIZAR' : 'CREAR ENTREGA' }}
+            </ng-container>
+
+            <ng-container *ngIf="guardando">
+              <ion-spinner name="crescent" slot="start" style="--color: white; width: 20px; height: 20px; margin-right: 8px;"></ion-spinner>
+              {{ entrega.id ? 'ACTUALIZANDO...' : 'GUARDANDO...' }}
+            </ng-container>
+
           </ion-button>
         </div>
 
@@ -52,6 +61,7 @@
           <ion-button (click)="coloniaModal.dismiss()" style="font-weight: 700;">CERRAR</ion-button>
         </ion-buttons>
       </ion-toolbar>
+      
       <ion-toolbar color="primary" style="padding: 0 4px 8px 4px;">
         <ion-searchbar 
           placeholder="Escribe el nombre de la colonia..." 
@@ -59,8 +69,7 @@
           [debounce]="400"
           animated="true">
         </ion-searchbar>
-      </ion-toolbar>
-    </ion-header>
+      </ion-toolbar> </ion-header>
 
     <ion-content class="ion-padding">
       <div *ngIf="cargandoColonias" class="ion-text-center ion-padding" style="margin-top: 20px;">

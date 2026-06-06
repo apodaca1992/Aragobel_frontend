@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { NavController } from '@ionic/angular'; // 👈 Inyectado para navegación nativa estable
 import { EntregaService } from '@services/entrega.service';
 import { PreferencesService } from '@services/preference.service';
 import { EntregaInterface } from '@interfaces/entrega-interface';
@@ -8,7 +9,7 @@ import { ColoniaService } from '@services/colonia.service';
 import { GeolocationService } from '@services/geolocation.service';
 
 @Component({
-  selector: 'app-form-entregas',
+  selector: 'app-form-form-entregas',
   templateUrl: './form-entregas.component.html',
   styleUrls: ['./form-entregas.component.scss'],
 })
@@ -31,13 +32,15 @@ export class FormEntregasComponent implements OnInit {
   // Lista dinámica que se renderiza bajo demanda desde la API
   filteredColonias: any[] = [];
 
-  // Bandera de carga para la UI del modal
+  // Banderas de carga para la interfaz de usuario (UI)
   cargandoColonias: boolean = false;
+  guardando: boolean = false; // 👈 Nueva bandera para evitar el doble clic y controlar el loading del botón
 
   constructor(
     private _entregaService: EntregaService,
     private _preferencesService: PreferencesService,
     private router: Router,
+    private navCtrl: NavController, // 👈 Inyectado para retorno limpio
     private _toastService: ToastService,
     private _coloniaService: ColoniaService,
     private _geoService: GeolocationService
@@ -79,7 +82,7 @@ export class FormEntregasComponent implements OnInit {
     
     const datos = {
       activo: 1, 
-      limit: 10, // 👈 Cambiado a un bloque fijo de 10 registros
+      limit: 10, 
       id_tienda: user.id_tienda
     };
 
@@ -100,7 +103,6 @@ export class FormEntregasComponent implements OnInit {
   async filtrarColonias(event: any) {
     const busqueda = event.target.value ? event.target.value.toLowerCase().trim() : '';
 
-    // Si el usuario borra el texto de búsqueda, restablecemos a las 10 iniciales sugeridas
     if (busqueda.length < 2) {
       this.obtenerColoniasIniciales();
       return;
@@ -115,10 +117,9 @@ export class FormEntregasComponent implements OnInit {
     const parametros: any = {
       activo: 1,
       id_tienda: user.id_tienda,
-      limit: 10 // 👈 Cambiado a 10 para agilizar la transferencia NoSQL
+      limit: 10 
     };
 
-    // Filtros de prefijo heredados de tu query base
     parametros.nombre_search_gte = busqueda;
     parametros.nombre_search_lte = busqueda + '\uf8ff';
 
@@ -140,35 +141,57 @@ export class FormEntregasComponent implements OnInit {
     this.entrega.id_colonia = colonia.id;
     
     modal.dismiss();
-
-    // Restablecemos el lote inicial para cuando se vuelva a abrir
     this.obtenerColoniasIniciales();
   }
 
   async guardar() {
+    // ⚡ FRENO DE MANO: Si ya se está procesando un guardado activo, cancelamos inmediatamente cualquier clic extra
+    if (this.guardando) {
+      return;
+    }
+
     if (!this.entrega.folio || !this.entrega.persona_recibe || !this.entrega.colonia) {
       this._toastService.show('Por favor rellena todos los campos', 'warning', 'warning-outline');
       return;
     }
 
-    const coords = await this._geoService.getPosition();
-    if (!coords) {
-      return;
-    }
-    this.entrega.ubicacion = { lat: coords.latitude, lng: coords.longitude };
+    // Activamos el estado de carga
+    this.guardando = true;
 
-    const peticion = this.entrega.id 
-      ? this._entregaService.put(this.entrega as EntregaInterface) 
-      : this._entregaService.post(this.entrega as EntregaInterface);
-
-    peticion.subscribe({
-      next: (res) => {
-        this._toastService.show('¡Entrega guardada con éxito!', 'success', 'checkmark-circle-outline');
-        this.router.navigate(['/entregas'], { replaceUrl: true }); 
-      },
-      error: (err) => {
-        console.error('Error detallado:', err);
+    try {
+      const coords = await this._geoService.getPosition();
+      if (!coords) {
+        // Si el servicio de geolocalización falla o es rechazado, liberamos el botón para corregir
+        this.guardando = false;
+        return;
       }
-    });
+      this.entrega.ubicacion = { lat: coords.latitude, lng: coords.longitude };
+
+      const peticion = this.entrega.id 
+        ? this._entregaService.put(this.entrega as EntregaInterface) 
+        : this._entregaService.post(this.entrega as EntregaInterface);
+
+      peticion.subscribe({
+        next: (res) => {
+          this._toastService.show('¡Entrega guardada con éxito!', 'success', 'checkmark-circle-outline');
+          
+          // Navegación root nativa de Ionic para forzar el refresco de listas de manera segura
+          this.navCtrl.navigateRoot('/entregas', { animated: true, animationDirection: 'back' }); 
+          
+          // Nota: No es estrictamente necesario poner "this.guardando = false" aquí porque navigateRoot destruye/cambia la vista actual
+        },
+        error: (err) => {
+          console.error('Error detallado:', err);
+          this._toastService.show('Hubo un error al guardar la entrega', 'danger', 'alert-circle-outline');
+          
+          // Si la API responde con un error, liberamos el botón para permitir que el usuario lo intente de nuevo
+          this.guardando = false;
+        }
+      });
+
+    } catch (error) {
+      console.error('Error inesperado en flujo guardar:', error);
+      this.guardando = false;
+    }
   }
 }
