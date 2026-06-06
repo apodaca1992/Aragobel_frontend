@@ -19,6 +19,11 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
   private offsetMs: number = 0;
   cargandoHistorial: boolean = true;
   
+  // ⚡ MEMORIA TEMPORAL DEL COMPONENTE:
+  // Almacena el ID de la jornada devuelto de forma inteligente por el servidor,
+  // sirviendo de enlace para los POST (comidas, salida) sin persistirse en el teléfono.
+  private jornadaIdActual: string | null = null;
+
   // Objeto de registro normalizado para la UI primaria
   registro: any = {
     entrada: null,
@@ -87,102 +92,51 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
     if (!userStr) return;
     const user = JSON.parse(userStr);
 
-    // 1. Primer intento: Buscar si hay alguna jornada remanente 'ACTIVA' del usuario (sin importar el día)
-    const datosBusquedaActiva = {         
-      id_tienda: user.id_tienda,
-      id_usuario: user.id,
-      status_jornada: 'ACTIVA',
-      activo: 1
-    };
-
-    this._asistenciaService.get(datosBusquedaActiva).subscribe({
+    // 🚀 PETICIÓN INTELIGENTE ÚNICA:
+    this._asistenciaService.getJornadaActual(user.id, user.id_tienda).subscribe({
       next: async (res: any) => { 
-        let jornada = res?.data ? (Array.isArray(res.data) ? res.data[0] : res.data) : res;
+        const jornada = res?.data ? (Array.isArray(res.data) ? res.data[0] : res.data) : res;
 
-        // Si no hay jornada ACTIVA, significa que no ha entrado o que ya marcó su SALIDA final hoy
-        if (!jornada || (Array.isArray(res) && res.length === 0) || (!jornada.id && !jornada.id_usuario)) {
-          
-          // 2. Segundo intento: Buscar la jornada de HOY sin filtros de estatus para pintar el resumen final
-          const datosHoy = {
-            id_tienda: user.id_tienda,
-            id_usuario: user.id,
-            fecha: 'TODAY',
-            activo: 1
-          };
-
-          this._asistenciaService.get(datosHoy).subscribe({
-            next: async (resHoy: any) => {
-              const jornadaHoy = resHoy?.data ? (Array.isArray(resHoy.data) ? resHoy.data[0] : resHoy.data) : resHoy;
-              this.procesarResultadoJornada(jornadaHoy, user);
-            },
-            error: (err) => {
-              this.cargandoHistorial = false;
-              console.error('Error al re-consultar jornada de hoy:', err);
-            }
-          });
-
+        if (jornada && (jornada.id || jornada.id_usuario)) {
+          // Asignamos el ID directo a la variable del componente
+          this.jornadaIdActual = jornada.id || null;
+          this.mapearRegistros(jornada);
         } else {
-          // Si encontramos una jornada activa en curso o colgada, la procesamos
-          this.procesarResultadoJornada(jornada, user);
+          // ===================================================================
+          // TRATAMIENTO CUANDO DE VERDAD EL BACKEND DICE QUE NO HAY NADA
+          // ===================================================================
+          this.jornadaIdActual = null;
+          this.tipoEsquema = user.tipo_esquema || 'FIJO'; 
+          
+          if (this.tipoEsquema === 'FIJO') {
+            this.horaEntradaFija = user.hora_entrada || '21:00'; 
+            this.horaSalidaFija = user.hora_salida || '05:30';
+
+            const hoyEntrada = new Date();
+            const [hE, mE] = this.horaEntradaFija.split(':');
+            hoyEntrada.setHours(parseInt(hE), parseInt(mE), 0, 0);
+            this.entradaFijaDate = hoyEntrada;
+
+            const hoySalida = new Date();
+            const [hS, mS] = this.horaSalidaFija.split(':');
+            hoySalida.setHours(parseInt(hS), parseInt(mS), 0, 0);
+            
+            if (hoySalida.getTime() < hoyEntrada.getTime()) {
+              hoySalida.setDate(hoySalida.getDate() + 1);
+            }
+            this.salidaFijaDate = hoySalida;
+          }
+
+          this.registro = { entrada: null, salida: null };
+          this.listaComidasUI = [];
+          this.cargandoHistorial = false;
         }
       },
       error: (err) => {
         this.cargandoHistorial = false; 
-        console.error('Error al cargar historial:', err);
+        console.error('Error al cargar historial con petición inteligente:', err);
       }
     });
-  }
-
-  // Método auxiliar encargado de gestionar la persistencia del ID de jornada y ejecutar el mapeo
-  private async procesarResultadoJornada(jornada: any, user: any) {
-    if (jornada && (jornada.id || jornada.id_usuario)) {
-      const idDocumento = jornada.id;
-
-      if (idDocumento) {
-        if (jornada.status_jornada === 'ACTIVA') {
-          const idActual = await this._preferencesService.getItem('id_jornada_activa');
-          if (!idActual) {
-            await this._preferencesService.setItem('id_jornada_activa', idDocumento);
-            console.log('🔄 ID de jornada recuperado:', idDocumento);
-          }
-        } else {
-          // Si la jornada devuelta ya está cerrada (FINALIZADA), limpiamos la llave de seguimiento activo
-          await this._preferencesService.removeItem('id_jornada_activa');
-        }
-      }
-
-      // Procesamos el mapeo de registros (renderiza las marcas históricas en la UI)
-      this.mapearRegistros(jornada);
-
-    } else {
-      // Tratamiento definitivo cuando de verdad no existe histórico del día ni jornadas colgadas
-      await this._preferencesService.removeItem('id_jornada_activa');
-      
-      this.tipoEsquema = user.tipo_esquema || 'FIJO'; 
-      
-      if (this.tipoEsquema === 'FIJO') {
-        this.horaEntradaFija = user.hora_entrada || '21:00'; 
-        this.horaSalidaFija = user.hora_salida || '05:30';
-
-        const hoyEntrada = new Date();
-        const [hE, mE] = this.horaEntradaFija.split(':');
-        hoyEntrada.setHours(parseInt(hE), parseInt(mE), 0, 0);
-        this.entradaFijaDate = hoyEntrada;
-
-        const hoySalida = new Date();
-        const [hS, mS] = this.horaSalidaFija.split(':');
-        hoySalida.setHours(parseInt(hS), parseInt(mS), 0, 0);
-        
-        if (hoySalida.getTime() < hoyEntrada.getTime()) {
-          hoySalida.setDate(hoySalida.getDate() + 1);
-        }
-        this.salidaFijaDate = hoySalida;
-      }
-
-      this.registro = { entrada: null, salida: null };
-      this.listaComidasUI = [];
-      this.cargandoHistorial = false;
-    }
   }
 
   private mapearRegistros(data: any) {
@@ -194,7 +148,6 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
     this.configComidasJornada = data.config_comidas || [];
     this.jornadaEf = data.jornada_efectiva !== undefined ? data.jornada_efectiva : 15;
 
-    // --- CORRECCIÓN CRÍTICA PARA TURNOS CRUZADOS (MEDIANOCHE) ---
     if (data.hora_entrada) {
       this.entradaFijaDate = new Date(data.hora_entrada);
       this.horaEntradaFija = this.entradaFijaDate.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -434,7 +387,6 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
 
     const userStr = await this._preferencesService.getItem('user');
     const user = userStr ? JSON.parse(userStr) : {};
-    const idJornadaGuardado = await this._preferencesService.getItem('id_jornada_activa');
 
     const datosRegistro: any = {
       tipo: tipo, 
@@ -443,25 +395,19 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
       ubicacion: { lat: coords.latitude, lng: coords.longitude }
     };
 
-    if (idJornadaGuardado) {
-      datosRegistro.id_jornada = idJornadaGuardado;
+    // Usamos el ID enlazado dinámicamente en el componente por el GET inteligente
+    if (this.jornadaIdActual) {
+      datosRegistro.id_jornada = this.jornadaIdActual;
     }
 
     this._asistenciaService.post(datosRegistro).subscribe({
       next: async (res: any) => {
         const textoToast = tipo.replace('_', ' ').toUpperCase();
         this._toastService.show(`¡${textoToast} registrado con éxito!`, 'success', 'time-outline');      
-        const jornadaData = res?.data ? res.data : res;
-
-        if (tipo.toLowerCase() === 'entrada' && jornadaData && (jornadaData.id || res.id)) {
-          const idDocumento = jornadaData.id || res.id;
-          await this._preferencesService.setItem('id_jornada_activa', idDocumento);
-        } 
-        else if (tipo.toLowerCase() === 'salida') {
-          await this._preferencesService.removeItem('id_jornada_activa');
-        }
 
         this.bloqueoBoton = false; 
+        
+        // Al recargar, el GET inteligente volverá a mapear todo fresco desde la DB
         this.cargarAsistenciasDia();
       },
       error: (err) => {

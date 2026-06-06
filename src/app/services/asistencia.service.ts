@@ -40,4 +40,13 @@ export class AsistenciaService {
   obtenerPdfReporte(params?: any): Observable<Blob> {
     return this._httpClient.get<Blob>(`${this.urlApi}/descargarReportePdf`,{ params: HttpHelper.convertToHttpParams(params), responseType: 'blob' as 'json' });
   }
+  /**
+   * Obtiene la jornada inteligente (activa o la última del día) para un usuario en una tienda específica.
+   */
+  getJornadaActual(idUsuario: string | number, idTienda: string | number): Observable<AsistenciaInterface> {
+    const params = { id_usuario: idUsuario, id_tienda: idTienda, activo: 1 };
+    return this._httpClient.get<AsistenciaInterface>(`${this.urlApi}/jornada-actual`, { 
+      params: HttpHelper.convertToHttpParams(params) 
+    });
+  }
 }
