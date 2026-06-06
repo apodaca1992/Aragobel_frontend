@@ -90,7 +90,7 @@ export class FormChecadorComponent implements OnInit, OnDestroy {
     const datos = {         
       id_tienda: user.id_tienda,
       id_usuario: user.id,
-      fecha: 'TODAY',
+      status_jornada: 'ACTIVA',//fecha: 'TODAY',
       activo: 1
     };
 
