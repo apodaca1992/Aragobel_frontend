@@ -10,7 +10,6 @@ import { ActionSheetService } from '@services/action-sheet.service';
 import { GeolocationService } from '@services/geolocation.service';
 import { IonInfiniteScroll } from '@ionic/angular';
 
-// Definimos una interfaz para el estado de cada pestaña de forma aislada
 interface EstadoPestana {
   datos: EntregaInterface[];
   lastDocId: string | null;
@@ -29,8 +28,11 @@ export class ListEntregasComponent implements OnInit {
   segmentoActual: string = 'disponibles';
   cargando: boolean = false;
   limite: number = 10;
+  
+  // Bandera de control para asegurar que las lecturas del Storage terminaron
+  usuarioInicializado: boolean = false;
 
-  // ⚡ EL SECRETO: Diccionario contenedor con estados independientes por pestaña
+  // Diccionario contenedor con estados independientes por pestaña
   listasPorSegmento: { [key: string]: EstadoPestana } = {
     'mis-registros': { datos: [], lastDocId: null, completado: false },
     'disponibles':   { datos: [], lastDocId: null, completado: false },
@@ -55,6 +57,11 @@ export class ListEntregasComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
+    await this.cargarConfiguracionUsuario();
+  }
+
+  // Carga y asignación secuencial estricta de la sesión
+  async cargarConfiguracionUsuario(): Promise<void> {
     this.puedeCrear = await this._preferencesService.tienePermiso('ENTREGAS', 'CREAR');
     this.esAdmin = await this._preferencesService.esAdmin(); 
     this.idUsuarioActual = await this._preferencesService.getIdUser();
@@ -75,32 +82,35 @@ export class ListEntregasComponent implements OnInit {
       this.esCajero = false;
       this.segmentoActual = 'disponibles';
     }
+
+    this.usuarioInicializado = true;
   }
 
+  // Ciclo de vida nativo de Ionic (Garantiza ejecución al entrar o regresar)
   async ionViewWillEnter() {
-    if (!this.idTiendaUsuarioActual) {
-      const userStr = await this._preferencesService.getItem('user');
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        this.idTiendaUsuarioActual = user.id_tienda;
-      }
+    console.log('Entrando al módulo de entregas...');
+    
+    // ⚡ SOLUCIÓN AL ERROR EN CELULAR FÍSICO:
+    // Si la lectura asíncrona del teléfono va lenta y las variables críticas están vacías,
+    // frenamos el hilo y obligamos a esperar a que PreferencesService responda por completo.
+    if (!this.usuarioInicializado || !this.idTiendaUsuarioActual || !this.idUsuarioActual) {
+      console.log('Almacenamiento asíncrono retrasado. Forzando espera en dispositivo físico...');
+      await this.cargarConfiguracionUsuario();
     }
 
-    // Al entrar a la vista limpiamos por completo todas las pestañas para traer datos frescos
+    // Una vez resuelto el rol real (Cajero), reseteamos los cursores del paginado y descargamos
     this.reiniciarTodoElPaginador();
     this.cargarDatos();
   }
 
-  // Al cambiar de pestaña, evaluamos si ya tiene datos previos o si requiere consulta inicial
   cambiarSegmento() {
+    if (!this.usuarioInicializado) return;
+
     const estado = this.listasPorSegmento[this.segmentoActual];
-    
-    // Controlamos el estado del componente Infinite Scroll nativo según la pestaña destino
     if (this.infiniteScroll) {
       this.infiniteScroll.disabled = estado.completado;
     }
 
-    // Si la pestaña no tiene datos cargados, hacemos su primera petición
     if (estado.datos.length === 0 && !estado.completado) {
       this.cargarDatos();
     }
@@ -113,7 +123,6 @@ export class ListEntregasComponent implements OnInit {
     if (this.infiniteScroll) this.infiniteScroll.disabled = false;
   }
 
-  // Re-utilizable para limpiar una sola pestaña tras una mutación (Tomar o Finalizar entrega)
   private reiniciarPestanaEspecifica(segmento: string) {
     this.listasPorSegmento[segmento] = { datos: [], lastDocId: null, completado: false };
     if (this.segmentoActual === segmento && this.infiniteScroll) {
@@ -122,32 +131,31 @@ export class ListEntregasComponent implements OnInit {
   }
 
   async cargarDatos(event?: any) {
-    if (!this.idTiendaUsuarioActual) {
+    // Protección final de nulos para la API
+    if (!this.idTiendaUsuarioActual || !this.usuarioInicializado) {
       if (event) event.target.complete();
       return;
     }
 
-    // Obtenemos la referencia del estado de la pestaña que está viendo el usuario actualmente
     const estadoActual = this.listasPorSegmento[this.segmentoActual];
 
-    // Si es la primera página del segmento, disparamos el loader visual
     if (!estadoActual.lastDocId) {
       this.cargando = true;
     }
 
+    // ⚡ HOMOLOGACIÓN DE FECHA: Estructurada idéntica a la inserción del formulario para que NoSQL la encuentre
     const filtros: any = {
       activo: 1,
       id_tienda: this.idTiendaUsuarioActual,
-      fecha_venta: 'TODAY',
+      fecha_venta: `TODAY|${this.idTiendaUsuarioActual}`, 
       limit: this.limite
     };
 
-    // Aplicamos el cursor si y solo si pertenece al registro histórico de ESTE segmento
     if (estadoActual.lastDocId) {
       filtros.lastDocId = estadoActual.lastDocId;
     }
 
-    // Aplicación de filtros dinámicos Server-Side
+    // Ahora 'this.esCajero' tiene el valor real correcto desde la primera carga
     if (this.esCajero) {
       filtros.id_usuario_creador = this.idUsuarioActual;
       filtros.estatus = '!=|3'; 
@@ -172,13 +180,11 @@ export class ListEntregasComponent implements OnInit {
           estadoActual.datos = [...estadoActual.datos, ...nuevosDatos];
         }
 
-        // Registramos el cursor apuntando al último elemento del segmento actual
         if (nuevosDatos.length > 0) {
           const ultimoElemento = nuevosDatos[nuevosDatos.length - 1];
           estadoActual.lastDocId = ultimoElemento.id;
         }
 
-        // Si regresan menos datos que el límite, marcamos la pestaña como completada
         if (nuevosDatos.length < this.limite) {
           estadoActual.completado = true;
           if (this.infiniteScroll) this.infiniteScroll.disabled = true;
@@ -191,7 +197,7 @@ export class ListEntregasComponent implements OnInit {
         if (!estadoActual.lastDocId) estadoActual.datos = [];
         if (event) event.target.complete();
         this.cargando = false;
-        console.error('Error al consultar entregas por segmento:', err);
+        console.error('Error al consultar entregas:', err);
       }
     });
   }
@@ -205,7 +211,6 @@ export class ListEntregasComponent implements OnInit {
     this.cargarDatos(event);
   }
 
-  // Helper para mapear los datos correctos en el HTML de forma limpia
   get entregasPorPestana(): EntregaInterface[] {
     return this.listasPorSegmento[this.segmentoActual]?.datos || [];
   }
@@ -214,7 +219,7 @@ export class ListEntregasComponent implements OnInit {
     return this.entregasPorPestana.length > 0;
   }
 
-  // --- Operaciones de flujo de estatus ---
+  // --- Operaciones nativas del flujo de Repartidores/Cajeros ---
 
   async abrirSelectorVehiculo(entrega: any) {
     this._vehiculoService.get({ activo: 1, id_tienda: this.idTiendaUsuarioActual }).subscribe({
@@ -255,8 +260,6 @@ export class ListEntregasComponent implements OnInit {
 
     this._entregaService.put(datosActualizar).subscribe({
       next: () => {
-        // ⚡ OPTIMIZACIÓN REACTIVA: Cuando tomas una entrega, limpias ambas pestañas afectadas 
-        // para forzar a que recalculen sus cursores e índices desde el servidor limpiamente.
         this.reiniciarPestanaEspecifica('disponibles');
         this.reiniciarPestanaEspecifica('camino');
         this.cargarDatos(); 
@@ -277,7 +280,6 @@ export class ListEntregasComponent implements OnInit {
 
     this._entregaService.put(datosActualizar).subscribe({
       next: () => {
-        // Al finalizar, removemos el cache local de la pestaña "En Camino" para actualizar la lista
         this.reiniciarPestanaEspecifica('camino');
         this.cargarDatos(); 
       },
