@@ -17,7 +17,6 @@ export class FormUsuariosComponent implements OnInit {
     apellido_paterno: '',
     apellido_materno: '',       
     usuario: '',
-    email: '',
     contrasena: '',            
     nombre_completo: '',        
     nombre_completo_search: '', 
@@ -110,8 +109,8 @@ export class FormUsuariosComponent implements OnInit {
       tipo_checado_tienda: tipoChecadoTienda, 
       hora_entrada: '',       
       hora_salida: '',          
-      dias_desfase: '', // <-- CORREGIDO: Se quitó el 0 por defecto para evitar sobreescrituras molestas
-      tolerancia_minutos: tolerancia, // <-- CORREGIDO: Usa el parámetro dinámico real de inicialización
+      dias_desfase: '', 
+      tolerancia_minutos: tolerancia, 
       jornada_efectiva: null,    
       config_comidas: [] 
     }];
@@ -169,18 +168,15 @@ export class FormUsuariosComponent implements OnInit {
     });
   }
 
-  // MÉTODO DINÁMICO DE INTERCAMBIO DE ESQUEMAS
   cambiarEsquemaDinamico(event: any) {
     const esquemaSeleccionado = event.detail?.value?.toUpperCase();
     if (!esquemaSeleccionado) return;
 
     if (this.usuario && this.usuario.tiendas_asignadas && this.usuario.tiendas_asignadas.length > 0) {
       
-      // Caso 1: Si regresa al esquema que tenía originalmente guardado de base de datos
       if (this.tiendaOriginalRespaldada && this.tiendaOriginalRespaldada.tipo_esquema === esquemaSeleccionado) {
         this.usuario.tiendas_asignadas[0] = JSON.parse(JSON.stringify(this.tiendaOriginalRespaldada));
       } 
-      // Caso 2: Si explora un esquema alternativo nuevo, preservamos variables en blanco o existentes sin forzar estáticos
       else {
         const tiendaActual = this.usuario.tiendas_asignadas[0];
         const idTienda = tiendaActual.id_tienda || tiendaActual.id;
@@ -195,7 +191,7 @@ export class FormUsuariosComponent implements OnInit {
             tipo_checado_tienda: tipoChecado,
             tipo_esquema: 'LIBRE',
             jornada_efectiva: tiendaActual.jornada_efectiva || '',
-            config_comidas: [] // Se fuerza vacío para destruir bloques fantasmas duplicados
+            config_comidas: [] 
           };
         } 
         else if (esquemaSeleccionado === 'FIJO') {
@@ -207,15 +203,13 @@ export class FormUsuariosComponent implements OnInit {
             tipo_esquema: 'FIJO',
             hora_entrada: tiendaActual.hora_entrada || '',
             hora_salida: tiendaActual.hora_salida || '',
-            // CORRECCIÓN CLAVE: Se removieron los valores duros (0 y 15) que sobreescribían la interfaz incorrectamente
             dias_desfase: tiendaActual.dias_desfase !== undefined && tiendaActual.dias_desfase !== null ? tiendaActual.dias_desfase : '',
             tolerancia_minutos: tiendaActual.tolerancia_minutos !== undefined && tiendaActual.tolerancia_minutos !== null ? tiendaActual.tolerancia_minutos : '',
-            config_comidas: [] // Se fuerza vacío para destruir bloques fantasmas duplicados
+            config_comidas: [] 
           };
         }
       }
 
-      // Forzamos a Angular a revaluar la referencia del arreglo para actualizar los controles inputs de inmediato
       this.usuario.tiendas_asignadas = [...this.usuario.tiendas_asignadas];
     }
   }
@@ -333,16 +327,6 @@ export class FormUsuariosComponent implements OnInit {
     }
     if (!this.usuario.usuario || this.usuario.usuario.trim() === '') {
       this._toastService.show('Por favor ingresa el nombre de usuario', 'warning', 'warning-outline');
-      return;
-    }
-    if (!this.usuario.email || this.usuario.email.trim() === '') {
-      this._toastService.show('Por favor ingresa el correo electrónico', 'warning', 'warning-outline');
-      return;
-    }
-
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailPattern.test(this.usuario.email)) {
-      this._toastService.show('El formato del correo electrónico no es válido', 'danger', 'alert-circle-outline');
       return;
     }
     

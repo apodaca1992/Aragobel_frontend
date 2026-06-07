@@ -1,8 +1,6 @@
 <ion-header [translucent]="true">
   <app-header titulo="Catálogo de Usuarios" mode="back"></app-header>
-</ion-header>
-
-<ion-content color="light" class="ion-padding">  
+</ion-header> <ion-content color="light" class="ion-padding">  
   
   <div class="filter-header">
     <div class="summary">
@@ -109,12 +107,10 @@
 
         <div slot="content" class="accordion-detail-container">
           <div class="day-attendance-card">
-            <div class="card-top-row">
-              <div class="date-inline-box">
-                <span class="num-day">Correo Electrónico</span>
-                <span class="text-month" style="font-size: 14px; font-weight: 600; text-transform: none;">{{ usuario.email }}</span>
-              </div>
-              <div class="status-tags-container">
+            
+            <div class="card-top-row" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase;">Estado del usuario</span>
+              <div class="status-tags-container" style="margin: 0;">
                 <span class="compact-status-tag" [ngClass]="usuario.activo === 1 ? 'success' : 'danger'">
                   {{ usuario.activo === 1 ? 'Activo' : 'Inactivo' }}
                 </span>

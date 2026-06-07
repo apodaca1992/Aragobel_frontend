@@ -77,27 +77,6 @@
           </div>
 
           <div class="input-group">
-            <ion-label class="input-label">Correo Electrónico *</ion-label>
-            <ion-item lines="none" class="custom-input-item" [style.border-color]="emailCtrl.invalid && emailCtrl.dirty ? 'var(--ion-color-danger)' : ''">
-              <ion-icon name="mail-outline" color="primary" slot="start"></ion-icon>
-              <ion-input 
-                type="email" 
-                name="emailUsuario"
-                #emailCtrl="ngModel"
-                placeholder="Ej. correo{{ '@' }}dominio.com" 
-                [(ngModel)]="usuario.email"
-                required
-                pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                clearInput="true">
-              </ion-input>
-            </ion-item>
-            <div *ngIf="emailCtrl.invalid && emailCtrl.dirty" style="color: var(--ion-color-danger); font-size: 0.75rem; margin-top: 4px; padding-left: 5px; font-weight: 500;">
-              <span *ngIf="emailCtrl.errors?.['required']">El correo electrónico es requerido.</span>
-              <span *ngIf="emailCtrl.errors?.['pattern']">Por favor ingresa un correo electrónico válido (Ej: usuario{{ '@' }}dominio.com).</span>
-            </div>
-          </div>
-
-          <div class="input-group">
             <ion-label class="input-label">
               Contraseña {{ esEdicion ? '(Dejar en blanco para no cambiar)' : '*' }}
             </ion-label>
@@ -389,7 +368,7 @@
               color="primary" 
               type="submit"
               class="btn-submit"
-              [disabled]="!usuario.nombre || !usuario.apellido_paterno || !usuario.usuario || !usuario.email || emailCtrl.invalid || (!esEdicion && !usuario.contrasena) || !usuario.roles || usuario.roles.length === 0 || esHorarioInvalido()">
+              [disabled]="!usuario.nombre || !usuario.apellido_paterno || !usuario.usuario || (!esEdicion && !usuario.contrasena) || !usuario.roles || usuario.roles.length === 0 || esHorarioInvalido()">
               <ion-icon slot="start" name="save-outline"></ion-icon>
               {{ esEdicion ? 'GUARDAR CAMBIOS' : 'REGISTRAR USUARIO' }}
             </ion-button>

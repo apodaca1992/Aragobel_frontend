@@ -24,3 +24,5 @@ yarn-error.log*
 .DS_Store
 src/.DS_Store
 **/.DS_Store
+
+android/app/release/
