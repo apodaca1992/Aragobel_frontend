@@ -25,4 +25,23 @@ yarn-error.log*
 src/.DS_Store
 **/.DS_Store
 
+# --- Android Studio y Gradle (Ignorar archivos locales de usuario) ---
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/.idea/
+/android/local.properties
+*.iml
+.DS_Store
 android/app/release/
+
+# --- Xcode e iOS (Ignorar archivos locales de usuario) ---
+/ios/.bundle/
+/ios/Pods/
+/ios/App/Pods/
+/ios/App/build/
+/ios/App/DerivedData/
+*.xcworkspace
+*.xcuserdata
+*.xcuserstate
+*.xcbkptlist

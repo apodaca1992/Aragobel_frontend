@@ -16,7 +16,9 @@
     "test": "ng test",
     "lint": "ng lint",
     "android:qa": "rm -rf www && npm run build:qa && npx cap sync && npx cap open android",
-    "android:prod": "rm -rf www && npm run build:prod && npx cap sync && npx cap open android"
+    "android:prod": "rm -rf www && npm run build:prod && npx cap sync && npx cap open android",
+    "ios:qa": "rm -rf www && npm run build:qa && npx cap sync && npx cap open ios",
+    "ios:prod": "rm -rf www && npm run build:prod && npx cap sync && npx cap open ios"
   },
   "private": true,
   "dependencies": {
